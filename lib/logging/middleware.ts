@@ -6,10 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "./logger";
 import { randomUUID } from "crypto";
 
-export function withLogging<T = any>(
-  handler: (req: NextRequest, context?: T) => Promise<NextResponse>
+export function withLogging<T extends Record<string, any> = any>(
+  handler: (req: NextRequest, context: T) => Promise<NextResponse>
 ) {
-  return async (req: NextRequest, context?: T): Promise<NextResponse> => {
+  return async (req: NextRequest, context: T): Promise<NextResponse> => {
     const requestId = req.headers.get("x-request-id") || randomUUID();
     const startTime = Date.now();
 
