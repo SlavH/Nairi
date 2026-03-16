@@ -1,0 +1,63 @@
+/* Nairi AI Extension Content Styles */
+
+#nairi-fab {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #e052a0, #00c9c8);
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 999999;
+  box-shadow: 0 4px 12px rgba(224, 82, 160, 0.4);
+  transition: all 0.2s ease;
+  animation: nairi-fab-appear 0.2s ease;
+}
+
+#nairi-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(224, 82, 160, 0.5);
+}
+
+#nairi-fab svg {
+  color: white;
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes nairi-fab-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Nairi tooltip */
+.nairi-tooltip {
+  position: absolute;
+  background: #1a1a1a;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 999998;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.nairi-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1a1a1a;
+}

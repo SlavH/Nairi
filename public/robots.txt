@@ -1,0 +1,36 @@
+# Nairi Website Builder - Default robots.txt
+# This file controls how search engines crawl your site
+
+# Allow all robots to access all content by default
+User-agent: *
+Allow: /
+
+# Disallow crawling of API endpoints
+Disallow: /api/
+
+# Disallow crawling of builder interface
+Disallow: /builder/
+Disallow: /builder-v2/
+
+# Disallow crawling of admin and user areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /billing/
+Disallow: /auth/
+
+# Disallow test pages
+Disallow: /test-*
+Disallow: /*?preview=*
+
+# Allow marketplace (public)
+Allow: /marketplace/
+
+# Sitemap locations
+Sitemap: https://nairi.ai/sitemap.xml
+Sitemap: https://nairi.ai/sitemap-blog.xml
+Sitemap: https://nairi.ai/sitemap-marketplace.xml
+
+# Crawl-delay for polite crawling (optional)
+# Crawl-delay: 1

@@ -1,0 +1,43 @@
+# ARIA Live Regions Patch for chat-interface.tsx
+
+## Location: After line 867 (after the error display section, before messagesEndRef)
+
+## Code to insert:
+
+```tsx
+        {/* ARIA Live Regions for Screen Readers */}
+        {/* Announce new assistant messages */}
+        {messages.length > 0 && messages[messages.length - 1]?.role === "assistant" && (
+          <LiveRegion politeness="polite" role="log">
+            Nairi: {getMessageText(messages[messages.length - 1]).substring(0, 200)}
+            {getMessageText(messages[messages.length - 1]).length > 200 ? "..." : ""}
+          </LiveRegion>
+        )}
+        
+        {/* Announce loading state */}
+        {isLoading && (
+          <LiveRegion politeness="polite" role="status">
+            Nairi is thinking...
+          </LiveRegion>
+        )}
+        
+        {/* Announce errors */}
+        {error && (
+          <LiveRegion politeness="assertive" role="alert">
+            Error: {error.message || "An error occurred"}
+          </LiveRegion>
+        )}
+```
+
+## Manual Instructions:
+1. Open C:/workspace/nairi_v31/components/chat/chat-interface.tsx
+2. Find line 867 (after the error display closing tag)
+3. Insert the code above before the `<div ref={messagesEndRef} />` line
+4. Save the file
+
+## What This Does:
+- Announces new assistant messages to screen readers (polite, doesn't interrupt)
+- Announces loading state ("Nairi is thinking...")
+- Announces errors (assertive, interrupts immediately)
+- Improves accessibility for visually impaired users
+- Meets WCAG 2.1 Level AA requirements for status messages

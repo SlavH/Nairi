@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nairi AI</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="nairi-popup">
+    <header class="popup-header">
+      <div class="logo-container">
+        <img src="../icons/icon48.png" alt="Nairi" class="logo">
+        <h1>Nairi AI</h1>
+      </div>
+      <button id="settingsBtn" class="icon-btn" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="quick-actions">
+      <button id="openChat" class="action-btn primary">
+        <span class="icon">💬</span>
+        <span>Open Chat</span>
+      </button>
+      <button id="summarizePage" class="action-btn">
+        <span class="icon">📝</span>
+        <span>Summarize Page</span>
+      </button>
+      <button id="translatePage" class="action-btn">
+        <span class="icon">🌐</span>
+        <span>Translate</span>
+      </button>
+      <button id="explainPage" class="action-btn">
+        <span class="icon">💡</span>
+        <span>Explain</span>
+      </button>
+      <button id="screenshotAnalyze" class="action-btn">
+        <span class="icon">📸</span>
+        <span>Screenshot & Analyze</span>
+      </button>
+      <button id="saveToKnowledge" class="action-btn">
+        <span class="icon">🧠</span>
+        <span>Save to Knowledge</span>
+      </button>
+    </div>
+
+    <div class="chat-input-container">
+      <textarea id="quickPrompt" placeholder="Ask Nairi anything..." rows="2"></textarea>
+      <button id="sendPrompt" class="send-btn" title="Send">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="recent-chats">
+      <h3>Recent Chats</h3>
+      <div id="recentChatsList" class="chats-list">
+        <p class="empty-state">Loading...</p>
+      </div>
+    </div>
+
+    <footer class="popup-footer">
+      <a href="http://localhost:3000" target="_blank" id="openFullApp">Open Full App</a>
+      <button id="openSidePanel" class="secondary-btn">Side Panel</button>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
