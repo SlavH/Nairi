@@ -885,8 +885,9 @@ export async function POST(req: NextRequest) {
     }
     const parsed = safeParseGenerateRequest(rawBody)
     if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[] | undefined>
       const message = parsed.error.flatten().formErrors?.[0]
-        ?? parsed.error.flatten().fieldErrors.prompt?.[0]
+        ?? fieldErrors.prompt?.[0]
         ?? "Invalid request. Prompt is required; currentFiles and conversationHistory must be arrays."
       return NextResponse.json({ error: message }, { status: 400 })
     }
