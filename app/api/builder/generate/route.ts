@@ -1338,7 +1338,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
             plan?: string[]
             files?: { path: string; content: string }[]
             message?: string
-          } = {}
+          } = {} as any
 
           if (!llmSuccess || !responseContent) {
             const errorReason = lastLlmError
