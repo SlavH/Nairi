@@ -62,7 +62,7 @@ export const POST = withLogging(async (
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return handleError(validationError("Invalid request body", error.errors));
+      return handleError(validationError("Invalid request body", { errors: error.errors }));
     }
     return handleError(error);
   }

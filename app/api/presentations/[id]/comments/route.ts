@@ -105,7 +105,7 @@ export const POST = withLogging(async (
     return NextResponse.json({ success: true, comment: data });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return handleError(validationError("Invalid request", error.errors));
+      return handleError(validationError("Invalid request", { errors: error.errors }));
     }
     return handleError(error);
   }
