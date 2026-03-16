@@ -17,9 +17,10 @@ const createCommentSchema = z.object({
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -32,7 +33,7 @@ export const GET = withLogging(async (
     let query = supabase
       .from("presentation_comments")
       .select("*, profiles:user_id(id, email, full_name)")
-      .eq("presentation_id", params.id)
+      .eq("presentation_id", id)
       .order("created_at", { ascending: true });
 
     if (slideId) {
@@ -51,9 +52,10 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -65,14 +67,14 @@ export const POST = withLogging(async (
     const { data: collaborator } = await supabase
       .from("presentation_collaborators")
       .select("role")
-      .eq("presentation_id", params.id)
+      .eq("presentation_id", id)
       .eq("user_id", userId)
       .single();
 
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!creation) {
@@ -89,7 +91,7 @@ export const POST = withLogging(async (
     const { data, error } = await supabase
       .from("presentation_comments")
       .insert({
-        presentation_id: params.id,
+        presentation_id: id,
         slide_id: slideId || null,
         user_id: userId,
         content,

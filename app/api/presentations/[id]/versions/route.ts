@@ -10,9 +10,10 @@ import { getUserIdOrBypassForApi } from "@/lib/auth";
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -24,14 +25,14 @@ export const GET = withLogging(async (
     const { data: collaborator } = await supabase
       .from("presentation_collaborators")
       .select("role")
-      .eq("presentation_id", params.id)
+      .eq("presentation_id", id)
       .eq("user_id", userId)
       .single();
 
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!creation) {
@@ -46,7 +47,7 @@ export const GET = withLogging(async (
     const { data: versions, error } = await supabase
       .from("presentation_versions")
       .select("*, profiles:created_by(id, email, full_name)")
-      .eq("presentation_id", params.id)
+      .eq("presentation_id", id)
       .order("version_number", { ascending: false });
 
     if (error) throw error;
@@ -59,9 +60,10 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -73,14 +75,14 @@ export const POST = withLogging(async (
     const { data: collaborator } = await supabase
       .from("presentation_collaborators")
       .select("role")
-      .eq("presentation_id", params.id)
+      .eq("presentation_id", id)
       .eq("user_id", userId)
       .single();
 
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!creation) {
@@ -98,7 +100,7 @@ export const POST = withLogging(async (
     const { data: lastVersion } = await supabase
       .from("presentation_versions")
       .select("version_number")
-      .eq("presentation_id", params.id)
+      .eq("presentation_id", id)
       .order("version_number", { ascending: false })
       .limit(1)
       .single();
@@ -109,7 +111,7 @@ export const POST = withLogging(async (
     const { data, error } = await supabase
       .from("presentation_versions")
       .insert({
-        presentation_id: params.id,
+        presentation_id: id,
         version_number: nextVersion,
         content,
         change_summary: changeSummary,

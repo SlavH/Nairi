@@ -17,9 +17,10 @@ const addCollaboratorSchema = z.object({
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -31,7 +32,7 @@ export const GET = withLogging(async (
     const { data: project } = await supabase
       .from("builder_projects")
       .select("user_id, is_public")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!project) {
@@ -46,7 +47,7 @@ export const GET = withLogging(async (
     const { data: collaborators, error } = await supabase
       .from("builder_project_collaborators")
       .select("*, profiles:user_id(id, email, full_name)")
-      .eq("project_id", params.id);
+      .eq("project_id", id);
 
     if (error) throw error;
 
@@ -58,9 +59,10 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -72,7 +74,7 @@ export const POST = withLogging(async (
     const { data: project } = await supabase
       .from("builder_projects")
       .select("user_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!project || project.user_id !== userId) {
@@ -85,7 +87,7 @@ export const POST = withLogging(async (
     const { data, error } = await supabase
       .from("builder_project_collaborators")
       .insert({
-        project_id: params.id,
+        project_id: id,
         user_id: collaboratorId,
         role,
         invited_by: userId,
