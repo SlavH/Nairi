@@ -18,9 +18,10 @@ const shareSchema = z.object({
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -32,7 +33,7 @@ export const POST = withLogging(async (
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (!creation || creation.user_id !== userId) {
@@ -52,7 +53,7 @@ export const POST = withLogging(async (
     const { data, error } = await supabase
       .from("workspace_shares")
       .insert({
-        creation_id: params.id,
+        creation_id: id,
         shared_by: userId,
         shared_with: sharedWith || null,
         permission,
@@ -69,7 +70,7 @@ export const POST = withLogging(async (
       await supabase
         .from("creations")
         .update({ shared_slug: sharedSlug })
-        .eq("id", params.id);
+        .eq("id", id);
     }
 
     return NextResponse.json({

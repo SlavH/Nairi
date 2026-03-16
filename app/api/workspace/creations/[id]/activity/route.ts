@@ -10,9 +10,10 @@ import { getUserIdOrBypassForApi } from "@/lib/auth";
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   try {
+    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -24,13 +25,13 @@ export const GET = withLogging(async (
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     const { data: share } = await supabase
       .from("workspace_shares")
       .select("permission")
-      .eq("creation_id", params.id)
+      .eq("creation_id", id)
       .or(`shared_with.eq.${userId},shared_with.is.null`)
       .single();
 
@@ -42,7 +43,7 @@ export const GET = withLogging(async (
     const { data: activities, error } = await supabase
       .from("workspace_activities")
       .select("*, profiles:user_id(id, email, full_name)")
-      .eq("creation_id", params.id)
+      .eq("creation_id", id)
       .order("created_at", { ascending: false })
       .limit(50);
 
