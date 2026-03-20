@@ -50,6 +50,10 @@ export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover 
         position: "relative",
         display: "inline-block",
         cursor: "pointer",
+        borderRadius: "50%",
+        padding: "3px",
+        background: "linear-gradient(135deg, #00c9c8 0%, #8b5cf6 50%, #e052a0 100%)",
+        boxShadow: "0 0 20px rgba(0, 201, 200, 0.3), 0 0 40px rgba(139, 92, 246, 0.2)",
       }}
     >
       <div
@@ -62,14 +66,14 @@ export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover 
         }}
       >
         <Canvas
-          camera={{ position: [0, 0, 3], fov: 50 }}
+          camera={{ position: [0, 0, 4], fov: 45 }}
           style={{ background: "transparent" }}
           gl={{ antialias: true, alpha: true }}
           dpr={1}
         >
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 5, 5]} intensity={0.4} />
-          <pointLight position={[0, 0, 4]} intensity={0.5} color="#ffffff" />
+          <pointLight position={[0, 0, 5]} intensity={0.5} color="#ffffff" />
           <Suspense fallback={null}>
             <CenterAvatar3D size={size} hoveredNodePosition={hoveredNodePosition} />
           </Suspense>

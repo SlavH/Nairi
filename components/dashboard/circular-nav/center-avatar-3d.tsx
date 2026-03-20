@@ -48,41 +48,37 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  useFrame((state) => {
+  useFrame(() => {
     if (!rotationRef.current) return;
 
-    const time = state.clock.getElapsedTime();
     const isMobile = isMobileRef.current;
     
     if (hoveredNodePosition) {
       const dx = hoveredNodePosition.x;
       const dy = hoveredNodePosition.y;
       
-      const maxYaw = isMobile ? 0.15 : 0.3;
-      const maxPitch = isMobile ? 0.09 : 0.18;
+      const maxYaw = isMobile ? 0.2 : 0.4;
+      const maxPitch = isMobile ? 0.12 : 0.25;
       
       targetRotation.current.y = THREE.MathUtils.clamp((dx / 200) * maxYaw, -maxYaw, maxYaw);
       targetRotation.current.x = THREE.MathUtils.clamp(-(dy / 200) * maxPitch, -maxPitch, maxPitch);
     } else {
-      const maxYaw = isMobile ? 0.15 : 0.3;
-      const maxPitch = isMobile ? 0.09 : 0.18;
+      const maxYaw = isMobile ? 0.2 : 0.4;
+      const maxPitch = isMobile ? 0.12 : 0.25;
       
       targetRotation.current.y = mousePos.current.x * maxYaw;
       targetRotation.current.x = -mousePos.current.y * maxPitch;
     }
 
-    const lerpFactor = 0.08;
+    const lerpFactor = 0.2;
     currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * lerpFactor;
     currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * lerpFactor;
 
-    const idleX = Math.sin(time * 0.5) * 0.008;
-    const idleY = Math.sin(time * 0.3) * 0.005;
-
-    rotationRef.current.rotation.x = currentRotation.current.x + idleX;
-    rotationRef.current.rotation.y = currentRotation.current.y + idleY;
+    rotationRef.current.rotation.x = currentRotation.current.x;
+    rotationRef.current.rotation.y = currentRotation.current.y;
   });
 
-  const scale = (size / 100) * 1.2;
+  const scale = (size / 100) * 1.5;
 
   return (
     <group scale={[scale, scale, scale]}>
