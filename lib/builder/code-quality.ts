@@ -2,6 +2,7 @@
  * Code Quality Tools (Phase 25)
  * Provides linting, formatting, and code quality metrics
  * ESLint is optional - dynamically imported to avoid build failures
+ * Updated to remove ESLint dependency for Vercel build
  */
 export interface CodeQualityResult {
   score: number; // 0-100
