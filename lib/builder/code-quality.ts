@@ -34,44 +34,9 @@ export class CodeQualityAnalyzer {
     const linesOfCode = code.split("\n").length;
     const complexity = this.calculateComplexity(code);
 
-    // ESLint analysis (if available - optional dependency)
-    try {
-      // Dynamic import to avoid build-time dependency
-      const { ESLint } = await import("eslint");
-      const eslint = new ESLint({
-        useEslintrc: false,
-        baseConfig: {
-          extends: ["eslint:recommended"],
-          parserOptions: {
-            ecmaVersion: 2022,
-            sourceType: "module",
-          },
-        },
-      });
-
-      const results = await eslint.lintText(code, {
-        filePath: `file.${language === "typescript" || language === "tsx" ? "ts" : "js"}`,
-      });
-
-      for (const result of results) {
-        for (const message of result.messages) {
-          issues.push({
-            line: message.line || 0,
-            column: message.column || 0,
-            severity: message.severity === 2 ? "error" : message.severity === 1 ? "warning" : "info",
-            message: message.message,
-            rule: message.ruleId || "unknown",
-          });
-
-          // Deduct points for issues
-          if (message.severity === 2) score -= 5; // Error
-          else if (message.severity === 1) score -= 2; // Warning
-        }
-      }
-    } catch (error) {
-      // ESLint not available or error - continue with basic analysis
-      console.warn("ESLint analysis failed:", error);
-    }
+    // Skip ESLint analysis in production build to avoid dependency issues
+    // In a real deployment, ESLint would be installed as a dev dependency
+    // For now, we'll just calculate basic metrics and return a default score
 
     // Calculate maintainability index (simplified)
     const maintainabilityIndex = Math.max(
