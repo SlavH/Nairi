@@ -13,6 +13,8 @@ interface CenterAvatar3DProps {
 export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar3DProps) {
   const { scene } = useGLTF("/models/nav-avatar.glb");
   const rotationRef = useRef<THREE.Group>(null);
+  const scaleRef = useRef<THREE.Group>(null);
+  const materialRef = useRef<THREE.MeshStandardMaterial | null>(null);
   
   const currentRotation = useRef({ x: 0, y: 0 });
   const targetRotation = useRef({ x: 0, y: 0 });
@@ -26,6 +28,9 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
       if (child instanceof THREE.Mesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+        if (child.material) {
+          materialRef.current = child.material as THREE.MeshStandardMaterial;
+        }
       }
     });
 
@@ -48,9 +53,10 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  useFrame(() => {
-    if (!rotationRef.current) return;
+  useFrame((state) => {
+    if (!rotationRef.current || !scaleRef.current) return;
 
+    const time = state.clock.getElapsedTime();
     const isMobile = isMobileRef.current;
     
     if (hoveredNodePosition) {
@@ -74,14 +80,29 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
     currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * lerpFactor;
     currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * lerpFactor;
 
-    rotationRef.current.rotation.x = currentRotation.current.x;
-    rotationRef.current.rotation.y = currentRotation.current.y;
+    // Base sway - всегда есть минимальное покачивание
+    const swayX = Math.sin(time * 0.8) * 0.02;
+    const swayY = Math.cos(time * 0.6) * 0.015;
+
+    rotationRef.current.rotation.x = currentRotation.current.x + swayX;
+    rotationRef.current.rotation.y = currentRotation.current.y + swayY;
+
+    // Дыхание - пульсация scale
+    const breathScale = 1 + Math.sin(time * 1.5) * 0.02;
+    scaleRef.current.scale.set(breathScale, breathScale, breathScale);
+
+    // Мерцание hologram - субтильное изменение opacity/emissive
+    if (materialRef.current) {
+      const flicker = 1 + Math.sin(time * 3) * 0.03 * Math.sin(time * 7);
+      materialRef.current.opacity = THREE.MathUtils.clamp(flicker, 0.95, 1);
+      materialRef.current.transparent = true;
+    }
   });
 
   const scale = (size / 100) * 1.5;
 
   return (
-    <group scale={[scale, scale, scale]}>
+    <group ref={scaleRef} scale={[scale, scale, scale]}>
       <group ref={rotationRef} rotation={[0, Math.PI, 0]}>
         <primitive object={scene} />
       </group>
