@@ -302,6 +302,7 @@ export function CircularNavigation() {
   const { t } = useTranslation()
   const [expandedGroups, setExpandedGroups] = useState<Set<ExpandedGroup>>(new Set())
   const [isMobile, setIsMobile] = useState(false)
+  const [hoveredNodePosition, setHoveredNodePosition] = useState<{ x: number; y: number } | null>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const MIN_ZOOM = 0.4
@@ -390,6 +391,25 @@ export function CircularNavigation() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/")
+  }
+
+  const handleNodeHover = (position: { x: number; y: number } | null) => {
+    setHoveredNodePosition(position)
+  }
+
+  const getNavCirclePosition = (position: string, radius: number) => {
+    const r = radius * 0.707
+    switch (position) {
+      case "top": return { x: 0, y: -radius }
+      case "top-right": return { x: r, y: -r }
+      case "right": return { x: radius, y: 0 }
+      case "bottom-right": return { x: r, y: r }
+      case "bottom": return { x: 0, y: radius }
+      case "bottom-left": return { x: -r, y: r }
+      case "left": return { x: -radius, y: 0 }
+      case "top-left": return { x: -r, y: -r }
+      default: return { x: 0, y: 0 }
+    }
   }
 
   const saveCustomCircle = () => {
@@ -572,7 +592,7 @@ export function CircularNavigation() {
       >
         {/* Central Circle */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <CentralCircle size={mainSize} />
+          <CentralCircle size={mainSize} onNodeHover={handleNodeHover} />
         </div>
 
         {/* Add custom circle - TOP-LEFT (opens modal or expands to show custom circles) */}
@@ -590,6 +610,8 @@ export function CircularNavigation() {
           hasSubCircles={customCircles.length > 0}
           delay={0.08}
           borderGradient="linear-gradient(135deg, #00c9c8 0%, #8b5cf6 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("top-left", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* Marketplace - TOP (simple navigation) */}
@@ -602,6 +624,8 @@ export function CircularNavigation() {
           href="/marketplace"
           delay={0.1}
           borderGradient="linear-gradient(135deg, #00c9c8 0%, #e052a0 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("top", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* Discover - TOP-RIGHT (expandable: Learn, Flow, Knowledge) */}
@@ -616,6 +640,8 @@ export function CircularNavigation() {
           hasSubCircles
           delay={0.12}
           borderGradient="linear-gradient(135deg, #e052a0 0%, #8b5cf6 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("top-right", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* AI Generations - RIGHT (expandable) */}
@@ -630,6 +656,8 @@ export function CircularNavigation() {
           hasSubCircles
           delay={0.15}
           borderGradient="linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("right", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* Activity - BOTTOM-RIGHT (expandable: Activity, Traces, Notifications, Credits, Earn) */}
@@ -644,6 +672,8 @@ export function CircularNavigation() {
           hasSubCircles
           delay={0.18}
           borderGradient="linear-gradient(135deg, #06b6d4 0%, #00c9c8 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("bottom-right", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* Workspace - BOTTOM (expandable: Creations, Workspace) */}
@@ -658,6 +688,8 @@ export function CircularNavigation() {
           hasSubCircles
           delay={0.2}
           borderGradient="linear-gradient(135deg, #00c9c8 0%, #8b5cf6 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("bottom", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* Community - BOTTOM-LEFT (expandable: Projects, People, Companies) */}
@@ -672,6 +704,8 @@ export function CircularNavigation() {
           hasSubCircles
           delay={0.22}
           borderGradient="linear-gradient(135deg, #8b5cf6 0%, #00c9c8 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("bottom-left", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* User - LEFT (expandable) */}
@@ -686,6 +720,8 @@ export function CircularNavigation() {
           hasSubCircles
           delay={0.25}
           borderGradient="linear-gradient(135deg, #e052a0 0%, #06b6d4 100%)"
+          onHoverEnter={() => handleNodeHover(getNavCirclePosition("left", orbitRadius))}
+          onHoverLeave={() => handleNodeHover(null)}
         />
 
         {/* User Sub-Circles (on the left side of the clicked circle, top/down/right + lines) */}

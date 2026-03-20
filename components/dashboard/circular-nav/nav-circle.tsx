@@ -20,6 +20,8 @@ interface NavCircleProps {
   borderGradient?: string
   /** When set, overrides position/orbitRadius and places the circle at (x, y) */
   customPosition?: { x: number; y: number }
+  onHoverEnter?: () => void
+  onHoverLeave?: () => void
 }
 
 // Calculate position based on cardinal direction (and diagonals)
@@ -62,6 +64,8 @@ export function NavCircle({
   delay = 0,
   borderGradient = DEFAULT_BORDER_GRADIENT,
   customPosition,
+  onHoverEnter,
+  onHoverLeave,
 }: NavCircleProps) {
   const router = useRouter()
   const reduced = useReducedMotion()
@@ -79,6 +83,8 @@ export function NavCircle({
   return (
     <motion.button
       onClick={handleClick}
+      onMouseEnter={onHoverEnter}
+      onMouseLeave={onHoverLeave}
       className="absolute flex flex-col items-center justify-center rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 group touch-manipulation min-w-[44px] min-h-[44px]"
       style={{
         width: size,
