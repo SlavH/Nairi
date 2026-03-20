@@ -42,23 +42,16 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
           justifyContent: 'center',
         }}
       >
-        {/* Simple logo */}
-        <div
+        <img
+          src="/circle-nav-avatar.png"
+          alt="Avatar"
           style={{
             width: '80%',
             height: '80%',
             borderRadius: '50%',
-            backgroundColor: '#00c9c8',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: size * 0.2,
+            objectFit: 'cover',
           }}
-        >
-          N
-        </div>
+        />
       </div>
       {/* Label */}
       <div
