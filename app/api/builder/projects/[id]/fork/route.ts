@@ -11,10 +11,9 @@ import { getUserIdOrBypassForApi } from "@/lib/auth";
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) => {
   try {
-    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -26,7 +25,7 @@ export const POST = withLogging(async (
     const { data: originalProject, error: fetchError } = await supabase
       .from("builder_projects")
       .select("*")
-      .eq("id", id)
+      .eq("id", params.id)
       .single();
 
     if (fetchError || !originalProject) {
@@ -38,7 +37,7 @@ export const POST = withLogging(async (
       const { data: collaborator } = await supabase
         .from("builder_project_collaborators")
         .select("role")
-        .eq("project_id", id)
+        .eq("project_id", params.id)
         .eq("user_id", userId)
         .single();
 
@@ -64,7 +63,7 @@ export const POST = withLogging(async (
     const { error: forkRecordError } = await supabase
       .from("builder_project_forks")
       .insert({
-        original_project_id: id,
+        original_project_id: params.id,
         forked_project_id: forkedProject.id,
         forked_by: userId,
       });
@@ -74,7 +73,7 @@ export const POST = withLogging(async (
     return NextResponse.json({
       success: true,
       project: forkedProject,
-      originalProjectId: id,
+      originalProjectId: params.id,
     });
   } catch (error) {
     return handleError(error);

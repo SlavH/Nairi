@@ -2,7 +2,6 @@
  * Builder Code Quality API (Phase 25)
  * Analyze code quality and provide suggestions
  */
-import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from "next/server";
 import { CodeQualityAnalyzer } from "@/lib/builder/code-quality";
 import { handleError } from "@/lib/errors/handler";
@@ -10,8 +9,6 @@ import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
 import { getUserIdOrBypassForApi } from "@/lib/auth";
 import { z } from "zod";
-
-const supabase = await createClient()
 
 const analyzeCodeSchema = z.object({
   code: z.string().min(1),
@@ -37,7 +34,7 @@ export const POST = withLogging(async (req: NextRequest) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return handleError(validationError("Invalid request", { errors: error.errors }));
+      return handleError(validationError("Invalid request", error.errors));
     }
     return handleError(error);
   }

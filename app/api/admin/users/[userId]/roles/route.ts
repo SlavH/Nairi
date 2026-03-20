@@ -17,10 +17,9 @@ const assignRoleSchema = z.object({
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) => {
   try {
-    const { userId } = await params;
     const supabase = await createClient();
     const {
       data: { user },
@@ -41,9 +40,9 @@ export const POST = withLogging(async (
 
     let success: boolean;
     if (action === "assign") {
-      success = await RBACManager.assignRole(userId, role, user.id);
+      success = await RBACManager.assignRole(params.userId, role, user.id);
     } else {
-      success = await RBACManager.removeRole(userId, role);
+      success = await RBACManager.removeRole(params.userId, role);
     }
 
     if (!success) {
@@ -53,7 +52,7 @@ export const POST = withLogging(async (
     }
 
     // Get updated roles
-    const roles = await RBACManager.getUserRoles(userId);
+    const roles = await RBACManager.getUserRoles(params.userId);
 
     return NextResponse.json({
       success: true,
@@ -62,7 +61,7 @@ export const POST = withLogging(async (
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return handleError(validationError("Invalid request body", { errors: error.errors }));
+      return handleError(validationError("Invalid request body", error.errors));
     }
     return handleError(error);
   }

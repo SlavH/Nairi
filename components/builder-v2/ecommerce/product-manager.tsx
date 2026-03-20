@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ComingSoonSection } from "@/components/ui/coming-soon-badge"
 import { cn } from "@/lib/utils"
+import { ComingSoonSection } from "@/components/ui/coming-soon-badge"
 import {
   ShoppingCart,
   Package,

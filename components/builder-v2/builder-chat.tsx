@@ -364,16 +364,17 @@ export function BuilderChat({ messages, isGenerating, onSendMessage, onRetry, cu
           >
             <Paperclip className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Prompt"
-            aria-label="Builder chat message input"
-            className="flex-1 min-h-[44px] sm:min-h-[50px] max-h-[100px] sm:max-h-[120px] resize-none pr-10 sm:pr-12 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#e052a0]/50"
-            disabled={isGenerating}
-          />
+           <Textarea
+             ref={textareaRef}
+             value={input}
+             onChange={(e) => setInput(e.target.value)}
+             onKeyDown={handleKeyDown}
+             placeholder="Prompt"
+             aria-label="Builder chat message input"
+             data-testid="builder-textarea"
+             className="flex-1 min-h-[44px] sm:min-h-[50px] resize-none pr-10 sm:pr-12 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#e052a0]/50"
+             disabled={isGenerating}
+           />
           <Button
             size="icon"
             className="h-9 w-9 sm:h-10 sm:w-10 shrink-0 rounded-xl bg-gradient-to-r from-[#e052a0] to-[#00c9c8] text-white hover:opacity-90"

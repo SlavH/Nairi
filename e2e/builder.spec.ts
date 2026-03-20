@@ -10,12 +10,12 @@ test.describe("Builder flow (Phase 33)", () => {
   });
 
   test("has prompt input or generate action", async ({ page }) => {
-    await page.goto("/builder");
-    await page.waitForLoadState("networkidle");
-    const prompt = page.locator("textarea, input").first();
-    const generate = page.getByRole("button", { name: /generate|build|create/i });
-    await expect(prompt.or(generate)).toBeVisible({ timeout: 15000 });
-  });
+     await page.goto("/builder");
+     await page.waitForLoadState("networkidle");
+     const prompt = page.locator('[data-testid="builder-textarea"]');
+     const generate = page.getByRole("button", { name: /send message/i }).first();
+     await expect(prompt.or(generate)).toBeVisible({ timeout: 15000 });
+   });
 
   test("my projects or save project visible when applicable", async ({ page }) => {
     await page.goto("/builder");
@@ -27,17 +27,17 @@ test.describe("Builder flow (Phase 33)", () => {
     await expect(saveOrProjects.or(anyMain)).toBeVisible({ timeout: 10000 });
   });
 
-  test("send prompt and wait for completion", async ({ page }) => {
-    await page.goto("/builder");
-    await page.waitForLoadState("networkidle");
-    const textarea = page.locator('textarea[aria-label="Builder chat message input"]').first();
-    await expect(textarea).toBeVisible({ timeout: 15000 });
-    await textarea.fill("Create a simple landing page with a headline");
-    await page.getByRole("button", { name: /send message/i }).click();
-    // Wait for generation to start then finish (E2E may need BYPASS_AUTH + GROQ_API_KEY; long timeout for real API)
-    await expect(page.getByText("Generating").first()).toBeVisible({ timeout: 15000 }).catch(() => {});
-    await expect(page.getByText("Generating").first()).toBeHidden({ timeout: 90000 }).catch(() => {});
-  });
+    test("send prompt and wait for completion", async ({ page }) => {
+     await page.goto("/builder");
+     await page.waitForLoadState("networkidle");
+     const textarea = page.locator('[data-testid="builder-textarea"]');
+     await expect(textarea).toBeVisible({ timeout: 15000 });
+     await textarea.fill("Create a simple landing page with a headline");
+     await page.getByRole("button", { name: /send message/i }).click();
+     // Wait for generation to start then finish (E2E may need BYPASS_AUTH + GROQ_API_KEY; long timeout for real API)
+     await expect(page.getByText("Generating").first()).toBeVisible({ timeout: 15000 }).catch(() => {});
+     await expect(page.getByText("Generating").first()).toBeHidden({ timeout: 90000 }).catch(() => {});
+   });
 
   test("save project", async ({ page }) => {
     await page.goto("/builder");

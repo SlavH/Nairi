@@ -60,9 +60,12 @@ export async function generate(
   if (!ROUTER_BASE) throw new Error("NAIRI_ROUTER_BASE_URL is not set")
   const url = `${ROUTER_BASE}/generate`
   const body = JSON.stringify({ type, prompt, options: options ?? {} })
+  console.log(`[ROUTER] Generating ${type} at ${url}`)
+  console.log(`[ROUTER] Payload:`, body.substring(0, 200))
   let lastErr: Error | null = null
   for (let attempt = 0; attempt < GENERATE_RETRIES; attempt++) {
     try {
+      console.log(`[ROUTER] Attempt ${attempt + 1}/${GENERATE_RETRIES}`)
       const res = await fetchWithTimeout(
         url,
         {
@@ -72,7 +75,9 @@ export async function generate(
         },
         GENERATE_TIMEOUT_MS
       )
+      console.log(`[ROUTER] Response status: ${res.status} ${res.statusText}`)
       const data: unknown = await res.json().catch(() => null)
+      console.log(`[ROUTER] Response data:`, JSON.stringify(data).substring(0, 200))
       if (!res.ok) {
         if (isRetryableStatus(res.status) && attempt < GENERATE_RETRIES - 1) {
           lastErr = new Error((data as { detail?: string })?.detail ?? res.statusText ?? "Generate failed")
@@ -173,13 +178,18 @@ export async function pollForResult(
   intervalMs: number = POLL_INTERVAL_MS,
   maxAttempts: number = POLL_MAX_ATTEMPTS
 ): Promise<unknown> {
+  console.log(`[ROUTER] Polling for job ${jobId}, max attempts: ${maxAttempts}`)
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const status = await checkStatus(jobId)
+    console.log(`[ROUTER] Poll attempt ${attempt + 1}/${maxAttempts}, status: ${status.status}`)
     if (status.status === "completed") {
+      console.log(`[ROUTER] Job completed, fetching result...`)
       const resultResponse = await getResult(jobId)
+      console.log(`[ROUTER] Result fetched successfully`)
       return resultResponse.result
     }
     if (status.status === "failed") {
+      console.error(`[ROUTER] Job ${jobId} FAILED`)
       throw new Error(`Job ${jobId} failed`)
     }
     await new Promise((r) => setTimeout(r, intervalMs))

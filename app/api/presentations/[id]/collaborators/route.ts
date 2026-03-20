@@ -16,10 +16,9 @@ const addCollaboratorSchema = z.object({
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) => {
   try {
-    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -31,14 +30,14 @@ export const GET = withLogging(async (
     const { data: collaborator } = await supabase
       .from("presentation_collaborators")
       .select("role")
-      .eq("presentation_id", id)
+      .eq("presentation_id", params.id)
       .eq("user_id", userId)
       .single();
 
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", id)
+      .eq("id", params.id)
       .single();
 
     if (!creation) {
@@ -53,7 +52,7 @@ export const GET = withLogging(async (
     const { data: collaborators, error } = await supabase
       .from("presentation_collaborators")
       .select("*, profiles:user_id(id, email, full_name)")
-      .eq("presentation_id", id);
+      .eq("presentation_id", params.id);
 
     if (error) throw error;
 
@@ -65,10 +64,9 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) => {
   try {
-    const { id } = await params;
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
@@ -80,7 +78,7 @@ export const POST = withLogging(async (
     const { data: creation } = await supabase
       .from("creations")
       .select("user_id")
-      .eq("id", id)
+      .eq("id", params.id)
       .single();
 
     if (!creation || creation.user_id !== userId) {
@@ -93,7 +91,7 @@ export const POST = withLogging(async (
     const { data, error } = await supabase
       .from("presentation_collaborators")
       .insert({
-        presentation_id: id,
+        presentation_id: params.id,
         user_id: collaboratorId,
         role,
         invited_by: userId,
@@ -107,7 +105,7 @@ export const POST = withLogging(async (
     return NextResponse.json({ success: true, collaborator: data });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return handleError(validationError("Invalid request", { errors: error.errors }));
+      return handleError(validationError("Invalid request", error.errors));
     }
     return handleError(error);
   }

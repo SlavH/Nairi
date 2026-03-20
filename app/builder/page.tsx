@@ -612,7 +612,7 @@ Please regenerate the entire page.tsx file with the fix applied.`
   }, [])
 
   return (
-    <div className="flex h-screen flex-col bg-transparent" aria-busy={isGenerating}>
+    <main className="flex h-screen flex-col bg-transparent" aria-busy={isGenerating} data-testid="builder">
       {generationCompleteAnnouncement && (
         <LiveRegion politeness="polite" role="status">
           {generationCompleteAnnouncement}
@@ -1150,10 +1150,10 @@ Please regenerate the entire page.tsx file with the fix applied.`
               </div>
             </div>
               </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </div>
-      </div>
-    </div>
-  )
-}
+             </ResizablePanel>
+           </ResizablePanelGroup>
+         </div>
+       </div>
+     </main>
+   )
+ }

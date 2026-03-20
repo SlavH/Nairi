@@ -10,3 +10,10 @@ node_modules/
 .next/
 .env*.local
 .DS_Store
+.env
+*.log
+playwright-report/
+test-results/
+opencode_tasks/
+*.backup
+pnpm-lock.yaml

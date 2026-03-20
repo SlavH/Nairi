@@ -6,10 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "./logger";
 import { randomUUID } from "crypto";
 
-export function withLogging<T extends Record<string, any> = any>(
-  handler: (req: NextRequest, context: T) => Promise<NextResponse>
-) {
-  return async (req: NextRequest, context: T): Promise<NextResponse> => {
+export function withLogging(handler: (req: NextRequest) => Promise<NextResponse>) {
+  return async (req: NextRequest): Promise<NextResponse> => {
     const requestId = req.headers.get("x-request-id") || randomUUID();
     const startTime = Date.now();
 
@@ -29,7 +27,7 @@ export function withLogging<T extends Record<string, any> = any>(
       // Add request ID to headers
       req.headers.set("x-request-id", requestId);
 
-      const response = await handler(req, context);
+      const response = await handler(req);
       const duration = Date.now() - startTime;
 
       // Log response

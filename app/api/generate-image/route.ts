@@ -132,12 +132,15 @@ export async function POST(request: NextRequest) {
     // Tier 0: Nairi Router (when only NAIRI_ROUTER_BASE_URL is set)
     if (isRouterConfigured()) {
       try {
+        console.log('[IMAGE-GEN] Attempting Nairi Router image generation...')
         const { job_id } = await routerGenerate("image", enhancedPrompt, {
           style: style || "default",
           size: imageSize,
           negativePrompt: finalNegativePrompt,
         })
+        console.log('[IMAGE-GEN] Nairi Router job created:', job_id)
         const raw = await pollForResult(job_id, 2_500, 60)
+        console.log('[IMAGE-GEN] Nairi Router result received:', typeof raw, JSON.stringify(raw).substring(0, 200))
         // Router may return: object { url?, image?, base64? } or a plain URL string
         const result = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {}
         let url: string | null =
@@ -146,7 +149,9 @@ export async function POST(request: NextRequest) {
             ? raw
             : null
         const base64 = typeof result.image === "string" ? result.image : typeof result.base64 === "string" ? result.base64 : null
+        console.log('[IMAGE-GEN] Parsed result - url:', !!url, 'base64:', !!base64)
         if (url || base64) {
+          console.log('[IMAGE-GEN] Nairi Router SUCCESS - returning image')
           let imageUrl: string = base64 ? `data:image/png;base64,${base64}` : url!
           // When we only have a URL, fetch it and return as data URL so the client gets the image inline
           if (!base64 && url && (url.startsWith("http://") || url.startsWith("https://"))) {
@@ -181,7 +186,10 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (routerErr) {
-        console.error("[IMAGE] Nairi Router failed, falling back:", routerErr)
+        console.error("[IMAGE-GEN] Nairi Router FAILED, falling back to next tier")
+        console.error("[IMAGE-GEN] Error details:", routerErr)
+        console.error("[IMAGE-GEN] Error message:", routerErr instanceof Error ? routerErr.message : String(routerErr))
+        console.error("[IMAGE-GEN] Error stack:", routerErr instanceof Error ? routerErr.stack : 'N/A')
       }
     }
 
