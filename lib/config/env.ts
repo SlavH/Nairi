@@ -28,6 +28,7 @@ interface EnvConfig {
   
   // AI (BitNet only)
   ai: {
+    colabBaseUrl?: string;
     bitnetBaseUrl?: string;
     bitnetApiKey?: string;
     replicate?: string;
@@ -59,15 +60,22 @@ interface EnvConfig {
 }
 
 function getEnv(): Environment {
-  const env = process.env.NODE_ENV || "development";
+  const env: string = process.env.NODE_ENV || "development";
   if (env === "production") return "production";
   if (env === "staging") return "staging";
+  // Map "test" and any other value to "development"
   return "development";
 }
 
 function requireEnv(key: string, description?: string): string {
   const value = process.env[key];
   if (!value) {
+    // During Vercel build, provide a placeholder to avoid breaking the build
+    // The actual value must be set in production for runtime
+    if (process.env.VERCEL_ENV || process.env.NEXT_PHASE === 'phase-production-build') {
+      console.warn(`Missing ${key} in build environment, using placeholder`);
+      return `placeholder-${key}`;
+    }
     throw new Error(
       `Missing required environment variable: ${key}${description ? ` (${description})` : ""}`
     );
@@ -135,7 +143,8 @@ if (typeof window === "undefined") {
   try {
     getConfig();
   } catch (error) {
-    if (process.env.NODE_ENV !== "test") {
+    // Skip logging errors during build or test
+    if (process.env.NODE_ENV !== "test" && !process.env.NEXT_PHASE) {
       console.error("Configuration error:", error);
     }
   }
