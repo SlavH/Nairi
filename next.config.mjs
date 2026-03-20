@@ -8,10 +8,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   
-  // ESLint: ignore errors during build
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+
   
   // PERFORMANCE FIX: Enable image optimization
   // Next.js Image Optimization provides automatic image optimization
