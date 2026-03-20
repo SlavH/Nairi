@@ -9,6 +9,7 @@ interface CentralCircleProps {
 }
 
 export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
+  // Updated to fix Vercel build error
   const router = useRouter();
   const { t } = useTranslation();
 
