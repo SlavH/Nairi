@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -13,13 +13,28 @@ interface CenterAvatar3DProps {
 export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar3DProps) {
   const { scene } = useGLTF("/models/nav-avatar.glb");
   const rotationRef = useRef<THREE.Group>(null);
-  const positionRef = useRef<THREE.Group>(null);
-  const { viewport } = useThree();
   
   const currentRotation = useRef({ x: 0, y: 0 });
   const targetRotation = useRef({ x: 0, y: 0 });
   const mousePos = useRef({ x: 0, y: 0 });
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const isMobileRef = useRef(false);
+
+  useEffect(() => {
+    isMobileRef.current = window.innerWidth < 768;
+    
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    const handleResize = () => {
+      isMobileRef.current = window.innerWidth < 768;
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [scene]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -37,19 +52,17 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
     if (!rotationRef.current) return;
 
     const time = state.clock.getElapsedTime();
+    const isMobile = isMobileRef.current;
     
     if (hoveredNodePosition) {
       const dx = hoveredNodePosition.x;
       const dy = hoveredNodePosition.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
       
-      if (dist > 0) {
-        const maxYaw = isMobile ? 0.15 : 0.3;
-        const maxPitch = isMobile ? 0.09 : 0.18;
-        
-        targetRotation.current.y = THREE.MathUtils.clamp((dx / 200) * maxYaw, -maxYaw, maxYaw);
-        targetRotation.current.x = THREE.MathUtils.clamp(-(dy / 200) * maxPitch, -maxPitch, maxPitch);
-      }
+      const maxYaw = isMobile ? 0.15 : 0.3;
+      const maxPitch = isMobile ? 0.09 : 0.18;
+      
+      targetRotation.current.y = THREE.MathUtils.clamp((dx / 200) * maxYaw, -maxYaw, maxYaw);
+      targetRotation.current.x = THREE.MathUtils.clamp(-(dy / 200) * maxPitch, -maxPitch, maxPitch);
     } else {
       const maxYaw = isMobile ? 0.15 : 0.3;
       const maxPitch = isMobile ? 0.09 : 0.18;
@@ -58,27 +71,22 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
       targetRotation.current.x = -mousePos.current.y * maxPitch;
     }
 
-    const lerpFactor = 0.05;
+    const lerpFactor = 0.08;
     currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * lerpFactor;
     currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * lerpFactor;
 
-    const idleX = Math.sin(time * 0.5) * 0.015;
-    const idleY = Math.sin(time * 0.3) * 0.01;
+    const idleX = Math.sin(time * 0.5) * 0.008;
+    const idleY = Math.sin(time * 0.3) * 0.005;
 
     rotationRef.current.rotation.x = currentRotation.current.x + idleX;
     rotationRef.current.rotation.y = currentRotation.current.y + idleY;
-
-    if (positionRef.current) {
-      const floatY = Math.sin(time * 0.8) * 2;
-      positionRef.current.position.y = floatY;
-    }
   });
 
-  const scale = (size / 100) * 0.8;
+  const scale = (size / 100) * 1.2;
 
   return (
-    <group ref={positionRef} scale={[scale, scale, scale]}>
-      <group ref={rotationRef}>
+    <group scale={[scale, scale, scale]}>
+      <group ref={rotationRef} rotation={[0, Math.PI, 0]}>
         <primitive object={scene} />
       </group>
     </group>

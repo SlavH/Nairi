@@ -62,13 +62,14 @@ export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover 
         }}
       >
         <Canvas
-          camera={{ position: [0, 0, 2.5], fov: 45 }}
+          camera={{ position: [0, 0, 3], fov: 50 }}
           style={{ background: "transparent" }}
           gl={{ antialias: true, alpha: true }}
+          dpr={1}
         >
-          <ambientLight intensity={0.4} />
-          <pointLight position={[5, 5, 5]} intensity={0.5} />
-          <pointLight position={[-5, -5, 5]} intensity={0.3} color="#00c9c8" />
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 5, 5]} intensity={0.4} />
+          <pointLight position={[0, 0, 4]} intensity={0.5} color="#ffffff" />
           <Suspense fallback={null}>
             <CenterAvatar3D size={size} hoveredNodePosition={hoveredNodePosition} />
           </Suspense>
