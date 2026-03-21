@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useState, useCallback, useRef, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
-import { CenterAvatar3D } from "./center-avatar-3d";
+import { CenterAvatar2_5D } from "./center-avatar-2_5d";
 
 interface CentralCircleProps {
   size?: number;
@@ -65,19 +64,7 @@ export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover 
           overflow: "hidden",
         }}
       >
-        <Canvas
-          camera={{ position: [0, 0, 4], fov: 45 }}
-          style={{ background: "transparent" }}
-          gl={{ antialias: true, alpha: true }}
-          dpr={1}
-        >
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[5, 5, 5]} intensity={0.4} />
-          <pointLight position={[0, 0, 5]} intensity={0.5} color="#ffffff" />
-          <Suspense fallback={null}>
-            <CenterAvatar3D size={size} hoveredNodePosition={hoveredNodePosition} />
-          </Suspense>
-        </Canvas>
+        <CenterAvatar2_5D size={size} hoveredNodePosition={hoveredNodePosition} />
       </div>
       <div
         style={{
