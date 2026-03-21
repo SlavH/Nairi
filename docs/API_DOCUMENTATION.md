@@ -1,7 +1,7 @@
 # Nairi v34 - API Documentation
 
-**Version**: 0.34.0  
-**Last Updated**: February 13, 2026  
+**Version**: 0.34.1  
+**Last Updated**: March 21, 2026  
 **Base URL**: `http://localhost:3000/api` (development)  
 **Production URL**: TBD
 
@@ -156,6 +156,57 @@ Versioned health check endpoint.
 ---
 
 ## Chat API
+
+### POST /api/nairi-chat
+
+Web-grounded Nairi chat using HuggingFace backend (2-pass inference with SearXNG web search). Model decides: greeting/short chitchat → single natural reply (no web); otherwise → SearXNG search → 2-pass (PLAN → FINAL).
+
+**Authentication**: Not required (rate-limited by IP)
+
+**Request Body**:
+
+```json
+{
+  "messages": [
+    { "role": "user", "content": "What are the latest AI trends?" }
+  ],
+  "max_tokens": 400
+}
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| messages | Array | Yes | Array of message objects with role and content |
+| max_tokens | Number | No | Max tokens for final answer (1-4096, default 400) |
+
+**Response**: 200 OK
+
+```json
+{
+  "response": "Based on recent search results...",
+  "sources": [
+    { "id": 1, "title": "Article Title", "url": "https://example.com", "snippet": "..." }
+  ],
+  "meta": {
+    "web_ms": 120,
+    "plan_ms": 85,
+    "answer_ms": 200
+  }
+}
+```
+
+**Error Responses**:
+
+- 400 Bad Request - No user message found / Invalid JSON
+- 429 Too Many Requests - Rate limit exceeded (10 req/min per IP)
+- 502 Bad Gateway - Chat/plan/answer pass failed
+- 503 Service Unavailable - Nairi HF backend not configured or waking up
+
+**Rate limits**: 10 requests per minute per IP.
+
+**Environment variables required**: `NAIRI_HF_BASE_URL`, `SEARXNG_BASE_URL`. See [NAIRI_HF_INTEGRATION.md](NAIRI_HF_INTEGRATION.md).
+
+---
 
 ### POST /api/chat
 
@@ -1127,6 +1178,7 @@ Every public endpoint under `/api` is listed below. Auth: **Required** (session 
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
+| POST | /api/nairi-chat | No | Web-grounded Nairi chat (2-pass HF inference + SearXNG); rate-limited by IP. |
 | GET | /api/chat/export | Required | Export conversation; query: conversationId, format (json \| markdown). PDF returns 501. |
 | GET | /api/chat/folders | Required | List chat folders. |
 | POST | /api/chat/folders | Required | Create folder. |
@@ -1531,5 +1583,5 @@ For API support:
 
 ---
 
-**Last Updated**: February 13, 2026  
-**API Version**: 1.0.0
+**Last Updated**: March 21, 2026  
+**API Version**: 1.0.1

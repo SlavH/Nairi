@@ -298,6 +298,7 @@ interface Agent {
 - **Method**: JWT tokens
 - **Storage**: httpOnly cookies
 - **Refresh**: Automatic token refresh
+- **MFA**: TOTP-based two-factor authentication using built-in crypto (Node.js `crypto` module) for HMAC-SHA1 generation, replacing external `otplib` dependency. See `lib/auth/mfa.ts`.
 
 ### 2. Authorization
 
@@ -387,6 +388,12 @@ const chatMessageSchema = z.object({
 ```
 
 ## Performance Optimization
+
+### 0. Vercel Speed Insights
+
+**Location**: `app/layout.tsx`
+
+Nairi integrates Vercel Speed Insights (`@vercel/speed-insights`) to monitor Core Web Vitals and user-perceived performance. It is imported and enabled in the root layout for client-side performance monitoring without affecting server performance.
 
 ### 1. Code Splitting
 
@@ -622,8 +629,8 @@ Simulations (`/simulations`, workspace create card, chat) are **permanently SOON
 
 ---
 
-**Last Updated**: February 13, 2026  
-**Version**: 0.34.0  
+**Last Updated**: March 21, 2026  
+**Version**: 0.34.1  
 **Maintained By**: Nairi Development Team
 
 ## Middleware → Proxy (Next.js 16)
@@ -642,3 +649,5 @@ Translations live in `lib/i18n/` (e.g. `lib/i18n/translations.ts`, `lib/i18n/tra
 ## TypeScript
 
 `next.config.mjs` has `typescript.ignoreBuildErrors: false` so the production build fails on type errors. Run `npx tsc --noEmit` to check types locally; fix errors in `app/api`, `components`, and `lib` as needed.
+
+**AI SDK**: The `ai` SDK exports `Tool` and `tool()` for defining tools; `CoreTool` is no longer exported. Use `Tool` for type definitions and `tool()` wrapper for tool creation. See `lib/tools/custom-builder.ts` and `lib/tools/registry.ts` for examples.

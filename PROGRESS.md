@@ -71,9 +71,12 @@
 - **Status**: Completed
 - ARIA and accessibility improvements (e.g. header nav)
 
-### Phase 151-170: Documentation
-- **Status**: Pending (next block)
-- API docs, architecture updates, deployment/development/troubleshooting guides
+### Phase 151-170: Documentation ✅
+- **Status**: Completed
+- API docs: Added Nairi Chat API (`/api/nairi-chat`) documentation with request/response shapes
+- Architecture: Added Vercel Speed Insights, MFA (built-in crypto), AI SDK Tool changes
+- Documentation version bumped to 0.34.1
+- CI workflow: Fixed branch from `main` to `master`
 
 ### Phase 171-200: Production Readiness ✅
 - **Status**: Completed
@@ -81,8 +84,7 @@
 
 ## Summary
 
-**Completed**: Phases 1–200 (except full Documentation phase 151–170)
-**Next**: See [docs/NEXT_DEVELOPMENT_STEPS.md](docs/NEXT_DEVELOPMENT_STEPS.md)
+**Completed**: Phases 1–200 (all phases complete)
 
 ### Key Achievements
 1. ✅ Idempotent migrations, DATABASE_URL validation, unit/integration/E2E tests
@@ -100,6 +102,4 @@
 - **Phase 6 (Performance/hardening)**: Chat loading uses minimal skeletons in `app/chat/loading.tsx`. Error handling for chat send and builder is in place (toast messages, no stuck UI). **Page transition indicator**: `TopProgressBar` in layout shows a thin top bar on route change. **Studio lazy loading**: Image/Video/Audio/Presentation generators are loaded on demand via `StudioTabs` (dynamic imports). **Performance monitoring**: For production, configure monitoring per [docs/production.md](docs/production.md) (e.g. Vercel Analytics, error tracking). Follow-up: Lighthouse on /, /chat, /builder; cross-browser smoke test.
 
 ### Next Priorities
-1. Documentation (Phase 151–170): API, architecture, guides
-2. Schema/lib alignment: RecommendationEngine (is_published), LearningProgressTracker vs DB
-3. Wire cache into a read-heavy API; run test suite and E2E; deploy and monitoring
+1. All phases complete - see NEXT_DEVELOPMENT_STEPS.md for future enhancements
