@@ -10,12 +10,12 @@ const MAX_FILE_BYTES = 20 * 1024 * 1024 // 20 MB
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   try {
-    const mod = await import("pdf-parse")
-    const fn = (mod as { default?: (buf: Buffer) => Promise<{ text?: string }> }).default ?? (mod as (buf: Buffer) => Promise<{ text?: string }>)
-    const data = await fn(buffer)
-    return (data?.text ?? "").trim().slice(0, 500_000)
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text?: string }>;
+    const data = await pdfParse(buffer);
+    return (data?.text ?? "").trim().slice(0, 500_000);
   } catch (e) {
-    throw new Error("PDF parsing failed. Ensure pdf-parse is installed (npm install pdf-parse).")
+    throw new Error("PDF parsing failed. Ensure pdf-parse is installed (npm install pdf-parse).");
   }
 }
 

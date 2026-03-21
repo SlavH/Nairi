@@ -17,15 +17,15 @@ const createCommentSchema = z.object({
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) => {
+  const params = context.params;
   try {
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const { searchParams } = new URL(req.url);
     const slideId = searchParams.get("slideId");
 
@@ -51,15 +51,15 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) => {
+  const params = context.params;
   try {
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check access
     const { data: collaborator } = await supabase

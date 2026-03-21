@@ -2,7 +2,7 @@
  * Custom Tool Builder (Phase 39)
  * Allows users to create custom tools
  */
-import { CoreTool } from "ai";
+import { tool, zodSchema } from "ai";
 import { z } from "zod";
 
 export interface CustomToolDefinition {
@@ -16,12 +16,12 @@ export class CustomToolBuilder {
   /**
    * Create a custom tool from definition
    */
-  static createTool(definition: CustomToolDefinition): CoreTool {
-    return {
+  static createTool(definition: CustomToolDefinition) {
+    return tool({
       description: definition.description,
-      parameters: definition.parameters,
+      parameters: zodSchema(definition.parameters),
       execute: definition.execute,
-    };
+    });
   }
 
   /**

@@ -43,16 +43,15 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ agentId: string }> }
+  context: { params: Promise<{ agentId: string }> }
 ) => {
+  const { agentId } = await context.params;
   try {
-    const { agentId } = await params;
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check if user owns the agent
     const { data: userAgent } = await supabase

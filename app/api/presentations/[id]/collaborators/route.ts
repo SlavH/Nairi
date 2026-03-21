@@ -16,15 +16,15 @@ const addCollaboratorSchema = z.object({
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) => {
+  const params = context.params;
   try {
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check access
     const { data: collaborator } = await supabase
@@ -64,15 +64,15 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) => {
+  const params = context.params;
   try {
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check if user is owner
     const { data: creation } = await supabase

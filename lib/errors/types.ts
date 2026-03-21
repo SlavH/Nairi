@@ -109,8 +109,8 @@ export function createError(
   return new AppErrorClass(code, message, statusCode, details, requestId);
 }
 
-export function validationError(message: string, details?: Record<string, unknown>, requestId?: string) {
-  return createError(ErrorCode.VALIDATION_ERROR, message, 400, details, requestId);
+export function validationError(message: string, details?: Record<string, unknown> | unknown[], requestId?: string) {
+  return createError(ErrorCode.VALIDATION_ERROR, message, 400, details as Record<string, unknown>, requestId);
 }
 
 export function unauthorizedError(message = "Unauthorized", requestId?: string) {

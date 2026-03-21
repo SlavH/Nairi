@@ -11,15 +11,15 @@ import { getUserIdOrBypassForApi } from "@/lib/auth";
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) => {
+  const params = context.params;
   try {
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Get original project
     const { data: originalProject, error: fetchError } = await supabase

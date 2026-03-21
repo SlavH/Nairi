@@ -1220,6 +1220,7 @@ export const translations: Record<Locale, TranslationStrings> = {
       openNavigationMenu: "Открыть меню навигации",
       closeNavigation: "Закрыть навигацию",
       openNavigationHub: "Открыть навигационный центр",
+      home: "Главная",
     },
     nav: {
       howItWorks: "Как это работает",
@@ -1729,6 +1730,8 @@ export const translations: Record<Locale, TranslationStrings> = {
       thankYou: "Спасибо за отзыв",
       errorOccurred: "Произошла ошибка",
       tryAgain: "Попробовать снова",
+      somethingWentWrong: "Что-то пошло не так",
+      errorDescription: "Произошла непредвиденная ошибка. Вы можете попробовать снова или вернуться на главную.",
     },
     dashboard: {
       welcome: "Добро пожаловать обратно",
@@ -1791,6 +1794,7 @@ export const translations: Record<Locale, TranslationStrings> = {
       openNavigationMenu: "Բացել նավիգացիայի մենյուն",
       closeNavigation: "Փակել նավիգացիան",
       openNavigationHub: "Բացել նավիգացիայի կենտրոնը",
+      home: "Գլխավոր",
     },
     nav: {
       howItWorks: "Ինչպես է աշխատում",
@@ -2301,6 +2305,8 @@ login: {
       thankYou: "Շնորհակալություն ձեր կարծիքի համար",
       errorOccurred: "Սխալ է տեղի ունեցել",
       tryAgain: "Կրկին փորձեք",
+      somethingWentWrong: "Ինչ-որ բան սխալ է տեղի ունեցել",
+      errorDescription: "Սպասված սխալ է տեղի ունեցել: Կարող եք փորձել կրկին կամ վերադառնալ գլխավոր:",
     },
     dashboard: {
       welcome: "Բարի վերադարձ",

@@ -26,11 +26,15 @@ export function getReferralUserId(code: string): string | null {
 
 export async function submitFeedback(userId: string, content: string, type: "bug" | "feature" | "general"): Promise<boolean> {
   const supabase = await createClient()
-  const { error } = await supabase.from("activity_logs").insert({
-    user_id: userId,
-    action: "feedback",
-    category: "settings",
-    metadata: { type, content: content.slice(0, 2000) },
-  }).catch(() => ({ error: new Error("no table") } as { error: Error }))
-  return !error
+  try {
+    const { error } = await supabase.from("activity_logs").insert({
+      user_id: userId,
+      action: "feedback",
+      category: "settings",
+      metadata: { type, content: content.slice(0, 2000) },
+    })
+    return !error
+  } catch {
+    return false
+  }
 }

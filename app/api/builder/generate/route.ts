@@ -885,8 +885,10 @@ export async function POST(req: NextRequest) {
     }
     const parsed = safeParseGenerateRequest(rawBody)
     if (!parsed.success) {
-      const message = parsed.error.flatten().formErrors?.[0]
-        ?? parsed.error.flatten().fieldErrors.prompt?.[0]
+      const flattened = parsed.error.flatten();
+      const fieldErrors = flattened.fieldErrors as Record<string, string[] | undefined>;
+      const message = flattened.formErrors?.[0]
+        ?? fieldErrors.prompt?.[0]
         ?? "Invalid request. Prompt is required; currentFiles and conversationHistory must be arrays."
       return NextResponse.json({ error: message }, { status: 400 })
     }
@@ -1335,7 +1337,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
 
           let parsedResponse: {
             plan?: string[]
-            files?: { path: string; content: string }[]
+            files?: { path: string; content?: string }[]
             message?: string
           } = {}
 
@@ -1579,7 +1581,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
             // Reject structureless output (e.g. single div): replace main page with fallback if no sections/nav
             if (parsedResponse.files) {
               const mainFile = parsedResponse.files.find((f) => f.path === "/app/page.tsx")
-              if (mainFile) {
+              if (mainFile?.content) {
                 const hasSemanticStructure = /<section[\s>]/.test(mainFile.content) || /<nav[\s>]/.test(mainFile.content) || /<main[\s>]/.test(mainFile.content)
                 if (!hasSemanticStructure) {
                   console.warn("Generated page has no semantic structure (no section/nav/main), using fallback")
@@ -1651,7 +1653,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
               const hasCodeFiles = parsedResponse.files.some(f => /\.(tsx?|jsx?|mts|mjs)$/i.test(f.path))
               for (const file of parsedResponse.files) {
                 const isCodeFile = /\.(tsx?|jsx?|mts|mjs)$/i.test(file.path)
-                if (!isCodeFile) continue
+                if (!isCodeFile || !file.content) continue
                 const cleanedContent = cleanGeneratedCode(file.content)
                 const validationResult = validateTypeScriptCode(cleanedContent)
                 
@@ -1746,7 +1748,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                 }
               }
               const mainFile = retryParsed.files?.find(f => f.path === '/app/page.tsx')
-              if (mainFile) {
+              if (mainFile?.content) {
                 const cleaned = cleanGeneratedCode(mainFile.content)
                 const vr = validateTypeScriptCode(cleaned)
                 if (vr.isValid) {
@@ -1772,7 +1774,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
           let pageContentForWowCheck = ''
           if (parsedResponse.files) {
             const mainFile = parsedResponse.files.find(f => f.path === '/app/page.tsx')
-            if (mainFile) pageContentForWowCheck = cleanGeneratedCode(mainFile.content)
+            if (mainFile?.content) pageContentForWowCheck = cleanGeneratedCode(mainFile.content)
           }
 
           // Optional: one retry for missing wow element (gate: BUILDER_RETRY_FOR_WOW)
@@ -1821,7 +1823,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                 }
               }
               const wowMainFile = wowRetryParsed.files?.find(f => f.path === '/app/page.tsx')
-              if (wowMainFile) {
+              if (wowMainFile?.content) {
                 const cleaned = cleanGeneratedCode(wowMainFile.content)
                 const vr = validateTypeScriptCode(cleaned)
                 if (vr.isValid && hasWowElement(cleaned)) {
@@ -1851,7 +1853,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
           if (parsedResponse.files) {
             for (const file of parsedResponse.files) {
               const isCodeFile = /\.(tsx?|jsx?|mts|mjs)$/i.test(file.path)
-              let cleanedContent = isCodeFile ? cleanGeneratedCode(file.content) : file.content
+              let cleanedContent = isCodeFile && file.content ? cleanGeneratedCode(file.content) : (file.content ?? '')
               
               // 🎨 DYNAMIC COLOR REPLACEMENT - Apply extracted colors for clone requests (code files only)
               if (isCodeFile && isCloneRequest) {

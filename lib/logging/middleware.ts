@@ -6,8 +6,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "./logger";
 import { randomUUID } from "crypto";
 
-export function withLogging(handler: (req: NextRequest) => Promise<NextResponse>) {
-  return async (req: NextRequest): Promise<NextResponse> => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function withLogging(handler: (req: NextRequest, context?: any) => Promise<any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (req: NextRequest, context?: any): Promise<NextResponse> => {
     const requestId = req.headers.get("x-request-id") || randomUUID();
     const startTime = Date.now();
 
@@ -27,7 +29,13 @@ export function withLogging(handler: (req: NextRequest) => Promise<NextResponse>
       // Add request ID to headers
       req.headers.set("x-request-id", requestId);
 
-      const response = await handler(req);
+      // Resolve params if they're a Promise (Next.js 15+ style)
+      let resolvedContext = context;
+      if (context?.params instanceof Promise) {
+        resolvedContext = { ...context, params: await context.params };
+      }
+
+      const response = await handler(req, resolvedContext);
       const duration = Date.now() - startTime;
 
       // Log response

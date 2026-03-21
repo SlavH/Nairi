@@ -36,7 +36,7 @@ interface Conversation {
   title: string
   updated_at: string
   is_pinned?: boolean
-  pinned_at?: string
+  pinned_at?: string | null
   folder_id?: string | null
 }
 

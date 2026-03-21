@@ -60,6 +60,20 @@ export default async function CreatorPage() {
   }
 
   const creatorBadges = await getCreatorBadges(user.id)
+  
+  const mappedBadges = creatorBadges.map(badge => ({
+    id: badge.id,
+    earned_at: badge.earned_at,
+    earned_via: badge.earned_via,
+    expert_badges: badge.expert_badges ? {
+      id: badge.expert_badges.id,
+      name: badge.expert_badges.name,
+      domain: badge.expert_badges.domain,
+      description: badge.expert_badges.description,
+      icon: badge.expert_badges.icon,
+      color: badge.expert_badges.color,
+    } : null,
+  }))
 
   return (
     <div className="flex h-full flex-col min-h-0 overflow-hidden">
@@ -91,7 +105,7 @@ export default async function CreatorPage() {
         </Button>
       </header>
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
-        <CreatorDashboard agents={agents || []} products={products} stats={stats} badges={creatorBadges} />
+        <CreatorDashboard agents={agents || []} products={products} stats={stats} badges={mappedBadges} />
       </div>
     </div>
   )

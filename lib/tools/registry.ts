@@ -2,7 +2,7 @@
  * Tool Registry (Phase 39)
  * Manages available tools and custom tool builder
  */
-import { CoreTool } from "ai";
+import type { Tool } from "ai";
 
 export interface ToolMetadata {
   id: string;
@@ -15,7 +15,7 @@ export interface ToolMetadata {
 }
 
 export class ToolRegistry {
-  private static tools: Map<string, CoreTool> = new Map();
+  private static tools: Map<string, Tool> = new Map();
   private static metadata: Map<string, ToolMetadata> = new Map();
 
   /**
@@ -23,7 +23,7 @@ export class ToolRegistry {
    */
   static register(
     id: string,
-    tool: CoreTool,
+    tool: Tool,
     metadata: Omit<ToolMetadata, "id">
   ): void {
     this.tools.set(id, tool);
@@ -36,14 +36,14 @@ export class ToolRegistry {
   /**
    * Get a tool by ID
    */
-  static get(id: string): CoreTool | undefined {
+  static get(id: string): Tool | undefined {
     return this.tools.get(id);
   }
 
   /**
    * Get all tools
    */
-  static getAll(): Array<{ tool: CoreTool; metadata: ToolMetadata }> {
+  static getAll(): Array<{ tool: Tool; metadata: ToolMetadata }> {
     return Array.from(this.tools.entries()).map(([id, tool]) => ({
       tool,
       metadata: this.metadata.get(id)!,
@@ -53,7 +53,7 @@ export class ToolRegistry {
   /**
    * Get tools by category
    */
-  static getByCategory(category: string): Array<{ tool: CoreTool; metadata: ToolMetadata }> {
+  static getByCategory(category: string): Array<{ tool: Tool; metadata: ToolMetadata }> {
     return this.getAll().filter(({ metadata }) => metadata.category === category);
   }
 

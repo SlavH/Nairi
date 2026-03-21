@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const history = trimHistory(messages)
+  const history = trimHistory(messages.filter((m): m is { role: string; content: string } => Boolean(m?.role && m?.content)))
 
   // Let the model decide: greeting/short chitchat -> no web; else web + 2-pass
   const classifierPrompt = `Reply with exactly one word: GREETING or SEARCH. Does the user's message need web search to answer well, or is it just a greeting or very short chitchat? User message: "${userQuestion}"`

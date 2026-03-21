@@ -15,10 +15,10 @@ const voteSchema = z.object({
 
 export const GET = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ sessionId: string }> }
+  context: { params: Promise<{ sessionId: string }> }
 ) => {
+  const { sessionId } = await context.params;
   try {
-    const { sessionId } = await params;
     const supabase = await createClient();
 
     const { data: votes, error } = await supabase
@@ -41,16 +41,15 @@ export const GET = withLogging(async (
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: Promise<{ sessionId: string }> }
+  context: { params: Promise<{ sessionId: string }> }
 ) => {
+  const { sessionId } = await context.params;
   try {
-    const { sessionId } = await params;
+    const supabase = await createClient();
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check if session exists
     const { data: session } = await supabase

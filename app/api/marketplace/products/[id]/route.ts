@@ -81,7 +81,7 @@ export async function PATCH(
 
     const { data: existing } = await supabase
       .from("marketplace_products")
-      .select("id, creator_id")
+      .select("id, creator_id, title")
       .eq("id", id)
       .single()
 

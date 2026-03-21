@@ -3,8 +3,7 @@
  * Handles TOTP, SMS, and Email MFA
  */
 import { createClient } from "@/lib/supabase/server";
-import { authenticator } from "otplib";
-import { createHash } from "crypto";
+import { createHash, randomBytes } from "crypto";
 
 export type MFAMethod = "totp" | "sms" | "email";
 
@@ -17,6 +16,34 @@ export interface MFASettings {
   updatedAt: Date;
 }
 
+function generateBase32Secret(length: number = 20): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let secret = "";
+  const bytes = randomBytes(length);
+  for (let i = 0; i < length; i++) {
+    secret += chars[bytes[i] % chars.length];
+  }
+  return secret;
+}
+
+function base32ToHex(base32: string): string {
+  const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let hex = "";
+  let buffer = 0;
+  let bitsLeft = 0;
+  for (const char of base32.toUpperCase()) {
+    const value = base32Chars.indexOf(char);
+    if (value === -1) continue;
+    buffer = (buffer << 5) | value;
+    bitsLeft += 5;
+    if (bitsLeft >= 8) {
+      hex += ((buffer >> (bitsLeft - 8)) & 0xff).toString(16).padStart(2, "0");
+      bitsLeft -= 8;
+    }
+  }
+  return hex;
+}
+
 export class MFAManager {
   /**
    * Generate TOTP secret and QR code URL
@@ -25,9 +52,9 @@ export class MFAManager {
     secret: string;
     qrCodeUrl: string;
   } {
-    const secret = authenticator.generateSecret();
+    const secret = generateBase32Secret();
     const serviceName = "Nairi";
-    const otpAuthUrl = authenticator.keyuri(email, serviceName, secret);
+    const otpAuthUrl = `otpauth://totp/${encodeURIComponent(serviceName)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(serviceName)}&digits=6&period=30`;
 
     return {
       secret,
@@ -40,10 +67,34 @@ export class MFAManager {
    */
   static verifyTOTP(secret: string, token: string): boolean {
     try {
-      return authenticator.verify({ token, secret });
+      if (!/^\d{6}$/.test(token)) return false;
+      const time = Math.floor(Date.now() / 30000);
+      for (let i = -1; i <= 1; i++) {
+        const expectedToken = this.generateHOTP(secret, time + i);
+        if (expectedToken === token) return true;
+      }
+      return false;
     } catch {
       return false;
     }
+  }
+
+  private static generateHOTP(secret: string, counter: number): string {
+    const counterBytes = Buffer.alloc(8);
+    counterBytes.writeBigInt64BE(BigInt(counter), 0);
+    const secretHex = base32ToHex(secret);
+    const key = Buffer.from(secretHex, "hex");
+    const hmac = require("crypto").createHmac("sha1", key);
+    hmac.update(counterBytes);
+    const hmacResult = hmac.digest();
+    const offset = hmacResult[hmacResult.length - 1] & 0xf;
+    const binary =
+      ((hmacResult[offset] & 0x7f) << 24) |
+      ((hmacResult[offset + 1] & 0xff) << 16) |
+      ((hmacResult[offset + 2] & 0xff) << 8) |
+      (hmacResult[offset + 3] & 0xff);
+    const otp = binary % 1000000;
+    return otp.toString().padStart(6, "0");
   }
 
   /**

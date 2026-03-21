@@ -101,7 +101,7 @@ export async function POST(req: Request) {
           const result = await streamWithFallback({
             system: PROJECT_GENERATION_PROMPT,
             prompt: userPrompt,
-            abortSignal: req.signal,
+            signal: req.signal,
             maxOutputTokens: 16000,
             temperature: 0.7,
           })

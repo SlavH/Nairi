@@ -78,7 +78,7 @@ export async function streamWithFallback(opts: {
       })(),
       toUIMessageStreamResponse: () => response,
       toDataStream: () => new ReadableStream<Uint8Array>(),
-    } as ReturnType<typeof streamText>
+    } as unknown as ReturnType<typeof streamText>
   }
   requireBitNetConfig()
   if (isCircuitOpen(BITNET_MODEL)) {

@@ -17,8 +17,9 @@ const assignRoleSchema = z.object({
 
 export const POST = withLogging(async (
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  context: { params: { userId: string } }
 ) => {
+  const params = context.params;
   try {
     const supabase = await createClient();
     const {

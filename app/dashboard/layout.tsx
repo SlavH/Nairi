@@ -6,13 +6,22 @@ import { getSessionOrBypass } from "@/lib/auth"
 
 const LAYOUT_TIMEOUT_MS = 10_000
 
+interface Profile {
+  id: string
+  email: string | null
+  full_name: string | null
+  avatar_url: string | null
+  subscription_tier: string | null
+  tokens_balance: number | null
+}
+
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   let user: { id: string; email?: string | null }
-  let profile: unknown
+  let profile: Profile | null
 
   try {
     const result = await Promise.race([
@@ -21,7 +30,7 @@ export default async function DashboardLayout({
         const { user: u } = await getSessionOrBypass(() => supabase.auth.getUser())
         if (!u) redirect("/auth/login")
         const { data: p } = await supabase.from("profiles").select("*").eq("id", u.id).single()
-        return { user: u, profile: p }
+        return { user: u, profile: p as Profile | null }
       })(),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Dashboard layout timeout")), LAYOUT_TIMEOUT_MS)

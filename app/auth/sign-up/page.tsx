@@ -32,7 +32,7 @@ export default function SignUpPage() {
   // If user is already signed in, redirect so they don't see sign-up again until they log out
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(({ data: { user } }: { data: { user: unknown } }) => {
       setCheckingSession(false)
       if (user) router.replace("/nav")
     })

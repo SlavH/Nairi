@@ -24,12 +24,16 @@ export async function getRole(userId: string, _orgId?: string): Promise<Role> {
 
 export async function auditLog(action: string, userId: string, meta?: Record<string, unknown>): Promise<void> {
   const supabase = await createClient()
-  await supabase.from("activity_logs").insert({
-    user_id: userId,
-    action,
-    category: "security",
-    metadata: meta ?? {},
-  }).catch(() => {})
+  try {
+    await supabase.from("activity_logs").insert({
+      user_id: userId,
+      action,
+      category: "security",
+      metadata: meta ?? {},
+    })
+  } catch {
+    // Silently fail - audit logging should not block operations
+  }
 }
 
 export function getSecurityHeaders(): Record<string, string> {
