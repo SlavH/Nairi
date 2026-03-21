@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata, Viewport } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "sonner"
 import "./globals.css"
 import { I18nProvider } from "@/lib/i18n/context"
@@ -110,7 +109,6 @@ export default function RootLayout({
           </ThemeProvider>
         </ErrorBoundary>
         <Toaster richColors position="top-right" />
-        <SpeedInsights />
       </body>
     </html>
   )
