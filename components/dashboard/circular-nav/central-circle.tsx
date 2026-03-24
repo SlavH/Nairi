@@ -49,7 +49,7 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
         }}
       >
         <VideoCursorAvatarTracer
-          src="/content/avatar.mp4"
+          src="/avatar/avatar.mp4"
           className="w-full h-full"
           gridSize={4}
           videoDuration={8}
