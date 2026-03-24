@@ -1,21 +1,18 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
-import { CenterAvatar2_5D } from "./center-avatar-2_5d";
+import { VideoCursorAvatarTracer } from "@/components/video-cursor-avatar-tracer";
 
 interface CentralCircleProps {
   size?: number;
   onClick?: () => void;
-  onHoverChange?: (position: { x: number; y: number } | null) => void;
-  onNodeHover?: (position: { x: number; y: number } | null) => void;
 }
 
-export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover }: CentralCircleProps) {
+export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
   const router = useRouter();
   const { t } = useTranslation();
-  const [hoveredNodePosition, setHoveredNodePosition] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleClick = () => {
@@ -25,19 +22,6 @@ export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover 
       router.push("/dashboard");
     }
   };
-
-  const handleNodeHover = useCallback((position: { x: number; y: number } | null) => {
-    setHoveredNodePosition(position);
-    if (onNodeHover) {
-      onNodeHover(position);
-    }
-  }, [onNodeHover]);
-
-  useEffect(() => {
-    if (onHoverChange) {
-      onHoverChange(hoveredNodePosition);
-    }
-  }, [hoveredNodePosition, onHoverChange]);
 
   return (
     <div
@@ -64,7 +48,13 @@ export function CentralCircle({ size = 120, onClick, onHoverChange, onNodeHover 
           overflow: "hidden",
         }}
       >
-        <CenterAvatar2_5D size={size} hoveredNodePosition={hoveredNodePosition} />
+        <VideoCursorAvatarTracer
+          src="/avatar.mp4"
+          className="w-full h-full"
+          gridSize={4}
+          videoDuration={8}
+          lerpFactor={0.08}
+        />
       </div>
       <div
         style={{
