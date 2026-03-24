@@ -64,30 +64,37 @@ export function VideoCursorAvatarTracer({
   }, [lerpFactor]);
 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
+    const handleMove = (clientX: number, clientY: number) => {
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const normalizedX = clamp((event.clientX - rect.left) / rect.width, 0, 1);
-      const normalizedY = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+      const normalizedX = clamp((clientX - rect.left) / rect.width, 0, 1);
+      const normalizedY = clamp((clientY - rect.top) / rect.height, 0, 1);
 
       targetTimeRef.current = calculateTargetTime(normalizedX, normalizedY);
     };
 
+    const handleMouseMove = (event: MouseEvent) => {
+      handleMove(event.clientX, event.clientY);
+    };
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length > 0) {
+        handleMove(event.touches[0].clientX, event.touches[0].clientY);
+      }
+    };
+
     const container = containerRef.current;
-    const windowElement = container ? null : window;
 
     if (container) {
       container.addEventListener("mousemove", handleMouseMove);
-    } else if (windowElement) {
-      windowElement.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("touchmove", handleTouchMove, { passive: true });
     }
 
     return () => {
       if (container) {
         container.removeEventListener("mousemove", handleMouseMove);
-      } else if (windowElement) {
-        windowElement.removeEventListener("mousemove", handleMouseMove);
+        container.removeEventListener("touchmove", handleTouchMove);
       }
     };
   }, [calculateTargetTime]);
@@ -133,6 +140,7 @@ export function VideoCursorAvatarTracer({
         ref={videoRef}
         muted
         playsInline
+        autoPlay
         loop
         src={src}
         className="absolute inset-0 w-full h-full object-contain"
