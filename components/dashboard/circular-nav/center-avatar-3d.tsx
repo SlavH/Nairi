@@ -110,4 +110,4 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
   );
 }
 
-useGLTF.preload("/models/nav-avatar.glb");
+
