@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
-import { CenterAvatar2_5D } from "./center-avatar-2_5d";
 
 interface CentralCircleProps {
   size?: number;
@@ -11,10 +10,11 @@ interface CentralCircleProps {
   hoveredNodePosition?: { x: number; y: number } | null;
 }
 
-export function CentralCircle({ size = 120, onClick, hoveredNodePosition }: CentralCircleProps) {
+export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleClick = () => {
     if (onClick) {
@@ -49,7 +49,19 @@ export function CentralCircle({ size = 120, onClick, hoveredNodePosition }: Cent
           overflow: "hidden",
         }}
       >
-        <CenterAvatar2_5D size={size} hoveredNodePosition={hoveredNodePosition} />
+        <video
+          ref={videoRef}
+          src="/content/avatar.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
       </div>
       <div
         style={{
