@@ -1,9 +1,14 @@
 "use client";
 
 import { useRef } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
-import { CenterAvatar3D } from "./center-avatar-3d";
+
+const CenterAvatar3D = dynamic(() => import("./center-avatar-3d").then((mod) => mod.CenterAvatar3D), {
+  ssr: false,
+  loading: () => null,
+});
 
 interface CentralCircleProps {
   size?: number;
