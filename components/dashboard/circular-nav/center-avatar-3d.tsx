@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef, useEffect, memo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -10,7 +10,7 @@ interface CenterAvatar3DProps {
   hoveredNodePosition?: { x: number; y: number } | null;
 }
 
-export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar3DProps) {
+function AvatarModel({ size, hoveredNodePosition }: { size: number; hoveredNodePosition: { x: number; y: number } | null }) {
   const { scene } = useGLTF("/models/nav-avatar.glb");
   const rotationRef = useRef<THREE.Group>(null);
   const scaleRef = useRef<THREE.Group>(null);
@@ -80,18 +80,15 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
     currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * lerpFactor;
     currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * lerpFactor;
 
-    // Base sway - всегда есть минимальное покачивание
     const swayX = Math.sin(time * 0.8) * 0.02;
     const swayY = Math.cos(time * 0.6) * 0.015;
 
     rotationRef.current.rotation.x = currentRotation.current.x + swayX;
     rotationRef.current.rotation.y = currentRotation.current.y + swayY;
 
-    // Дыхание - пульсация scale
     const breathScale = 1 + Math.sin(time * 1.5) * 0.02;
     scaleRef.current.scale.set(breathScale, breathScale, breathScale);
 
-    // Мерцание hologram - субтильное изменение opacity/emissive
     if (materialRef.current) {
       const flicker = 1 + Math.sin(time * 3) * 0.03 * Math.sin(time * 7);
       materialRef.current.opacity = THREE.MathUtils.clamp(flicker, 0.95, 1);
@@ -110,4 +107,10 @@ export function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar
   );
 }
 
-
+export const CenterAvatar3D = memo(function CenterAvatar3D({ size = 120, hoveredNodePosition }: CenterAvatar3DProps) {
+  return (
+    <Canvas gl={{ antialias: true, alpha: true }}>
+      <AvatarModel size={size} hoveredNodePosition={hoveredNodePosition} />
+    </Canvas>
+  );
+});
