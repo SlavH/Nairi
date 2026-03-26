@@ -3,14 +3,15 @@
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
-import { VideoCursorAvatarTracer } from "@/components/video-cursor-avatar-tracer";
+import { CenterAvatar3D } from "./center-avatar-3d";
 
 interface CentralCircleProps {
   size?: number;
   onClick?: () => void;
+  hoveredNodePosition?: { x: number; y: number } | null;
 }
 
-export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
+export function CentralCircle({ size = 120, onClick, hoveredNodePosition }: CentralCircleProps) {
   const router = useRouter();
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,13 +49,7 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
           overflow: "hidden",
         }}
       >
-        <VideoCursorAvatarTracer
-          src="/avatar/avatar.mp4"
-          className="w-full h-full"
-          gridSize={4}
-          videoDuration={8}
-          lerpFactor={0.08}
-        />
+        <CenterAvatar3D size={size} hoveredNodePosition={hoveredNodePosition} />
       </div>
       <div
         style={{
