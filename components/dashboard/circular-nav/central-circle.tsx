@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
 
@@ -15,6 +15,12 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
 
   const handleClick = () => {
     if (onClick) {
@@ -45,8 +51,8 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
           width: "100%",
           height: "100%",
           borderRadius: "50%",
-          backgroundColor: "#0a0a0f",
           overflow: "hidden",
+          backgroundColor: "#1a1a2e",
         }}
       >
         <video
@@ -60,6 +66,7 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
             width: "100%",
             height: "100%",
             objectFit: "cover",
+            display: "block",
           }}
         />
       </div>
