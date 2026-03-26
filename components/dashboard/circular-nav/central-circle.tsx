@@ -1,14 +1,9 @@
 "use client";
 
 import { useRef } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/lib/i18n/context";
-
-const CenterAvatar3D = dynamic(() => import("./center-avatar-3d").then((mod) => mod.CenterAvatar3D), {
-  ssr: false,
-  loading: () => null,
-});
+import { CenterAvatar2_5D } from "./center-avatar-2_5d";
 
 interface CentralCircleProps {
   size?: number;
@@ -54,7 +49,7 @@ export function CentralCircle({ size = 120, onClick, hoveredNodePosition }: Cent
           overflow: "hidden",
         }}
       >
-        <CenterAvatar3D size={size} hoveredNodePosition={hoveredNodePosition} />
+        <CenterAvatar2_5D size={size} hoveredNodePosition={hoveredNodePosition} />
       </div>
       <div
         style={{
