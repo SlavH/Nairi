@@ -57,7 +57,7 @@ export function CentralCircle({ size = 120, onClick }: CentralCircleProps) {
       >
         <video
           ref={videoRef}
-          src="/avatar/avatar.mp4"
+          src="/content/avatar.mp4"
           autoPlay
           loop
           muted
