@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, memo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useGLTF, Environment } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 interface CenterAvatar3DProps {
@@ -118,7 +118,6 @@ export const CenterAvatar3D = memo(function CenterAvatar3D({ size = 120, hovered
       <directionalLight position={[5, 5, 5]} intensity={1.5} />
       <directionalLight position={[-3, -3, 3]} intensity={0.5} color="#00c9c8" />
       <pointLight position={[0, 0, 2]} intensity={0.8} color="#e052a0" />
-      <Environment preset="city" />
       <AvatarModel size={size} hoveredNodePosition={hoveredNodePosition} />
     </Canvas>
   );
