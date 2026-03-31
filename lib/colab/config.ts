@@ -49,12 +49,16 @@ export function isColabConfigured(): boolean {
   return COLAB_AI_BASE_URL.length > 0
 }
 
+/** Ollama API path for chat completions (OpenAI-compatible). */
+export const OLLAMA_CHAT_PATH = "/v1/chat/completions"
+
 /** Check if Ollama backend is configured. */
 export function isOllamaConfigured(): boolean {
   return OLLAMA_BASE_URL.length > 0
 }
 
-/** Get Ollama chat URL (returns the base URL as Ollama uses /v1/chat/completions path). */
+/** Get Ollama chat URL (appends /v1/chat/completions for OpenAI-compatible API). */
 export function getOllamaChatUrl(): string {
-  return OLLAMA_BASE_URL
+  if (!OLLAMA_BASE_URL) return ""
+  return `${OLLAMA_BASE_URL}${OLLAMA_CHAT_PATH}`
 }
