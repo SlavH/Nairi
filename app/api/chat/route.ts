@@ -4,11 +4,18 @@ import { createClient } from "@/lib/supabase/server"
 import { createUIMessageStream, createUIMessageStreamResponse } from "ai"
 import { streamWithFallback, generateWithFallback } from "@/lib/ai/groq-direct"
 import { routeForChat } from "@/lib/ai/model-router"
-import { colabChat } from "@/lib/colab"
+import { colabChat, ollamaChat } from "@/lib/colab"
+import { isOllamaConfigured, OLLAMA_STREAM } from "@/lib/colab/config"
+import { NAIRI_OLLAMA_SYSTEM_PROMPT } from "@/lib/ai/system-prompts"
 
 /** Use Colab POST /chat when this env is set; otherwise use streamWithFallback (Nairi Router or BitNet). */
 function useColabBackend(): boolean {
   return !!process.env.COLAB_AI_BASE_URL?.trim()
+}
+
+/** Use Ollama-compatible API when OLLAMA_BASE_URL is set. */
+function useOllamaBackend(): boolean {
+  return isOllamaConfigured()
 }
 import { wrapStreamWithQualityGates } from "@/lib/ai/stream-quality"
 import { truncateMessages } from "@/lib/ai/context-window"
@@ -1245,6 +1252,63 @@ The website should be production-ready and visually appealing.`
       }
     }
 
+    // Ollama backend (OpenAI-compatible API): use Ollama client with streaming support
+    if (useOllamaBackend()) {
+      try {
+        const ollamaMessages = [
+          { role: "system" as const, content: NAIRI_OLLAMA_SYSTEM_PROMPT },
+          ...modelMessages,
+        ]
+        const { text, fromFallback } = await ollamaChat(ollamaMessages, { 
+          max_tokens: 4096,
+          systemPrompt: NAIRI_OLLAMA_SYSTEM_PROMPT,
+        })
+        
+        if (fromFallback && (text.includes("offline") || text.includes("unavailable"))) {
+          return new Response(
+            JSON.stringify({
+              error: text,
+              details: "The Ollama backend tunnel appears to be offline. Please ensure your GPU-accelerated backend is running.",
+            }),
+            { status: 503, headers: { "Content-Type": "application/json" } }
+          )
+        }
+        
+        const displayText = (text && text.trim()) ? text : "The model returned an empty response. Please try again or rephrase your question."
+        if (userId && conversationId) {
+          const supabaseForSave = await createClient()
+          await supabaseForSave.from("messages").insert({
+            conversation_id: conversationId,
+            user_id: userId,
+            role: "assistant",
+            content: displayText,
+          })
+        }
+        const stream = createUIMessageStream({
+          execute: ({ writer }) => {
+            const id = `ollama-${Date.now()}`
+            writer.write({ type: "text-start", id })
+            writer.write({ type: "text-delta", id, delta: displayText })
+            writer.write({ type: "text-end", id })
+          },
+        })
+        const response = createUIMessageStreamResponse({ stream })
+        const wrappedBody = wrapStreamWithQualityGates(response.body, "chat")
+        return new Response(wrappedBody ?? undefined, {
+          status: response.status,
+          headers: response.headers,
+        })
+      } catch (err) {
+        return new Response(
+          JSON.stringify({
+            error: "Ollama backend error. Check that the GPU-accelerated backend is running and OLLAMA_BASE_URL is correct.",
+            details: err instanceof Error ? err.message : String(err),
+          }),
+          { status: 503, headers: { "Content-Type": "application/json" } }
+        )
+      }
+    }
+
     // Nairi Router or BitNet/Colab streaming (streamWithFallback uses Router when NAIRI_ROUTER_BASE_URL is set)
     try {
       const result = await streamWithFallback({
@@ -1275,7 +1339,7 @@ The website should be production-ready and visually appealing.`
     } catch (err) {
       return new Response(
         JSON.stringify({
-          error: "AI backend unavailable. Set NAIRI_ROUTER_BASE_URL or COLAB_AI_BASE_URL/BITNET_BASE_URL in .env, then try again.",
+          error: "AI backend unavailable. Set NAIRI_ROUTER_BASE_URL, COLAB_AI_BASE_URL/BITNET_BASE_URL, or OLLAMA_BASE_URL in .env, then try again.",
           details: err instanceof Error ? err.message : String(err),
         }),
         { status: 503, headers: { "Content-Type": "application/json" } }

@@ -2,10 +2,25 @@
  * Colab AI backend configuration.
  * Base URL is read from env; all Colab requests use this base (e.g. ngrok URL).
  * Switching to VPS later: only change COLAB_AI_BASE_URL.
+ * 
+ * Also supports Ollama-compatible (OpenAI-compatible) API via OLLAMA_BASE_URL.
  */
 
 const raw = process.env.COLAB_AI_BASE_URL ?? process.env.BITNET_BASE_URL ?? ""
 export const COLAB_AI_BASE_URL = raw.trim().replace(/\/+$/, "") // no trailing slash
+
+/** Ollama-compatible API base URL (OpenAI-compatible endpoint). */
+const ollamaRaw = process.env.OLLAMA_BASE_URL ?? ""
+export const OLLAMA_BASE_URL = ollamaRaw.trim().replace(/\/+$/, "") // no trailing slash
+
+/** Ollama model identifier (e.g., llama3, llama3:latest, mistral). */
+export const OLLAMA_MODEL = process.env.OLLAMA_MODEL?.trim() || "llama3:latest"
+
+/** Enable streaming for Ollama API (recommended for real-time UI). */
+export const OLLAMA_STREAM = process.env.OLLAMA_STREAM !== "false"
+
+/** Custom system prompt for Ollama backend. */
+export const OLLAMA_SYSTEM_PROMPT = process.env.OLLAMA_SYSTEM_PROMPT?.trim() || ""
 
 /** Request timeout in ms. Colab can be slow (CPU ~5–10s, cold start, load); default 60s. Override with COLAB_REQUEST_TIMEOUT_MS or AI_REQUEST_TIMEOUT. */
 export const COLAB_REQUEST_TIMEOUT_MS =
@@ -32,4 +47,14 @@ export function getColabHealthUrl(): string {
 
 export function isColabConfigured(): boolean {
   return COLAB_AI_BASE_URL.length > 0
+}
+
+/** Check if Ollama backend is configured. */
+export function isOllamaConfigured(): boolean {
+  return OLLAMA_BASE_URL.length > 0
+}
+
+/** Get Ollama chat URL (returns the base URL as Ollama uses /v1/chat/completions path). */
+export function getOllamaChatUrl(): string {
+  return OLLAMA_BASE_URL
 }
