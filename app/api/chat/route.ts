@@ -1312,22 +1312,80 @@ The website should be production-ready and visually appealing.`
         // OpenCode backend (opencode API): use when OPENCODE_API_URL is set
     if (useOpenCodeBackend()) {
       try {
-        const opencodeRes = await fetch(`${process.env.OPENCODE_API_URL}/session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: `nairi-chat-${userId || "anon"}` }),
-          signal: AbortSignal.timeout(60000),
-        })
-        if (!opencodeRes.ok) {
-          const errText = await opencodeRes.text()
-          console.error('[chat] OpenCode session creation failed:', errText)
-          return new Response(JSON.stringify({ error: "OpenCode backend error", details: errText }), {
-            status: 502,
-            headers: { "Content-Type": "application/json" },
-          })
+        let sessionId: string | null = null
+
+        // Try to reuse existing OpenCode session from Supabase
+        if (userId && conversationId) {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .select("opencode_session_id, opencode_session_last_used")
+            .eq("id", conversationId)
+            .single()
+
+          if (conv?.opencode_session_id) {
+            // Check if session is still valid (OpenCode may have purged it)
+            const checkRes = await fetch(
+              `${process.env.OPENCODE_API_URL}/session/${conv.opencode_session_id}`,
+              { signal: AbortSignal.timeout(5000) }
+            )
+            if (checkRes.ok) {
+              sessionId = conv.opencode_session_id
+              // Update last used timestamp
+              await supabase
+                .from("conversations")
+                .update({ opencode_session_last_used: new Date() })
+                .eq("id", conversationId)
+            }
+          }
         }
-        const sessData = await opencodeRes.json()
-        const sessionId = sessData.id
+
+        // Create new session if none reused
+        if (!sessionId) {
+          const sessRes = await fetch(`${process.env.OPENCODE_API_URL}/session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: `nairi-chat-${conversationId || "anon"}` }),
+            signal: AbortSignal.timeout(60000),
+          })
+          if (!sessRes.ok) {
+            const errText = await sessRes.text()
+            console.error('[chat] OpenCode session creation failed:', errText)
+            return new Response(JSON.stringify({ error: "OpenCode backend error", details: errText }), {
+              status: 502,
+              headers: { "Content-Type": "application/json" },
+            })
+          }
+          const sessData = await sessRes.json()
+          sessionId = sessData.id
+
+          // Save session ID to Supabase for reuse
+          if (userId && conversationId) {
+            await supabase
+              .from("conversations")
+              .update({
+                opencode_session_id: sessionId,
+                opencode_session_last_used: new Date(),
+              })
+              .eq("id", conversationId)
+          }
+        }
+
+        // Also cleanup old sessions (>6 hours) to free OpenCode memory
+        if (userId) {
+          const { data: oldConvs } = await supabase
+            .from("conversations")
+            .select("opencode_session_id")
+            .lt("opencode_session_last_used", new Date(Date.now() - 6 * 60 * 60 * 1000))
+            .not("opencode_session_id", "is", null)
+
+          for (const conv of oldConvs || []) {
+            if (conv.opencode_session_id) {
+              fetch(`${process.env.OPENCODE_API_URL}/session/${conv.opencode_session_id}`, {
+                method: "DELETE",
+              }).catch(() => {}) // Ignore cleanup errors
+            }
+          }
+        }
 
         const lastUserMsg = modelMessages.filter(m => m.role === "user").pop()
         const userText = lastUserMsg?.content || userContent || ""
@@ -1343,7 +1401,7 @@ The website should be production-ready and visually appealing.`
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ parts: [{ type: "text", text: userText }] }),
-          signal: AbortSignal.timeout(120000), // 120s timeout for slower responses
+          signal: AbortSignal.timeout(120000),
         })
 
         if (!msgRes.ok) {
@@ -1356,8 +1414,7 @@ The website should be production-ready and visually appealing.`
         }
 
         const msgData = await msgRes.json()
-        
-        // Handle potential invalid JSON or missing parts
+
         if (!msgData || typeof msgData !== 'object') {
           console.error('[chat] Invalid response from OpenCode:', msgData)
           return new Response(JSON.stringify({ error: "Invalid response from OpenCode backend" }), {
@@ -1366,7 +1423,7 @@ The website should be production-ready and visually appealing.`
           })
         }
 
-        const textPart = (msgData.parts || []).find((p) => p.type === "text")
+        const textPart = (msgData.parts || []).find((p: any) => p.type === "text")
         const replyText = textPart?.text || JSON.stringify(msgData)
 
         if (userId && conversationId) {
