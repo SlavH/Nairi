@@ -1309,6 +1309,79 @@ The website should be production-ready and visually appealing.`
       }
     }
 
+        // OpenCode backend (opencode API): use when OPENCODE_API_URL is set
+    if (useOpenCodeBackend()) {
+      try {
+        const opencodeRes = await fetch(`${process.env.OPENCODE_API_URL}/session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: `nairi-chat-${userId || "anon"}` }),
+          signal: AbortSignal.timeout(60000),
+        })
+        if (!opencodeRes.ok) {
+          const errText = await opencodeRes.text()
+          console.error('[chat] OpenCode session creation failed:', errText)
+          return new Response(JSON.stringify({ error: "OpenCode backend error", details: errText }), {
+            status: 502,
+            headers: { "Content-Type": "application/json" },
+          })
+        }
+        const sessData = await opencodeRes.json()
+        const sessionId = sessData.id
+
+        const lastUserMsg = modelMessages.filter(m => m.role === "user").pop()
+        const userText = lastUserMsg?.content || userContent
+
+        const msgRes = await fetch(`${process.env.OPENCODE_API_URL}/session/${sessionId}/message`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ parts: [{ type: "text", text: userText }] }),
+          signal: AbortSignal.timeout(60000),
+        })
+
+        if (!msgRes.ok) {
+          const errText = await msgRes.text()
+          console.error('[chat] OpenCode message failed:', errText)
+          return new Response(JSON.stringify({ error: "OpenCode message failed", details: errText }), {
+            status: 502,
+            headers: { "Content-Type": "application/json" },
+          })
+        }
+
+        const msgData = await msgRes.json()
+        const textPart = (msgData.parts || []).find((p) => p.type === "text")
+        const replyText = textPart?.text || JSON.stringify(msgData)
+
+        if (userId && conversationId) {
+          const supabaseForSave = await createClient()
+          await supabaseForSave.from("messages").insert({
+            conversation_id: conversationId,
+            user_id: userId,
+            role: "assistant",
+            content: replyText,
+          })
+        }
+
+        const stream = createUIMessageStream({
+          execute: ({ writer }) => {
+            const id = `opencode-${Date.now()}`
+            writer.write({ type: "text-start", id })
+            writer.write({ type: "text-delta", id, delta: replyText })
+            writer.write({ type: "text-end", id })
+          },
+        })
+        const response = createUIMessageStreamResponse({ stream })
+        const wrappedBody = wrapStreamWithQualityGates(response.body, "chat")
+        return new Response(wrappedBody ?? undefined, {
+          status: response.status,
+          headers: response.headers,
+        })
+      } catch (err) {
+        console.error('[chat] OpenCode backend error:', err)
+        // Fall through to other backends
+      }
+    }
+
     // Nairi Router or Nairi AI/Colab streaming (streamWithFallback uses Router when NAIRI_ROUTER_BASE_URL is set)
     try {
       const result = await streamWithFallback({
