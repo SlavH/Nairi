@@ -1330,13 +1330,20 @@ The website should be production-ready and visually appealing.`
         const sessionId = sessData.id
 
         const lastUserMsg = modelMessages.filter(m => m.role === "user").pop()
-        const userText = lastUserMsg?.content || userContent
+        const userText = lastUserMsg?.content || userContent || ""
+
+        if (!userText) {
+          return new Response(JSON.stringify({ error: "No user message content" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          })
+        }
 
         const msgRes = await fetch(`${process.env.OPENCODE_API_URL}/session/${sessionId}/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ parts: [{ type: "text", text: userText }] }),
-          signal: AbortSignal.timeout(60000),
+          signal: AbortSignal.timeout(120000), // 120s timeout for slower responses
         })
 
         if (!msgRes.ok) {
@@ -1349,6 +1356,16 @@ The website should be production-ready and visually appealing.`
         }
 
         const msgData = await msgRes.json()
+        
+        // Handle potential invalid JSON or missing parts
+        if (!msgData || typeof msgData !== 'object') {
+          console.error('[chat] Invalid response from OpenCode:', msgData)
+          return new Response(JSON.stringify({ error: "Invalid response from OpenCode backend" }), {
+            status: 502,
+            headers: { "Content-Type": "application/json" },
+          })
+        }
+
         const textPart = (msgData.parts || []).find((p) => p.type === "text")
         const replyText = textPart?.text || JSON.stringify(msgData)
 
