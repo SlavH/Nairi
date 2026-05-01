@@ -8,14 +8,14 @@ import { colabChat, ollamaChat } from "@/lib/colab"
 import { isOllamaConfigured, OLLAMA_STREAM } from "@/lib/colab/config"
 import { NAIRI_OLLAMA_SYSTEM_PROMPT } from "@/lib/ai/system-prompts"
 
-/** Use Colab POST /chat when this env is set; otherwise use streamWithFallback (Nairi Router or Nairi AI). */
+/** Use Colab POST /chat when this env is set AND NAIRI_AI_BASE_URL is not set. */
 function useColabBackend(): boolean {
-  return !!process.env.COLAB_AI_BASE_URL?.trim()
+  return !!process.env.COLAB_AI_BASE_URL?.trim() && !process.env.NAIRI_AI_BASE_URL?.trim()
 }
 
-/** Use Ollama-compatible API when OLLAMA_BASE_URL is set. */
+/** Use Ollama-compatible API when OLLAMA_BASE_URL is set AND NAIRI_AI_BASE_URL is not set. */
 function useOllamaBackend(): boolean {
-  return isOllamaConfigured()
+  return isOllamaConfigured() && !process.env.NAIRI_AI_BASE_URL?.trim()
 }
 import { wrapStreamWithQualityGates } from "@/lib/ai/stream-quality"
 import { truncateMessages } from "@/lib/ai/context-window"
