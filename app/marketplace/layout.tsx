@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import type React from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 export const metadata: Metadata = {
   title: "Marketplace | Nairi",
@@ -20,7 +20,7 @@ export default async function MarketplaceLayout({
     const result = await Promise.race([
       (async () => {
         const supabase = await createClient()
-        const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+        const { user } = await getSession(() => supabase.auth.getUser())
         if (!user) redirect("/auth/login")
         return user
       })(),

@@ -6,17 +6,17 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getUserIdOrBypassForApi, getBypassUserId } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
 async function getSupabaseAndUserId() {
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   return { supabase, userId }
 }
 
-function clientForConversation(userId: string) {
-  return userId === getBypassUserId() ? createAdminClient() : null
+function clientForConversation(_userId: string) {
+  return null
 }
 
 export async function GET(

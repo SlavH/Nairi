@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { getMentorByDomain } from "@/lib/learn/ai-mentors"
 import { MentorDetail } from "@/components/learn/mentor-detail"
 
@@ -14,7 +14,7 @@ export default async function MentorDomainPage({
   const { domain } = await params
   const decoded = decodeURIComponent(domain)
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const mentor = await getMentorByDomain(user.id, decoded)

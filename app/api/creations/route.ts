@@ -3,7 +3,7 @@
  * POST /api/creations — create a creation.
  */
 import { createClient } from '@/lib/supabase/server'
-import { getUserIdOrBypassForApi } from '@/lib/auth'
+import { getUserIdForApi } from '@/lib/auth'
 import { handleError } from '@/lib/errors/handler'
 import { unauthorizedError, validationError } from '@/lib/errors/types'
 import { NextResponse } from 'next/server'
@@ -21,7 +21,7 @@ const createBodySchema = z.object({
 export async function GET(req: Request) {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return handleError(unauthorizedError('Authentication required'))
     }
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return handleError(unauthorizedError('Authentication required'))
     }

@@ -6,11 +6,11 @@ import { Check, Zap } from "lucide-react"
 import Link from "next/link"
 import { SUBSCRIPTION_PLANS } from "@/lib/products"
 import { redirect } from "next/navigation"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 export default async function BillingPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

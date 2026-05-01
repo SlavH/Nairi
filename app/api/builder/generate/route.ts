@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 import { checkRateLimitAsync, getClientIdentifier } from "@/lib/rate-limit"
 import { generateForBuilder } from "@/lib/ai/builder-generate-fallback"
 // Lazy-load system prompt so the route still registers if the module path fails (avoids 404)
@@ -869,7 +869,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

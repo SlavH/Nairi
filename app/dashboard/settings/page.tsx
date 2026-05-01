@@ -6,11 +6,11 @@ import { AIGovernance } from "@/components/settings/ai-governance"
 import { LanguageSettings } from "@/components/settings/language-settings"
 import { User, Brain, Globe } from "lucide-react"
 import { redirect } from "next/navigation"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

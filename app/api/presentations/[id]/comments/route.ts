@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdOrBypassForApi } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 import { z } from "zod";
 
 const createCommentSchema = z.object({
@@ -22,7 +22,7 @@ export const GET = withLogging(async (
   const params = context.params;
   try {
     const supabase = await createClient();
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
+    const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
@@ -56,7 +56,7 @@ export const POST = withLogging(async (
   const params = context.params;
   try {
     const supabase = await createClient();
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
+    const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }

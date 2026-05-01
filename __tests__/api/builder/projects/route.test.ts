@@ -8,19 +8,19 @@ vi.mock("@/lib/supabase/server", () => ({
 }))
 
 vi.mock("@/lib/auth", () => ({
-  getUserIdOrBypassForApi: vi.fn(),
+  getUserIdForApi: vi.fn(),
 }))
 
 const { createClient } = await import("@/lib/supabase/server")
-const { getUserIdOrBypassForApi } = await import("@/lib/auth")
+const { getUserIdForApi } = await import("@/lib/auth")
 
 describe("GET /api/builder/projects", () => {
   beforeEach(() => {
-    vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(null)
+    vi.mocked(getUserIdForApi).mockResolvedValue(null)
   })
 
   it("returns 401 when not authenticated", async () => {
-    vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(null)
+    vi.mocked(getUserIdForApi).mockResolvedValue(null)
     const res = await GET(new Request("http://localhost/api/builder/projects"))
     expect(res.status).toBe(401)
     const data = await res.json()
@@ -28,7 +28,7 @@ describe("GET /api/builder/projects", () => {
   })
 
   it("returns 200 and array when authenticated and no projects", async () => {
-    vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(mockUserId)
+    vi.mocked(getUserIdForApi).mockResolvedValue(mockUserId)
     const mockSelect = vi.fn().mockResolvedValue({ data: [], error: null })
     vi.mocked(createClient).mockResolvedValue({
       from: () => ({
@@ -49,7 +49,7 @@ describe("GET /api/builder/projects", () => {
 
 describe("POST /api/builder/projects", () => {
   beforeEach(() => {
-    vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(null)
+    vi.mocked(getUserIdForApi).mockResolvedValue(null)
   })
 
   it("returns 401 when not authenticated", async () => {
@@ -64,7 +64,7 @@ describe("POST /api/builder/projects", () => {
   })
 
   it("returns 400 for invalid JSON", async () => {
-    vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(mockUserId)
+    vi.mocked(getUserIdForApi).mockResolvedValue(mockUserId)
     vi.mocked(createClient).mockResolvedValue({} as any)
     const res = await POST(
       new Request("http://localhost/api/builder/projects", {
@@ -77,7 +77,7 @@ describe("POST /api/builder/projects", () => {
   })
 
   it("returns 200 and project when authenticated with valid body", async () => {
-    vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(mockUserId)
+    vi.mocked(getUserIdForApi).mockResolvedValue(mockUserId)
     const inserted = {
       id: "proj-123",
       name: "My Project",

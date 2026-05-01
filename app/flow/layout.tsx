@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
 import { getConversationFolders } from "@/lib/features/chat"
 
@@ -18,7 +18,7 @@ async function loadFlowLayoutData(): Promise<{
   userId: string
 }> {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

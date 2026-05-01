@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, ShieldCheck } from "lucide-react"
@@ -14,7 +14,7 @@ export default async function CheckoutPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

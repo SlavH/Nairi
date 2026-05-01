@@ -2,7 +2,7 @@ import type React from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { getConversationFolders } from "@/lib/features/chat"
 
 export const dynamic = "force-dynamic"
@@ -15,7 +15,7 @@ async function loadChatLayoutData(): Promise<{
   userId: string
 }> {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

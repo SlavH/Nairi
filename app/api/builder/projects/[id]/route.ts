@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   const { id } = await params
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -35,7 +35,7 @@ export async function PATCH(
 ) {
   const { id } = await params
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -93,7 +93,7 @@ export async function DELETE(
 ) {
   const { id } = await params
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }

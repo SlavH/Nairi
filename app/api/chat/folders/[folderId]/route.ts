@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { updateConversationFolder, deleteConversationFolder } from "@/lib/features/chat"
 
@@ -10,7 +10,7 @@ export async function PATCH(
   const { folderId } = await params
   if (!folderId) return NextResponse.json({ error: "Missing folderId" }, { status: 400 })
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const body = await req.json().catch(() => ({}))
   const name = body.name ?? ""
@@ -29,7 +29,7 @@ export async function DELETE(
   const { folderId } = await params
   if (!folderId) return NextResponse.json({ error: "Missing folderId" }, { status: 400 })
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const ok = await deleteConversationFolder(folderId, userId)
   if (!ok) return NextResponse.json({ error: "Failed to delete folder" }, { status: 500 })

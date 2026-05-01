@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { getQuizWithQuestions } from "@/lib/learn/quizzes"
 import { QuizTaker } from "@/components/learn/quiz-taker"
 
@@ -13,7 +13,7 @@ export default async function QuizPage({
 }) {
   const { quizId } = await params
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const { quiz, questions } = await getQuizWithQuestions(quizId)

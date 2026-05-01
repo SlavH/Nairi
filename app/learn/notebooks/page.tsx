@@ -3,12 +3,12 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { LearnNotebooksList } from "@/components/learn/learn-notebooks-list"
 
 export default async function LearnNotebooksPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const { data: notebooks } = await supabase

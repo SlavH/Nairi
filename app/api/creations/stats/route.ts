@@ -2,7 +2,7 @@
  * GET /api/creations/stats — creation counts by type and recent activity for the authenticated user.
  */
 import { createClient } from '@/lib/supabase/server'
-import { getUserIdOrBypassForApi } from '@/lib/auth'
+import { getUserIdForApi } from '@/lib/auth'
 import { handleError } from '@/lib/errors/handler'
 import { unauthorizedError } from '@/lib/errors/types'
 import { NextResponse } from 'next/server'
@@ -10,7 +10,7 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return handleError(unauthorizedError('Authentication required'))
     }

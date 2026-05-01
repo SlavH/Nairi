@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getUserUsageStats } from '@/lib/cost-tracker'
-import { getSessionOrBypass } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { checkRateLimitAsync, getClientIdentifier } from '@/lib/rate-limit'
 
 const USAGE_RATE_LIMIT = { maxRequests: 60, windowMs: 60 * 1000 } // 60/min
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       )
     }
     const supabase = await createClient()
-    const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+    const { user } = await getSession(() => supabase.auth.getUser())
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

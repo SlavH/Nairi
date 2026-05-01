@@ -5,11 +5,11 @@ import Link from "next/link"
 import { MessageSquare, Store, Zap, TrendingUp, Clock, Bot } from "lucide-react"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
 import { redirect } from "next/navigation"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

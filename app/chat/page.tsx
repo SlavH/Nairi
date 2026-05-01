@@ -2,12 +2,12 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Image from "next/image"
 import { Sparkles } from "lucide-react"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { ChatWelcomeCards } from "@/components/chat/chat-welcome-cards"
 
 export default async function ChatPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

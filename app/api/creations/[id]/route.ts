@@ -4,7 +4,7 @@
  * DELETE /api/creations/[id] — delete a creation (own only).
  */
 import { createClient } from '@/lib/supabase/server'
-import { getUserIdOrBypassForApi } from '@/lib/auth'
+import { getUserIdForApi } from '@/lib/auth'
 import { handleError } from '@/lib/errors/handler'
 import { unauthorizedError, validationError } from '@/lib/errors/types'
 import { NextResponse } from 'next/server'
@@ -29,7 +29,7 @@ export async function GET(
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return handleError(unauthorizedError('Authentication required'))
     }
@@ -68,7 +68,7 @@ export async function PATCH(
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return handleError(unauthorizedError('Authentication required'))
     }
@@ -119,7 +119,7 @@ export async function DELETE(
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return handleError(unauthorizedError('Authentication required'))
     }

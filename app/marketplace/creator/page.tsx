@@ -3,14 +3,14 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { CreatorDashboard } from "@/components/marketplace/creator-dashboard"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { getCreatorBadges } from "@/lib/features/badges"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, Plus } from "lucide-react"
 
 export default async function CreatorPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

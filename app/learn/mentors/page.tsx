@@ -2,13 +2,13 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft, Plus } from "lucide-react"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { listMentorsForUser } from "@/lib/learn/ai-mentors"
 import { AIMentorsList } from "@/components/learn/ai-mentors-list"
 
 export default async function MentorsPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const mentors = await listMentorsForUser(user.id)

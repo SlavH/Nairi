@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 
 export async function GET() {
   const supabase = await createClient()
-  const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

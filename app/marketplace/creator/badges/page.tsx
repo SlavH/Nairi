@@ -4,14 +4,14 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, Award } from "lucide-react"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { getCreatorBadges, listExpertBadges } from "@/lib/features/badges"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
 export default async function CreatorBadgesPage() {
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const [earned, catalog] = await Promise.all([

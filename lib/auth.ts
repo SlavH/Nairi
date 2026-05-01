@@ -20,9 +20,9 @@ export async function getSession(
 
 /**
  * Get user id or null (for API routes).
- * No bypass - returns null if not authenticated.
+ * Returns null if not authenticated.
  */
-export async function getUserIdOrBypassForApi(
+export async function getUserIdForApi(
   getSupabaseUser: () => Promise<{ data: { user: { id: string } | null } }>
 ): Promise<string | null> {
   const { data: { user } } = await getSupabaseUser()
@@ -30,20 +30,3 @@ export async function getUserIdOrBypassForApi(
   return null
 }
 
-/**
- * Get session or bypass (backward compat).
- * No bypass mode - always returns real session or null.
- */
-export async function getSessionOrBypass(
-  getSupabaseUser: () => Promise<{ data: { user: { id: string; email?: string | null } | null } }>
-): Promise<SessionUser | null> {
-  return getSession(getSupabaseUser)
-}
-
-/**
- * Get bypass user id (backward compat).
- * No bypass mode - always returns null.
- */
-export function getBypassUserId(): string | null {
-  return null
-}

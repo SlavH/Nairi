@@ -3,7 +3,7 @@
  * POST /api/presentations — create a presentation (optional; for create-with-id or client-provided slides).
  */
 import { createClient } from '@/lib/supabase/server'
-import { getUserIdOrBypassForApi } from '@/lib/auth'
+import { getUserIdForApi } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit'
 
@@ -15,7 +15,7 @@ const RATE_LIMIT_WINDOW_MS = 60_000
 export async function GET() {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

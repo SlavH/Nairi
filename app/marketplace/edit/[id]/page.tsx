@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { CreateAgentForm } from "@/components/marketplace/create-agent-form"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
 
@@ -14,7 +14,7 @@ export default async function EditAgentPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

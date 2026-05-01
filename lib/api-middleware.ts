@@ -2,7 +2,7 @@
  * API middleware helpers.
  * No bypass mode - all requests require valid authentication.
  */
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 
 export interface AuthResult {
   success: boolean

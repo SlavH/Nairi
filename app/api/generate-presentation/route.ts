@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getUserIdOrBypassForApi } from '@/lib/auth';
+import { getUserIdForApi } from '@/lib/auth';
 import { generateWithFallback } from '@/lib/ai/groq-direct';
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
+    const userId = await getUserIdForApi(() => supabase.auth.getUser());
 
     const body: PresentationRequest = await request.json();
     const {

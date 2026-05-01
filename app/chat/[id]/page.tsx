@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import { ChatPageClient } from "@/components/chat/chat-page-client"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 export default async function ChatConversationPage({
   params,
@@ -13,7 +13,7 @@ export default async function ChatConversationPage({
   const { id } = await params
   const { suggestion } = await searchParams
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

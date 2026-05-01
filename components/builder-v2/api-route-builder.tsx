@@ -248,13 +248,13 @@ export function ApiRouteBuilder({ isOpen, onOpenChange, onGenerateRoutes }: ApiR
 // File: app/api/${fileName}/route.ts
 
 import { NextRequest, NextResponse } from "next/server"
-${route.requiresAuth ? 'import { createClient } from "@/lib/supabase/server"\nimport { getUserIdOrBypassForApi } from "@/lib/auth"' : ''}
+${route.requiresAuth ? 'import { createClient } from "@/lib/supabase/server"\nimport { getUserIdForApi } from "@/lib/auth"' : ''}
 
 export async function ${route.method}(request: NextRequest${route.path.includes('[') ? ', { params }: { params: { id: string } }' : ''}) {
   try {
 ${route.requiresAuth ? `    // Check authentication (Supabase + optional bypass in dev)
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 
 export const metadata: Metadata = {
   title: "Nairi Builder - AI Code Generation",
@@ -19,7 +19,7 @@ export default async function BuilderLayout({
     const result = await Promise.race([
       (async () => {
         const supabase = await createClient()
-        const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+        const { user } = await getSession(() => supabase.auth.getUser())
         if (!user) redirect("/auth/login")
         return user
       })(),

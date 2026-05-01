@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { handleError } from "@/lib/errors/handler"
 import { unauthorizedError } from "@/lib/errors/types"
 import { withLogging } from "@/lib/logging/middleware"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 
 const mockFlowData = [
   {
@@ -154,7 +154,7 @@ const mockFlowData = [
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
-    const userId = await getUserIdOrBypassForApi(() => supabase?.auth?.getUser())
+    const userId = await getUserIdForApi(() => supabase?.auth?.getUser())
     
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1")

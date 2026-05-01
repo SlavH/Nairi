@@ -4,7 +4,7 @@
  * DELETE /api/presentations/[id] — delete a presentation.
  */
 import { createClient } from '@/lib/supabase/server'
-import { getUserIdOrBypassForApi } from '@/lib/auth'
+import { getUserIdForApi } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 
 export async function GET(
@@ -16,7 +16,7 @@ export async function GET(
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data, error } = await supabase
@@ -47,7 +47,7 @@ export async function PATCH(
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { data: existing } = await supabase
@@ -95,7 +95,7 @@ export async function DELETE(
     if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { error } = await supabase

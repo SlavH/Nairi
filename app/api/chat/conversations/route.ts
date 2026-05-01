@@ -6,25 +6,19 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getUserIdOrBypassForApi, getBypassUserId } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: "Please sign in." }, { status: 401 })
     }
 
     let client = supabase
-    if (userId === getBypassUserId()) {
-      try {
-        client = createAdminClient()
-      } catch {
-        return NextResponse.json({ error: "Server configuration error." }, { status: 503 })
-      }
-    }
+    // No bypass mode - use regular client
 
     let data: { id: string; title: string; updated_at: string; is_pinned?: boolean; pinned_at?: string | null; folder_id?: string | null }[] | null = null
     let error: { message: string } | null = null
@@ -67,22 +61,13 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: "Please sign in to start a chat." }, { status: 401 })
     }
 
     let client = supabase
-    if (userId === getBypassUserId()) {
-      try {
-        client = createAdminClient()
-      } catch (e) {
-        return NextResponse.json(
-          { error: "Please sign in to start a chat, or set SUPABASE_SERVICE_ROLE_KEY for development." },
-          { status: 503 }
-        )
-      }
-    }
+    // No bypass mode - use regular client
 
     const body = await req.json().catch(() => ({}))
     const folderId = body.folder_id

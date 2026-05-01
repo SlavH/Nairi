@@ -23,7 +23,7 @@ import { filterInput, filterOutput } from "@/lib/ai/content-filters"
 import { getSystemPrompt, detectPromptInjection } from "@/lib/ai/system-prompts"
 import { checkRateLimitAsync, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
 import { validateRequestSize, validateContentType, sanitizeString, detectSuspiciousPatterns, MAX_REQUEST_SIZES } from "@/lib/security/request-validator"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 
 export const maxDuration = 180
 
@@ -527,7 +527,7 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
 
     const body = await req.json()
     const { messages, conversationId, mode = "default" } = body

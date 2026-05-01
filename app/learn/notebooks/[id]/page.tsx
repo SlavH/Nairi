@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
-import { getSessionOrBypass } from "@/lib/auth"
+import { getSession } from "@/lib/auth"
 import { NotebookView } from "@/components/learn/notebook-view"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
@@ -13,7 +13,7 @@ export default async function NotebookDetailPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { user } = await getSessionOrBypass(() => supabase.auth.getUser())
+  const { user } = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const { data: notebook } = await supabase

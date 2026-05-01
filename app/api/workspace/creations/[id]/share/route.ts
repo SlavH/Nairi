@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdOrBypassForApi } from "@/lib/auth";
+import { getUserIdForApi } from "@/lib/auth";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
@@ -21,7 +21,7 @@ export const POST = withLogging(async (
   { params }: { params: { id: string } }
 ) => {
   try {
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser());
+    const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }

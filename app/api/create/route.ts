@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { getUserIdOrBypassForApi } from "@/lib/auth"
+import { getUserIdForApi } from "@/lib/auth"
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { generateDesignBrief, designBriefToPromptEnhancement, type DesignBrief } from "@/lib/ai/design-brief"
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
     }
 
     const supabase = await createClient()
-    const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
