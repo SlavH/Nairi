@@ -15,7 +15,7 @@ export const AI_PROVIDERS: AIProvider[] = [
   {
     id: "bitnet",
     name: "Colab Model",
-    model: "default",
+    model: "nairi-llama",
     tier: 1,
     maxTokens: 32768,
     supportedFeatures: ["chat", "reasoning", "code", "analysis", "long-context"],
