@@ -1,6 +1,6 @@
 /**
- * POST /api/nairi-chat — web-grounded Nairi chat.
- * Simplified: always use direct answer mode (no plan/web search).
+ * POST /api/nairi-chat — simplified chat using OpenCode backend when available.
+ * Falls back to generateWithFallback only if OPENCODE_API_URL is not set.
  */
 import { NextRequest, NextResponse } from "next/server"
 import { generateWithFallback } from "@/lib/ai/groq-direct"
@@ -15,6 +15,10 @@ export interface NairiChatSource {
   title: string
   url: string
   snippet?: string
+}
+
+function useOpenCodeBackend(): boolean {
+  return !!(process.env.OPENCODE_API_URL?.trim())
 }
 
 export async function POST(req: NextRequest) {
@@ -46,17 +50,68 @@ export async function POST(req: NextRequest) {
 
   const meta: { web_ms: number; plan_ms: number; answer_ms: number } = { web_ms: 0, plan_ms: 0, answer_ms: 0 }
 
-  // Simple direct answer — no web search, no plan pass
+  // Use OpenCode backend if configured
+  if (useOpenCodeBackend()) {
+    const answerStart = Date.now()
+    try {
+      // Create session
+      const sessRes = await fetch(`${process.env.OPENCODE_API_URL}/session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "nairi-chat" }),
+        signal: AbortSignal.timeout(120_000),
+      })
+      if (!sessRes.ok) {
+        const errText = await sessRes.text()
+        console.error("[nairi-chat] OpenCode session failed:", errText)
+        return NextResponse.json({ error: `OpenCode session failed: ${errText}` }, { status: 502 })
+      }
+      const sessData = await sessRes.json()
+      const sessionId = sessData.id
+
+      // Send message
+      const msgRes = await fetch(`${process.env.OPENCODE_API_URL}/session/${sessionId}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ parts: [{ type: "text", text: userQuestion }] }),
+        signal: AbortSignal.timeout(120_000),
+      })
+      if (!msgRes.ok) {
+        const errText = await msgRes.text()
+        console.error("[nairi-chat] OpenCode message failed:", errText)
+        return NextResponse.json({ error: `OpenCode message failed: ${errText}` }, { status: 502 })
+      }
+      const msgData = await msgRes.json()
+      const textPart = (msgData.parts || []).find((p: any) => p.type === "text")
+      const response = textPart?.text || JSON.stringify(msgData)
+
+      meta.answer_ms = Date.now() - answerStart
+      if (!response.trim()) {
+        return NextResponse.json({ error: "Empty response from OpenCode" }, { status: 502 })
+      }
+      return NextResponse.json({
+        response,
+        sources: [],
+        meta,
+      })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error("[nairi-chat] OpenCode backend error:", msg)
+      // Fall through to try generateWithFallback
+    }
+  }
+
+  // Fallback: use original GPU backend (will fail if not configured)
+  const requestedMax = typeof body.max_tokens === "number" ? Math.min(4096, Math.max(1, body.max_tokens)) : 400
+
   const answerStart = Date.now()
   let response: string
   try {
     const historyText = messages
-      .filter((m) => m.role === "user" || m.role === "assistant")
+      .filter((m) => m.role === "user" || m.role === "assitant")
       .slice(-MAX_HISTORY)
       .map((m) => `${m.role}: ${m.content}`)
       .join("\n")
-
-    const requestedMax = typeof body.max_tokens === "number" ? Math.min(4096, Math.max(1, body.max_tokens)) : 400
 
     const { text } = await generateWithFallback({
       system: "You are Nairi, a helpful and knowledgeable AI assistant. Be concise and natural.",
