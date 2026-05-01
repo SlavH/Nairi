@@ -131,7 +131,7 @@ Output ONLY the lyrics, no explanations or commentary.`
           lyrics,
           sections,
           settings: { genre, mood, structure, rhymeScheme, language },
-          provider: "bitnet",
+          provider: "nairi",
           model,
           message: "Lyrics generated successfully"
         })
@@ -143,7 +143,7 @@ Output ONLY the lyrics, no explanations or commentary.`
     return NextResponse.json({
       success: false,
       error: "Lyrics generation service unavailable",
-      message: "Set BITNET_BASE_URL in .env to your Google Colab tunnel URL"
+      message: "Set NAIRI_AI_BASE_URL in .env to your Google Colab tunnel URL"
     }, { status: 503 })
 
   } catch (error) {
@@ -197,7 +197,7 @@ export async function GET() {
       { theme: "missing someone who moved away", genre: "country", mood: "nostalgic" }
     ],
     providers: [
-      { id: "bitnet", name: "BitNet", tier: 1, speed: "fast" },
+      { id: "nairi", name: "Nairi AI", tier: 1, speed: "fast" },
       { id: "openai", name: "OpenAI (GPT-4o-mini)", tier: 2, speed: "medium" },
       { id: "huggingface", name: "HuggingFace (Mistral)", tier: 3, speed: "slow" }
     ]

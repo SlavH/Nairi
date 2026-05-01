@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           success: true,
           originalPrompt: prompt,
           enhancedPrompt: enhancedPrompt.trim(),
-          provider: "bitnet",
+          provider: "nairi",
           message: "Prompt enhanced successfully"
         })
       }
@@ -158,7 +158,7 @@ export async function GET() {
       detail: { type: "string", optional: true, enum: ["minimal", "moderate", "detailed"], default: "moderate" }
     },
     providers: [
-      { id: "bitnet", name: "BitNet", tier: 1, speed: "fast" },
+      { id: "nairi", name: "Nairi AI", tier: 1, speed: "fast" },
       { id: "openai", name: "OpenAI (GPT-4o-mini)", tier: 2, speed: "medium" },
       { id: "huggingface", name: "HuggingFace (Mistral)", tier: 3, speed: "slow" },
       { id: "rule-based", name: "Rule-based", tier: 4, speed: "instant", note: "Always available fallback" }

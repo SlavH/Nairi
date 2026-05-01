@@ -1,15 +1,15 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import { isRouterConfigured } from '@/lib/nairi-api/router'
 
-// AI backend: Nairi Router (NAIRI_ROUTER_BASE_URL) or Colab/BitNet (COLAB_AI_BASE_URL / BITNET_BASE_URL).
-const AI_BASE_URL = (process.env.COLAB_AI_BASE_URL || process.env.BITNET_BASE_URL)?.trim() || ""
-export const bitnetProvider = createOpenAI({
-  apiKey: process.env.BITNET_API_KEY,
+// AI backend: Nairi Router (NAIRI_ROUTER_BASE_URL) or Nairi AI (COLAB_AI_BASE_URL / NAIRI_AI_BASE_URL).
+const AI_BASE_URL = (process.env.COLAB_AI_BASE_URL || process.env.NAIRI_AI_BASE_URL)?.trim() || ""
+export const nairiAiProvider = createOpenAI({
+  apiKey: process.env.NAIRI_AI_API_KEY,
   baseURL: AI_BASE_URL || undefined,
 })
 
 export const PROVIDER_CLIENTS = {
-  bitnet: bitnetProvider,
+  nairi: nairiAiProvider,
 } as const
 
 // API key validation function
@@ -50,13 +50,13 @@ export function isValidApiKey(apiKey: string | undefined): boolean {
   return true
 }
 
-// Check if a provider has a valid API key configured (or Router is set for bitnet)
+// Check if a provider has a valid API key configured (or Router is set for nairi)
 export function hasValidApiKey(providerId: string): boolean {
   switch (providerId) {
-    case 'bitnet': {
-      const url = (process.env.COLAB_AI_BASE_URL || process.env.BITNET_BASE_URL)?.trim()
+    case 'nairi': {
+      const url = (process.env.COLAB_AI_BASE_URL || process.env.NAIRI_AI_BASE_URL)?.trim()
       if (url) {
-        const key = process.env.BITNET_API_KEY
+        const key = process.env.NAIRI_AI_API_KEY
         return key ? isValidApiKey(key) : true
       }
       return isRouterConfigured()

@@ -577,7 +577,7 @@ function NodeConfigEditor({ node, onUpdate }: NodeConfigEditorProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bitnet">Colab</SelectItem>
+                <SelectItem value="nairi">Nairi AI</SelectItem>
               </SelectContent>
             </Select>
           </div>

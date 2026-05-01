@@ -1,6 +1,6 @@
 /**
- * Model Comparison – all requests go to the Colab server (BITNET_BASE_URL).
- * When multiple "models" are requested, each request is sent to the same Colab endpoint.
+ * Model Comparison – all requests go to Nairi AI (NAIRI_AI_BASE_URL).
+ * When multiple "models" are requested, each request is sent to the same Nairi AI endpoint.
  */
 
 import { generateWithFallback } from "@/lib/ai/groq-direct"

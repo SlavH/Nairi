@@ -109,7 +109,7 @@ export function Workflows() {
       description: 'Generate daily blog posts and social media content',
       steps: [
         { id: '1', type: 'input', name: 'Topic Input', config: {} },
-        { id: '2', type: 'ai', name: 'Generate Blog', config: { model: 'bitnet' } },
+        { id: '2', type: 'ai', name: 'Generate Blog', config: { model: 'nairi' } },
         { id: '3', type: 'ai', name: 'Create Social Posts', config: {} },
         { id: '4', type: 'output', name: 'Save to CMS', config: {} }
       ],

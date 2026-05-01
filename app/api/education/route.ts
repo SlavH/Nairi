@@ -211,7 +211,7 @@ Be encouraging and supportive while maintaining educational rigor.`
         "Should I provide practice problems on this topic?",
         "Do you want to explore related concepts?"
       ],
-      provider: "bitnet-tutor"
+      provider: "nairi-tutor"
     })
   } catch (error) {
     console.error("[AI Tutor] Error:", error)
@@ -255,7 +255,7 @@ Structure your explanation with:
       topic,
       depth,
       explanation: response,
-      provider: "bitnet-explainer"
+      provider: "nairi-explainer"
     })
   } catch (error) {
     console.error("[Explain] Error:", error)
@@ -310,7 +310,7 @@ Include a mix of question types: factual, conceptual, and application-based.`
       difficulty,
       requestedCount: count,
       quiz,
-      provider: "bitnet-quiz-generator"
+      provider: "nairi-quiz-generator"
     })
   } catch (error) {
     console.error("[Quiz] Error:", error)
@@ -350,7 +350,7 @@ This maintains academic integrity while providing genuine educational support.`
       problem,
       guidance: response,
       academicIntegrityNote: "This response provides guidance and hints to help you learn. The actual solution is for you to work out, which is how real learning happens!",
-      provider: "bitnet-homework-helper"
+      provider: "nairi-homework-helper"
     })
   } catch (error) {
     console.error("[Homework Help] Error:", error)
@@ -385,7 +385,7 @@ Format as a structured list. Make problems progressively challenging.`
       difficulty,
       count: Math.min(count, 10),
       problems: response,
-      provider: "bitnet-practice-generator"
+      provider: "nairi-practice-generator"
     })
   } catch (error) {
     console.error("[Practice] Error:", error)
@@ -440,7 +440,7 @@ Include a mix of:
       topic,
       requestedCount: count,
       flashcards,
-      provider: "bitnet-flashcard-generator"
+      provider: "nairi-flashcard-generator"
     })
   } catch (error) {
     console.error("[Flashcards] Error:", error)
@@ -481,7 +481,7 @@ Make the plan realistic and achievable.`
       goal,
       timeframe,
       studyPlan: response,
-      provider: "bitnet-study-planner"
+      provider: "nairi-study-planner"
     })
   } catch (error) {
     console.error("[Study Plan] Error:", error)

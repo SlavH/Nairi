@@ -6,7 +6,7 @@
  * Also supports Ollama-compatible (OpenAI-compatible) API via OLLAMA_BASE_URL.
  */
 
-const raw = process.env.COLAB_AI_BASE_URL ?? process.env.BITNET_BASE_URL ?? ""
+const raw = process.env.COLAB_AI_BASE_URL ?? process.env.NAIRI_AI_BASE_URL ?? ""
 export const COLAB_AI_BASE_URL = raw.trim().replace(/\/+$/, "") // no trailing slash
 
 /** Ollama-compatible API base URL (OpenAI-compatible endpoint). */

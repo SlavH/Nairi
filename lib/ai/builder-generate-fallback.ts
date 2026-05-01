@@ -1,6 +1,6 @@
 /**
- * Builder AI generation: single BitNet model only.
- * All text generation goes through the centralized BitNet provider.
+ * Builder AI generation: single Nairi AI model only.
+ * All text generation goes through the centralized Nairi AI provider.
  */
 
 import { generateWithFallback } from "@/lib/ai/groq-direct"
@@ -21,7 +21,7 @@ export type BuilderGenerateResult = {
 }
 
 /**
- * Generate text for the builder using the configured BitNet model.
+ * Generate text for the builder using the configured Nairi AI model.
  */
 export async function generateForBuilder(
   opts: BuilderGenerateOptions
@@ -34,5 +34,5 @@ export async function generateForBuilder(
     maxOutputTokens: opts.maxOutputTokens ?? 4096,
     fast: opts.fast,
   })
-  return { text, model, provider: "bitnet" }
+  return { text, model, provider: "nairi" }
 }

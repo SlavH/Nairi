@@ -12,7 +12,7 @@ import type { ColabMessage } from "./types"
 import { isColabChatResponse, isOllamaChatResponse } from "./types"
 
 const FALLBACK_MESSAGE =
-  "The AI backend is unavailable. Check that your Colab server is running and the URL in .env is correct (COLAB_AI_BASE_URL, BITNET_BASE_URL, or OLLAMA_BASE_URL). If you just restarted Colab, update the URL. Slow responses? Increase COLAB_REQUEST_TIMEOUT_MS or AI_REQUEST_TIMEOUT in .env."
+  "The AI backend is unavailable. Check that your Colab server is running and the URL in .env is correct (COLAB_AI_BASE_URL, NAIRI_AI_BASE_URL, or OLLAMA_BASE_URL). If you just restarted Colab, update the URL. Slow responses? Increase COLAB_REQUEST_TIMEOUT_MS or AI_REQUEST_TIMEOUT in .env."
 
 const TUNNEL_OFFLINE_MESSAGE =
   "The Colab tunnel appears to be offline. Please ensure your GPU-accelerated backend is running and the ngrok/static domain URL is accessible. You can verify by checking if the endpoint responds to health checks."

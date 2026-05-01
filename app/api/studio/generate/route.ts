@@ -688,7 +688,7 @@ const body: GenerateRequest = await req.json()
       async start(controller) {
         try {
           let fullContent = ""
-          const provider = "bitnet"
+          const provider = "nairi"
 
           const result = await streamWithFallback({
             system: systemPrompt,

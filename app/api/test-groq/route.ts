@@ -3,8 +3,8 @@ import { generateWithFallback } from "@/lib/ai/groq-direct"
 
 export async function GET() {
   try {
-    if (!process.env.BITNET_BASE_URL?.trim()) {
-      return Response.json({ error: "Set BITNET_BASE_URL in .env to your Colab tunnel URL" }, { status: 500 })
+    if (!process.env.NAIRI_AI_BASE_URL?.trim()) {
+      return Response.json({ error: "Set NAIRI_AI_BASE_URL in .env to your Colab tunnel URL" }, { status: 500 })
     }
 
     const { text, model } = await generateWithFallback({

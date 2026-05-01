@@ -740,7 +740,7 @@ export function LivePreviewV2({
               {safePreviewError.length > 600 ? safePreviewError.slice(0, 600) + "…" : safePreviewError}
             </p>
           </div>
-          <p className="text-xs text-muted-foreground">Fix the issue (e.g. set BITNET_BASE_URL to your Colab URL, check rate limits) and try again.</p>
+          <p className="text-xs text-muted-foreground">Fix the issue (e.g. set NAIRI_AI_BASE_URL to your Colab URL, check rate limits) and try again.</p>
           <div className="flex flex-wrap gap-2 justify-center">
             {onUseSafeStarter && (
               <Button

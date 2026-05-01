@@ -59,7 +59,7 @@ export async function generateDesignBrief(
   prompt: string,
   options?: any
 ): Promise<DesignBrief> {
-  console.log('🎨 Generating design brief using BitNet...')
+  console.log('🎨 Generating design brief using Nairi AI...')
   try {
     const systemPrompt = getDesignBriefSystemPrompt(type)
     const userPrompt = buildDesignBriefPrompt(type, prompt, options)
@@ -72,7 +72,7 @@ export async function generateDesignBrief(
     console.log('✅ Design brief generated successfully')
     return parseDesignBrief(text, type)
   } catch (error) {
-    console.error('⚠️ BitNet design brief generation failed, using fallback:', error)
+    console.error('⚠️ Nairi AI design brief generation failed, using fallback:', error)
     return getFallbackDesignBrief(type, prompt)
   }
 }

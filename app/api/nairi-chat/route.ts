@@ -1,6 +1,6 @@
 /**
  * POST /api/nairi-chat — web-grounded Nairi chat.
- * Routes through BITNET_BASE_URL (GPU) for all AI inference.
+ * Routes through NAIRI_AI_BASE_URL (GPU) for all AI inference.
  * Model decides: greeting/short chitchat → single reply; else → web search + 2-pass (PLAN → FINAL).
  */
 

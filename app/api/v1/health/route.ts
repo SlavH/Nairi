@@ -15,7 +15,7 @@ export async function GET() {
     checks: {
       server: 'ok',
       supabase: !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
-      colab: !!process.env.BITNET_BASE_URL,
+      colab: !!process.env.NAIRI_AI_BASE_URL,
     },
   })
 }

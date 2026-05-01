@@ -1,6 +1,6 @@
 /**
  * Colab AI integration layer.
- * Single backend: POST /chat, response { response }. Config via COLAB_AI_BASE_URL (or BITNET_BASE_URL).
+ * Single backend: POST /chat, response { response }. Config via COLAB_AI_BASE_URL (or NAIRI_AI_BASE_URL).
  * Also supports Ollama-compatible (OpenAI-compatible) API via OLLAMA_BASE_URL.
  */
 

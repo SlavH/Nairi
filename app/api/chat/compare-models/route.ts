@@ -1,5 +1,5 @@
 /**
- * Model Comparison API – all requests go to Colab (BITNET_BASE_URL).
+ * Model Comparison API – all requests go to Colab (NAIRI_AI_BASE_URL).
  */
 import { NextRequest, NextResponse } from "next/server";
 import { ModelComparison } from "@/lib/chat/model-comparison";

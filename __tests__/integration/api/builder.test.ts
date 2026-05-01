@@ -1,11 +1,11 @@
 /**
  * Builder API Integration Tests (Phase 22)
- * Note: Generate 200 test is skipped in CI when BITNET_BASE_URL is not set; use BYPASS_AUTH for local run.
+ * Note: Generate 200 test is skipped in CI when NAIRI_AI_BASE_URL is not set; use BYPASS_AUTH for local run.
  */
 import { describe, it, expect } from "vitest";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-const hasBitNet = Boolean(process.env.BITNET_BASE_URL?.trim());
+const hasNairiAi = Boolean(process.env.NAIRI_AI_BASE_URL?.trim());
 
 describe("Builder API", () => {
   describe("POST /api/builder/generate", () => {
@@ -32,8 +32,8 @@ describe("Builder API", () => {
     });
 
     it("should return 200 and NDJSON stream when auth bypass and API key", async () => {
-      if (!hasBitNet) {
-        console.warn("Skipping generate 200 test: no BITNET_BASE_URL");
+      if (!hasNairiAi) {
+        console.warn("Skipping generate 200 test: no NAIRI_AI_BASE_URL");
         return;
       }
       const response = await fetch(`${baseUrl}/api/builder/generate`, {

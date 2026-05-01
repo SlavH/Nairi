@@ -1,4 +1,4 @@
-// AI: single backend – Google Colab server (URL in .env BITNET_BASE_URL).
+// AI: single backend – Nairi AI server (URL in .env NAIRI_AI_BASE_URL).
 
 import { hasValidApiKey, getProviderClient } from "./client"
 
@@ -13,8 +13,8 @@ export interface AIProvider {
 
 export const AI_PROVIDERS: AIProvider[] = [
   {
-    id: "bitnet",
-    name: "Colab Model",
+    id: "nairi",
+    name: "Nairi AI",
     model: "nairi-llama",
     tier: 1,
     maxTokens: 32768,

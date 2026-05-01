@@ -100,7 +100,7 @@ const AVATARS = [
 ];
 
 const MODELS = [
-  { value: "bitnet", label: "Colab" },
+  { value: "nairi", label: "Nairi AI" },
 ];
 
 const PRESET_ASSISTANTS = [
@@ -163,7 +163,7 @@ export function CustomAssistants({
     systemPrompt: "",
     welcomeMessage: "",
     category: "general",
-    model: "bitnet",
+    model: "nairi",
     temperature: 0.7,
     maxTokens: 4096,
     isFavorite: false,
@@ -205,7 +205,7 @@ export function CustomAssistants({
       systemPrompt: "",
       welcomeMessage: "",
       category: "general",
-      model: "bitnet",
+      model: "nairi",
       temperature: 0.7,
       maxTokens: 4096,
       isFavorite: false,

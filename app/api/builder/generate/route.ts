@@ -269,7 +269,7 @@ function extractComponents(html: string): { tag: string; classes: string[]; coun
     .slice(0, 15)
 }
 
-// LLM call using BitNet
+// LLM call using Nairi AI
 async function callFreeLLM(prompt: string, _apiKey?: string): Promise<string> {
   try {
     const { text } = await generateForBuilder({
@@ -905,11 +905,11 @@ export async function POST(req: NextRequest) {
     }
     const { prompt, currentFiles, conversationHistory } = body
 
-    // Fail fast if BitNet is not configured
-    const bitnetBaseUrl = process.env.BITNET_BASE_URL?.trim()
+    // Fail fast if Nairi AI is not configured
+    const bitnetBaseUrl = process.env.NAIRI_AI_BASE_URL?.trim()
     if (!bitnetBaseUrl) {
       return NextResponse.json(
-        { error: "Set BITNET_BASE_URL in .env to your Google Colab tunnel URL (e.g. https://xxxxx.trycloudflare.com/v1) for AI code generation." },
+        { error: "Set NAIRI_AI_BASE_URL in .env to your Google Colab tunnel URL (e.g. https://xxxxx.trycloudflare.com/v1) for AI code generation." },
         { status: 503 }
       )
     }
@@ -936,7 +936,7 @@ export async function POST(req: NextRequest) {
           }
 
           let dynamicTasks: string[] = []
-          const hasBitNet = !!process.env.BITNET_BASE_URL?.trim()
+          const hasNairiAi = !!process.env.NAIRI_AI_BASE_URL?.trim()
           
           // ============================================================================
           // 🚀 SUPERPOWER ACTIVATION: Enhanced Prompt Analysis & Smart Planning
@@ -947,7 +947,7 @@ export async function POST(req: NextRequest) {
           let webSearchResults: { title: string; snippet: string; url: string }[] = []
           let layoutStructureResearch: { title: string; snippet: string; url: string }[] = []
           
-          if (hasBitNet) {
+          if (hasNairiAi) {
             try {
               // SUPERPOWER #2: Analyze the prompt for intent, features, complexity
               console.log('🧠 Activating Enhanced Prompt Understanding...')

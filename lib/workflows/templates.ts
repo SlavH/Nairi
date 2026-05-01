@@ -530,7 +530,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
           name: 'AI Analysis',
           position: { x: 350, y: 200 },
           config: {
-            model: 'bitnet',
+            model: 'nairi',
             prompt: 'Analyze the following data and provide insights:\n\n{{input}}',
             temperature: 0.7,
             maxTokens: 2000,

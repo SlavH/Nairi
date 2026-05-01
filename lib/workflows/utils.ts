@@ -229,7 +229,7 @@ export const getDefaultConfig = (type: NodeType): NodeConfig => {
       isHtml: false,
     },
     'action-ai': {
-      model: 'bitnet',
+      model: 'nairi',
       prompt: '',
       temperature: 0.7,
       maxTokens: 1000,

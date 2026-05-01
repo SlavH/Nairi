@@ -347,7 +347,7 @@ async function executeTask(agentId: string, task: string, context?: string) {
       steps,
       finalResult: synthesis,
       totalSteps: steps.length,
-      provider: "bitnet-agent"
+      provider: "nairi-agent"
     })
   } catch (error) {
     console.error("[Execute Task] Error:", error)
@@ -397,7 +397,7 @@ async function createPlan(agentId: string, goal: string, constraints?: string) {
       goal,
       constraints,
       plan,
-      provider: "bitnet-planning-agent"
+      provider: "nairi-planning-agent"
     })
   } catch (error) {
     console.error("[Create Plan] Error:", error)
@@ -478,7 +478,7 @@ async function researchTopic(agentId: string, topic: string, depth: string) {
       topic,
       depth,
       findings,
-      provider: "bitnet-research-agent"
+      provider: "nairi-research-agent"
     })
   } catch (error) {
     console.error("[Research] Error:", error)
@@ -525,7 +525,7 @@ async function executeCodeTask(agentId: string, task: string, language: string) 
       task,
       language,
       result: codeResult,
-      provider: "bitnet-code-agent"
+      provider: "nairi-code-agent"
     })
   } catch (error) {
     console.error("[Code Task] Error:", error)
@@ -570,7 +570,7 @@ async function analyzeWithAgent(agentId: string, data: string, question?: string
       agentId,
       question: question || "General analysis",
       analysis,
-      provider: "bitnet-data-agent"
+      provider: "nairi-data-agent"
     })
   } catch (error) {
     console.error("[Analyze] Error:", error)

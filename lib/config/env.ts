@@ -26,11 +26,11 @@ interface EnvConfig {
     webhookSecret?: string;
   };
   
-  // AI (BitNet only)
+  // AI (Nairi AI only)
   ai: {
     colabBaseUrl?: string;
-    bitnetBaseUrl?: string;
-    bitnetApiKey?: string;
+    nairiAiBaseUrl?: string;
+    nairiAiApiKey?: string;
     replicate?: string;
   };
   
@@ -109,10 +109,10 @@ export function getConfig(): EnvConfig {
     },
     
     ai: {
-      // Colab-style backend (POST /chat). Override with COLAB_AI_BASE_URL; fallback BITNET_BASE_URL
-      colabBaseUrl: optionalEnv("COLAB_AI_BASE_URL") || optionalEnv("BITNET_BASE_URL"),
-      bitnetBaseUrl: optionalEnv("BITNET_BASE_URL"),
-      bitnetApiKey: optionalEnv("BITNET_API_KEY"),
+      // Colab-style backend (POST /chat). Override with COLAB_AI_BASE_URL; fallback NAIRI_AI_BASE_URL
+      colabBaseUrl: optionalEnv("COLAB_AI_BASE_URL") || optionalEnv("NAIRI_AI_BASE_URL"),
+      nairiAiBaseUrl: optionalEnv("NAIRI_AI_BASE_URL"),
+      nairiAiApiKey: optionalEnv("NAIRI_AI_API_KEY"),
       replicate: optionalEnv("REPLICATE_API_TOKEN"),
     },
     

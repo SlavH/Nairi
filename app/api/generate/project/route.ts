@@ -107,8 +107,8 @@ export async function POST(req: Request) {
           })
 
           let fullContent = ""
-          const provider = "bitnet"
-          const model = process.env.BITNET_MODEL || "bitnet-b1.58-2b"
+          const provider = "nairi"
+          const model = process.env.NAIRI_AI_MODEL || "nairi-llama"
 
           for await (const chunk of result.textStream) {
             fullContent += chunk

@@ -93,9 +93,9 @@ if (!process.env.STRIPE_SECRET_KEY && !process.env.BYPASS_AUTH) {
 }
 
 // Colab AI URL (required for all AI features)
-if (!process.env.BITNET_BASE_URL?.trim()) {
-  warnings.push("BITNET_BASE_URL not set - all AI (chat, builder, etc.) goes to Colab; set it to your tunnel URL");
-  warnings.push("Set BITNET_BASE_URL in .env (e.g. https://xxxxx.trycloudflare.com/v1)");
+if (!process.env.NAIRI_AI_BASE_URL?.trim()) {
+  warnings.push("NAIRI_AI_BASE_URL not set - all AI (chat, builder, etc.) goes to Colab; set it to your tunnel URL");
+  warnings.push("Set NAIRI_AI_BASE_URL in .env (e.g. https://xxxxx.trycloudflare.com/v1)");
 }
 
 // Print results

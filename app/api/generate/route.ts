@@ -605,7 +605,7 @@ IMPORTANT RULES:
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
             complete: true, 
             code: finalCode,
-            provider: "bitnet",
+            provider: "nairi",
             model: usedModel
           })}\n\n`))
 
@@ -617,7 +617,7 @@ IMPORTANT RULES:
               prompt,
               content: finalCode,
               options,
-              metadata: { provider: "bitnet", model: usedModel, generationType: validatedType }
+              metadata: { provider: "nairi", model: usedModel, generationType: validatedType }
             })).catch((err: unknown) => {
               console.error('Failed to save creation:', err)
             })

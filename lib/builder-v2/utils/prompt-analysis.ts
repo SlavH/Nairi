@@ -1,6 +1,6 @@
 /**
  * Prompt Analysis Utilities
- * Enhanced understanding of user requests (uses BitNet).
+ * Enhanced understanding of user requests (uses Nairi AI).
  */
 
 import { generateWithFallback } from "@/lib/ai/groq-direct"

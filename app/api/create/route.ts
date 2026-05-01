@@ -164,7 +164,7 @@ export async function POST(req: Request) {
       temperature: 0.7,
     })
 
-    const provider = "bitnet"
+    const provider = "nairi"
 
     // Save creation to database
     const { data: creation, error: createError } = await supabase

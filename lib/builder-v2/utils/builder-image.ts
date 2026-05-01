@@ -1,6 +1,6 @@
 /**
  * Builder image generation: Pollinations only (no cloud AI keys).
- * All text AI is BitNet; images use free Pollinations URLs.
+ * All text AI is Nairi AI; images use free Pollinations URLs.
  */
 
 /** Returns a URL for an image matching the prompt, or null on failure. */

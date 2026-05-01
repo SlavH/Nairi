@@ -1,5 +1,5 @@
 /**
- * All AI requests go to Colab (BITNET_BASE_URL). Single provider/model from env.
+ * All AI requests go to Nairi AI (NAIRI_AI_BASE_URL). Single provider/model from env.
  */
 
 export type TaskType = "chat" | "code" | "image" | "long-context"
@@ -14,8 +14,8 @@ export interface RouterResult {
   preference: RoutingPreference
 }
 
-const PROVIDER_ID = "bitnet"
-const MODEL_ID = process.env.BITNET_MODEL || "default"
+const PROVIDER_ID = "nairi"
+const MODEL_ID = process.env.NAIRI_AI_MODEL || "nairi-llama"
 
 export function routeModel(
   _taskType: TaskType,

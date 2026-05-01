@@ -1,21 +1,21 @@
-// AI requests: Nairi Router (NAIRI_ROUTER_BASE_URL) or Colab/BitNet (COLAB_AI_BASE_URL / BITNET_BASE_URL).
+// AI requests: Nairi Router (NAIRI_ROUTER_BASE_URL) or Nairi AI (COLAB_AI_BASE_URL / NAIRI_AI_BASE_URL).
 
 import { streamText, generateText, createUIMessageStream, createUIMessageStreamResponse } from "ai"
-import { bitnetProvider } from "./client"
+import { nairiAiProvider } from "./client"
 import { isCircuitOpen, recordFailure, recordSuccess } from "./circuit-breaker"
 import { isRouterConfigured, generate as routerGenerate, pollForResult } from "@/lib/nairi-api/router"
 
-const BITNET_MODEL = process.env.BITNET_MODEL || "default"
+const NAIRI_AI_MODEL = process.env.NAIRI_AI_MODEL || "nairi-llama"
 
 function hasAnyAiBackend(): boolean {
-  const url = (process.env.COLAB_AI_BASE_URL || process.env.BITNET_BASE_URL)?.trim()
+  const url = (process.env.COLAB_AI_BASE_URL || process.env.NAIRI_AI_BASE_URL)?.trim()
   return !!url || isRouterConfigured()
 }
 
-function requireBitNetConfig(): void {
+function requireNairiAiConfig(): void {
   if (!hasAnyAiBackend()) {
     throw new Error(
-      "No AI backend configured. Set NAIRI_ROUTER_BASE_URL, or COLAB_AI_BASE_URL / BITNET_BASE_URL in .env."
+      "No AI backend configured. Set NAIRI_ROUTER_BASE_URL, or COLAB_AI_BASE_URL / NAIRI_AI_BASE_URL in .env."
     )
   }
 }
@@ -80,13 +80,13 @@ export async function streamWithFallback(opts: {
       toDataStream: () => new ReadableStream<Uint8Array>(),
     } as unknown as ReturnType<typeof streamText>
   }
-  requireBitNetConfig()
-  if (isCircuitOpen(BITNET_MODEL)) {
-    throw new Error(`BitNet model ${BITNET_MODEL}: circuit open (temporarily unavailable)`)
+  requireNairiAiConfig()
+  if (isCircuitOpen(NAIRI_AI_MODEL)) {
+    throw new Error(`Nairi AI model ${NAIRI_AI_MODEL}: circuit open (temporarily unavailable)`)
   }
   try {
     const result = streamText({
-      model: bitnetProvider(BITNET_MODEL),
+      model: nairiAiProvider(NAIRI_AI_MODEL),
       system: opts.system,
       ...(opts.messages
         ? { messages: opts.messages }
@@ -96,10 +96,10 @@ export async function streamWithFallback(opts: {
       abortSignal: opts.signal,
       onFinish: opts.onFinish,
     })
-    recordSuccess(BITNET_MODEL)
+    recordSuccess(NAIRI_AI_MODEL)
     return result
   } catch (error) {
-    recordFailure(BITNET_MODEL)
+    recordFailure(NAIRI_AI_MODEL)
     throw error
   }
 }
@@ -119,13 +119,13 @@ export async function generateWithFallback(opts: {
     const text = normalizeRouterResult(raw)
     return { text, model: "nairi-router" }
   }
-  requireBitNetConfig()
-  if (isCircuitOpen(BITNET_MODEL)) {
-    throw new Error(`BitNet model ${BITNET_MODEL}: circuit open (temporarily unavailable)`)
+  requireNairiAiConfig()
+  if (isCircuitOpen(NAIRI_AI_MODEL)) {
+    throw new Error(`Nairi AI model ${NAIRI_AI_MODEL}: circuit open (temporarily unavailable)`)
   }
   try {
     const result = await generateText({
-      model: bitnetProvider(BITNET_MODEL),
+      model: nairiAiProvider(NAIRI_AI_MODEL),
       system: opts.system,
       ...(opts.messages
         ? { messages: opts.messages }
@@ -133,10 +133,10 @@ export async function generateWithFallback(opts: {
       temperature: opts.temperature ?? 0.7,
       maxOutputTokens: opts.maxOutputTokens ?? 4096,
     })
-    recordSuccess(BITNET_MODEL)
-    return { text: result.text, model: BITNET_MODEL }
+    recordSuccess(NAIRI_AI_MODEL)
+    return { text: result.text, model: NAIRI_AI_MODEL }
   } catch (error) {
-    recordFailure(BITNET_MODEL)
+    recordFailure(NAIRI_AI_MODEL)
     throw error
   }
 }
@@ -159,8 +159,8 @@ export async function streamChatWithFallback(
 
   return {
     stream: (result as unknown as { toDataStream: () => ReadableStream<Uint8Array> }).toDataStream(),
-    provider: "bitnet",
-    model: BITNET_MODEL,
+    provider: "nairi",
+    model: NAIRI_AI_MODEL,
   }
 }
 
@@ -176,7 +176,7 @@ export async function generateTextWithFallback(
     messages,
     maxOutputTokens: options.maxTokens,
   })
-  return { text, provider: "bitnet", model }
+  return { text, provider: "nairi", model }
 }
 
 export async function streamGroqChat(

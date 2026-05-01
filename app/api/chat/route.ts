@@ -8,7 +8,7 @@ import { colabChat, ollamaChat } from "@/lib/colab"
 import { isOllamaConfigured, OLLAMA_STREAM } from "@/lib/colab/config"
 import { NAIRI_OLLAMA_SYSTEM_PROMPT } from "@/lib/ai/system-prompts"
 
-/** Use Colab POST /chat when this env is set; otherwise use streamWithFallback (Nairi Router or BitNet). */
+/** Use Colab POST /chat when this env is set; otherwise use streamWithFallback (Nairi Router or Nairi AI). */
 function useColabBackend(): boolean {
   return !!process.env.COLAB_AI_BASE_URL?.trim()
 }
@@ -1309,7 +1309,7 @@ The website should be production-ready and visually appealing.`
       }
     }
 
-    // Nairi Router or BitNet/Colab streaming (streamWithFallback uses Router when NAIRI_ROUTER_BASE_URL is set)
+    // Nairi Router or Nairi AI/Colab streaming (streamWithFallback uses Router when NAIRI_ROUTER_BASE_URL is set)
     try {
       const result = await streamWithFallback({
         system: systemPrompt,
@@ -1339,7 +1339,7 @@ The website should be production-ready and visually appealing.`
     } catch (err) {
       return new Response(
         JSON.stringify({
-          error: "AI backend unavailable. Set NAIRI_ROUTER_BASE_URL, COLAB_AI_BASE_URL/BITNET_BASE_URL, or OLLAMA_BASE_URL in .env, then try again.",
+          error: "AI backend unavailable. Set NAIRI_ROUTER_BASE_URL, COLAB_AI_BASE_URL/NAIRI_AI_BASE_URL, or OLLAMA_BASE_URL in .env, then try again.",
           details: err instanceof Error ? err.message : String(err),
         }),
         { status: 503, headers: { "Content-Type": "application/json" } }
