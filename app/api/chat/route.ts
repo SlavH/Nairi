@@ -1401,6 +1401,7 @@ The website should be production-ready and visually appealing.`
         const nairiContext = `Ты — Nairi (Наири), продвинутый ИИ-ассистент.
 Отвечай на русском языке, армянском (հայերեն) или английском — в зависимости от языка вопроса.
 НЕ называй себя "OpenCode" или "opencode". Ты — Nairi (Наири).
+Если случайно назвал себя иначе — исправь в ответе на "Nairi (Наири)".
 Будь полезным, лаконичным и естественным.`
 
         const msgRes = await fetch(`${process.env.OPENCODE_API_URL}/session/${sessionId}/message`, {
@@ -1411,7 +1412,7 @@ The website should be production-ready and visually appealing.`
               { type: "text", text: `${nairiContext}\n\nUser: ${userText}` }
             ]
           }),
-          signal: AbortSignal.timeout(120000),
+          signal: AbortSignal.timeout(300000), // 5 min for slow models
         })
 
         if (!msgRes.ok) {
@@ -1434,7 +1435,15 @@ The website should be production-ready and visually appealing.`
         }
 
         const textPart = (msgData.parts || []).find((p: any) => p.type === "text")
-        const replyText = textPart?.text || JSON.stringify(msgData)
+        let replyText = textPart?.text || JSON.stringify(msgData)
+
+        // Post-process: ensure it identifies as Nairi, not OpenCode/opencode
+        replyText = replyText
+          .replace(/\bOpenCode\b/gi, "Nairi")
+          .replace(/\bopencode\b/gi, "Nairi")
+          .replace(/\bOpencode\b/g, "Nairi (Наири)")
+          .replace(/\bopencode\b/g, "Nairi (Наири)")
+          .replace(/\bOPENCODE\b/g, "Nairi (Наири)")
 
         if (userId && conversationId) {
           const supabaseForSave = await createClient()
@@ -1460,8 +1469,15 @@ The website should be production-ready and visually appealing.`
           status: response.status,
           headers: response.headers,
         })
-      } catch (err) {
+      } catch (err: any) {
         console.error('[chat] OpenCode backend error:', err)
+        // Handle abort (timeout)
+        if (err.name === "AbortError" || err.message?.includes("aborted")) {
+          return new Response(
+            JSON.stringify({ error: "OpenCode request timed out. Try again or use a faster model." }),
+            { status: 504, headers: { "Content-Type": "application/json" } }
+          )
+        }
         // Fall through to other backends
       }
     }
