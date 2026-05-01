@@ -49,7 +49,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = userResult
 
-  // Protected routes - require authentication (or BYPASS_AUTH in dev). Aligns with PRODUCT_SPEC (builder, dashboard, chat, workspace, studio, marketplace, learn, debate, flow, knowledge, etc.).
+  // Protected routes - require authentication.
   const protectedRoutes = [
     "/dashboard",
     "/chat",
@@ -82,11 +82,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   )
   
-  // TESTING MODE: Bypass authentication for testing
-  // WARNING: REMOVE THIS IN PRODUCTION!
-  const TESTING_MODE = process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true'
-  
-  if (isProtectedRoute && !user && !TESTING_MODE) {
+  // Require authentication for protected routes
+  if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
     return NextResponse.redirect(url)

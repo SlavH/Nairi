@@ -88,8 +88,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
     }
 
-    // Test mode bypass - only enabled with explicit env var
-    const testMode = process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true'
+    // Require authentication - no bypass mode
+    const testMode = false
 
     // Build the system prompt
     const systemPrompt = CODE_AGENT_PROMPTS[action] || CODE_AGENT_PROMPTS.general

@@ -537,8 +537,8 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Test mode bypass - only enabled with explicit env var
-    const testMode = process.env.NODE_ENV === 'development' && process.env.BYPASS_AUTH === 'true'
+    // Require authentication - no bypass mode
+    const testMode = false
 
     const body = await req.json() as { type: string; prompt: string; options?: GenerateRequest['options'] }
     const { type, prompt, options } = body
