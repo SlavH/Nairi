@@ -1397,10 +1397,20 @@ The website should be production-ready and visually appealing.`
           })
         }
 
+        // Nairi system prompt: speak Russian, Armenian (հայերեն), be Nairi not OpenCode
+        const nairiContext = `Ты — Nairi (Наири), продвинутый ИИ-ассистент.
+Отвечай на русском языке, армянском (հայերեն) или английском — в зависимости от языка вопроса.
+НЕ называй себя "OpenCode" или "opencode". Ты — Nairi (Наири).
+Будь полезным, лаконичным и естественным.`
+
         const msgRes = await fetch(`${process.env.OPENCODE_API_URL}/session/${sessionId}/message`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ parts: [{ type: "text", text: userText }] }),
+          body: JSON.stringify({
+            parts: [
+              { type: "text", text: `${nairiContext}\n\nUser: ${userText}` }
+            ]
+          }),
           signal: AbortSignal.timeout(120000),
         })
 
