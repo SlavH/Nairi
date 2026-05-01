@@ -4,13 +4,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { RateLimitMonitor } from "@/lib/rate-limit/monitoring";
 
-// Mock Supabase client
-const mockSupabase = {
+// Mock Supabase client — chainable methods return mockSupabase
+// Terminal methods return Promises
+const mockSupabase: any = {
   from: vi.fn(() => mockSupabase),
   insert: vi.fn(() => mockSupabase),
   select: vi.fn(() => mockSupabase),
   eq: vi.fn(() => mockSupabase),
-  gte: vi.fn(() => mockSupabase),
+  // gte is the terminal method in getEndpointStats (no .single() or .order())
+  gte: vi.fn(),
 };
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -24,8 +26,6 @@ describe("RateLimitMonitor", () => {
 
   describe("recordEvent", () => {
     it("should record rate limit event", async () => {
-      mockSupabase.insert.mockResolvedValue({ error: null });
-
       await RateLimitMonitor.recordEvent(
         "/api/chat",
         "ip-123",
@@ -33,7 +33,7 @@ describe("RateLimitMonitor", () => {
       );
 
       expect(mockSupabase.insert).toHaveBeenCalled();
-      const insertCall = mockSupabase.insert.mock.calls[0][0];
+      const insertCall = (mockSupabase.insert.mock.calls[0] as any)[0];
       expect(insertCall.endpoint).toBe("/api/chat");
       expect(insertCall.identifier).toBe("ip-123");
       expect(insertCall.blocked).toBe(false);
@@ -58,6 +58,7 @@ describe("RateLimitMonitor", () => {
         { blocked: false },
       ];
 
+      mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.gte.mockResolvedValue({
         data: mockEvents,
         error: null,
@@ -71,6 +72,7 @@ describe("RateLimitMonitor", () => {
     });
 
     it("should return 100% success rate when no requests", async () => {
+      mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.gte.mockResolvedValue({
         data: [],
         error: null,
@@ -84,6 +86,7 @@ describe("RateLimitMonitor", () => {
     });
 
     it("should handle errors gracefully", async () => {
+      mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.gte.mockRejectedValue(new Error("Database error"));
 
       const stats = await RateLimitMonitor.getEndpointStats("/api/chat");
@@ -94,6 +97,7 @@ describe("RateLimitMonitor", () => {
     });
 
     it("should filter by time period", async () => {
+      mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.gte.mockResolvedValue({
         data: [],
         error: null,
@@ -101,7 +105,10 @@ describe("RateLimitMonitor", () => {
 
       await RateLimitMonitor.getEndpointStats("/api/chat", "day");
 
+      // gte is called with (column, value) as two separate arguments
       const gteCall = mockSupabase.gte.mock.calls[0];
+      expect(gteCall).toBeDefined();
+      expect(gteCall[0]).toBe("created_at");
       const sinceDate = new Date(gteCall[1]);
       const expectedDate = new Date();
       expectedDate.setDate(expectedDate.getDate() - 1);

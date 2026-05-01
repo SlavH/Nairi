@@ -4,12 +4,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SessionManager } from "@/lib/auth/session-manager";
 
-// Mock Supabase client (chainable; terminal methods return Promises)
-const mockSupabase = {
+// Mock Supabase client — all chainable methods return mockSupabase
+// Terminal methods (single, order) return Promises
+const mockSupabase: any = {
   from: vi.fn(() => mockSupabase),
   insert: vi.fn(() => mockSupabase),
   select: vi.fn(() => mockSupabase),
-  single: vi.fn(() => mockSupabase),
+  single: vi.fn(),
   eq: vi.fn(() => mockSupabase),
   gt: vi.fn(() => mockSupabase),
   update: vi.fn(() => mockSupabase),
@@ -56,7 +57,7 @@ describe("SessionManager", () => {
 
       await SessionManager.createSession("user-123", "refresh-token");
 
-      const insertCall = mockSupabase.insert.mock.calls[0][0];
+      const insertCall = (mockSupabase.insert.mock.calls[0] as any)[0];
       const expiresAt = new Date(insertCall.expires_at);
       const now = new Date();
       const daysDiff = Math.floor(
@@ -75,7 +76,7 @@ describe("SessionManager", () => {
 
       await SessionManager.createSession("user-123", "refresh-token-abc");
 
-      const insertCall = mockSupabase.insert.mock.calls[0][0];
+      const insertCall = (mockSupabase.insert.mock.calls[0] as any)[0];
       expect(insertCall.refresh_token_hash).toBeTruthy();
       expect(insertCall.refresh_token_hash).not.toBe("refresh-token-abc");
     });
@@ -94,13 +95,9 @@ describe("SessionManager", () => {
         data: mockSession,
         error: null,
       });
+      mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.gt.mockReturnValue(mockSupabase);
       mockSupabase.update.mockReturnValue(mockSupabase);
-      mockSupabase.eq.mockImplementation((col: string, val: string) =>
-        col === "id" && val === "session-123"
-          ? Promise.resolve({ data: null, error: null }) as unknown as typeof mockSupabase
-          : mockSupabase
-      );
 
       const result = await SessionManager.verifyAndRotateToken("old-token");
 
@@ -115,6 +112,8 @@ describe("SessionManager", () => {
         data: null,
         error: { code: "PGRST116" },
       });
+      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.gt.mockReturnValue(mockSupabase);
 
       const result = await SessionManager.verifyAndRotateToken("invalid-token");
 
@@ -126,6 +125,8 @@ describe("SessionManager", () => {
         data: null,
         error: null,
       });
+      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.gt.mockReturnValue(mockSupabase);
 
       const result = await SessionManager.verifyAndRotateToken("expired-token");
 
@@ -136,12 +137,13 @@ describe("SessionManager", () => {
   describe("revokeSession", () => {
     it("should revoke a session", async () => {
       mockSupabase.update.mockReturnValue(mockSupabase);
-      mockSupabase.eq.mockReturnValue(Promise.resolve({ data: null, error: null }));
+      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.single.mockResolvedValue({ data: null, error: null });
 
       await SessionManager.revokeSession("session-123");
 
       expect(mockSupabase.update).toHaveBeenCalled();
-      const updateCall = mockSupabase.update.mock.calls[0][0];
+      const updateCall = (mockSupabase.update.mock.calls[0] as any)[0];
       expect(updateCall.is_revoked).toBe(true);
     });
   });
@@ -163,7 +165,7 @@ describe("SessionManager", () => {
 
       mockSupabase.eq.mockReturnValue(mockSupabase);
       mockSupabase.gt.mockReturnValue(mockSupabase);
-      mockSupabase.order.mockReturnValue(Promise.resolve({ data: mockSessions, error: null }));
+      mockSupabase.order.mockResolvedValue({ data: mockSessions, error: null });
 
       const sessions = await SessionManager.getUserSessions("user-123");
 

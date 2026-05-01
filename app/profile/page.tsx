@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import { 
   User, 
   Mail, 
@@ -21,22 +23,91 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export default function ProfilePage() {
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState({
-    name: 'Test User',
-    email: 'test@example.com',
-    bio: 'AI enthusiast and creative technologist. Building the future with Nairi.',
-    location: 'San Francisco, CA',
-    website: 'https://example.com',
-    joinedDate: 'January 2026'
+    name: '',
+    email: '',
+    bio: '',
+    location: '',
+    website: '',
+    joinedDate: ''
   })
+  const [stats, setStats] = useState([
+    { label: 'Conversations', value: '0', icon: MessageSquare },
+    { label: 'Code Generated', value: '0', icon: Code },
+    { label: 'Images Created', value: '0', icon: ImageIcon },
+    { label: 'Videos Made', value: '0', icon: Video },
+  ])
 
-  const stats = [
-    { label: 'Conversations', value: '156', icon: MessageSquare },
-    { label: 'Code Generated', value: '89', icon: Code },
-    { label: 'Images Created', value: '234', icon: ImageIcon },
-    { label: 'Videos Made', value: '12', icon: Video },
-  ]
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push("/auth/login")
+        return
+      }
+
+      let profileData: any = {}
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single()
+        profileData = data || {}
+      } catch {
+        // Profile table might not exist
+      }
+
+      let creationStats = { conversations: 0, code: 0, images: 0, videos: 0 }
+      try {
+        const { data: creations } = await supabase
+          .from('creations')
+          .select('type')
+          .eq('user_id', user.id)
+        if (creations) {
+          creationStats = {
+            conversations: creations.filter(c => c.type === 'chat').length,
+            code: creations.filter(c => c.type === 'code').length,
+            images: creations.filter(c => c.type === 'image').length,
+            videos: creations.filter(c => c.type === 'video').length,
+          }
+        }
+      } catch {
+        // Creations table might not exist
+      }
+
+      setProfile({
+        name: profileData.name || user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        bio: profileData.bio || 'AI enthusiast and creative technologist. Building the future with Nairi.',
+        location: profileData.location || '',
+        website: profileData.website || '',
+        joinedDate: new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      })
+
+      setStats([
+        { label: 'Conversations', value: String(creationStats.conversations), icon: MessageSquare },
+        { label: 'Code Generated', value: String(creationStats.code), icon: Code },
+        { label: 'Images Created', value: String(creationStats.images), icon: ImageIcon },
+        { label: 'Videos Made', value: String(creationStats.videos), icon: Video },
+      ])
+
+      setLoading(false)
+    }
+    fetchProfile()
+  }, [router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-[#e052a0] rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   const achievements = [
     { name: 'Early Adopter', desc: 'Joined during beta', color: 'from-blue-500 to-cyan-500' },

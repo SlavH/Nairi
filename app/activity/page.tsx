@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Activity, Clock, Zap, MessageSquare, Image, Code, Video, FileText, Filter, Calendar } from 'lucide-react'
+import { Activity, Clock, Zap, MessageSquare, Image, Code, Video, FileText, Filter, Calendar, RefreshCw } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 type ActivityType = 'chat' | 'image' | 'code' | 'video' | 'document' | 'agent' | 'login' | 'settings'
 
@@ -16,74 +18,50 @@ interface ActivityItem {
 }
 
 export default function ActivityPage() {
-  const [activities] = useState<ActivityItem[]>([
-    {
-      id: '1',
-      type: 'image',
-      title: 'Generated Image',
-      description: 'Created "Futuristic cityscape at sunset"',
-      timestamp: '2 minutes ago',
-      metadata: { model: 'Pollinations.ai', size: '1024x1024' }
-    },
-    {
-      id: '2',
-      type: 'chat',
-      title: 'AI Conversation',
-      description: 'Discussed machine learning concepts',
-      timestamp: '15 minutes ago',
-      metadata: { messages: '12', model: 'Groq LLM' }
-    },
-    {
-      id: '3',
-      type: 'code',
-      title: 'Code Generation',
-      description: 'Generated React component for dashboard',
-      timestamp: '1 hour ago',
-      metadata: { language: 'TypeScript', lines: '156' }
-    },
-    {
-      id: '4',
-      type: 'document',
-      title: 'Document Created',
-      description: 'Business proposal draft',
-      timestamp: '2 hours ago',
-      metadata: { pages: '5', format: 'PDF' }
-    },
-    {
-      id: '5',
-      type: 'agent',
-      title: 'Agent Task',
-      description: 'Code Helper analyzed repository',
-      timestamp: '3 hours ago',
-      metadata: { files: '24', issues: '3' }
-    },
-    {
-      id: '6',
-      type: 'video',
-      title: 'Video Generation',
-      description: 'Created product demo animation',
-      timestamp: '5 hours ago',
-      metadata: { duration: '4s', model: 'Veo 2' }
-    },
-    {
-      id: '7',
-      type: 'login',
-      title: 'Login',
-      description: 'Signed in from Chrome on Windows',
-      timestamp: '1 day ago',
-      metadata: { location: 'Seattle, WA', device: 'Desktop' }
-    },
-    {
-      id: '8',
-      type: 'settings',
-      title: 'Settings Updated',
-      description: 'Changed notification preferences',
-      timestamp: '2 days ago'
-    }
-  ])
-
+  const router = useRouter()
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | ActivityType>('all')
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'all'>('all')
+
+  const fetchActivities = async () => {
+    setLoading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push("/auth/login")
+      return
+    }
+
+    let activitiesData: any[] = []
+    try {
+      const { data } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      activitiesData = data || []
+    } catch {
+      // Table might not exist yet
+    }
+
+    const formatted: ActivityItem[] = activitiesData.map((a: any) => ({
+      id: a.id,
+      type: a.type || 'login',
+      title: a.action || 'Activity',
+      description: a.description || '',
+      timestamp: new Date(a.created_at).toLocaleString(),
+      metadata: a.metadata || {},
+    }))
+
+    setActivities(formatted)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchActivities()
+  }, [])
 
   const filteredActivities = activities.filter(a => {
     if (filter !== 'all' && a.type !== filter) return false
@@ -119,7 +97,11 @@ export default function ActivityPage() {
   }
 
   const stats = {
-    today: activities.filter(a => a.timestamp.includes('minute') || a.timestamp.includes('hour')).length,
+    today: activities.filter(a => {
+      const date = new Date(a.timestamp)
+      const now = new Date()
+      return date.toDateString() === now.toDateString()
+    }).length,
     thisWeek: activities.length,
     totalGenerations: activities.filter(a => ['image', 'code', 'video', 'document'].includes(a.type)).length,
     totalChats: activities.filter(a => a.type === 'chat').length
@@ -139,6 +121,10 @@ export default function ActivityPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button onClick={fetchActivities} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors min-h-[44px]" aria-label="Refresh">
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as any)}
@@ -215,7 +201,12 @@ export default function ActivityPage() {
 
         {/* Activity Timeline */}
         <div className="space-y-4">
-          {filteredActivities.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <Activity className="w-16 h-16 mx-auto text-white/20 mb-4 animate-pulse" />
+              <h3 className="text-xl font-semibold mb-2">Loading activity...</h3>
+            </div>
+          ) : filteredActivities.length === 0 ? (
             <div className="text-center py-12">
               <Activity className="w-16 h-16 mx-auto text-white/20 mb-4" />
               <h3 className="text-xl font-semibold mb-2">No activity yet</h3>

@@ -76,7 +76,6 @@ const gradients: Record<string, string> = {
 export default function EarnPage() {
   const [copied, setCopied] = useState(false)
   const [watchingVideo, setWatchingVideo] = useState<string | null>(null)
-  const [watchProgress, setWatchProgress] = useState(0)
   const [claimingReward, setClaimingReward] = useState<string | null>(null)
 
   const { data: credits, mutate: mutateCredits } = useSWR("/api/credits", fetcher)
@@ -92,17 +91,10 @@ export default function EarnPage() {
     }
   }
 
-  const simulateWatchVideo = async (videoId: string) => {
+  const watchVideo = async (videoId: string) => {
     setWatchingVideo(videoId)
     setWatchProgress(0)
 
-    // Simulate watching progress
-    for (let i = 0; i <= 100; i += 5) {
-      await new Promise((resolve) => setTimeout(resolve, 150))
-      setWatchProgress(i)
-    }
-
-    // Claim watch reward
     await claimReward("watch")
     setWatchingVideo(null)
     setWatchProgress(0)
@@ -259,8 +251,7 @@ export default function EarnPage() {
                 >
                   {watchingVideo === video.id ? (
                     <div className="text-center text-white">
-                      <Progress value={watchProgress} className="w-32 h-2 mb-2" />
-                      <p className="text-sm">Watching... {watchProgress}%</p>
+                      <p className="text-sm">Claiming reward...</p>
                     </div>
                   ) : (
                     <Play className="h-12 w-12 text-white/80" />
@@ -283,7 +274,7 @@ export default function EarnPage() {
                     </Badge>
                     <Button
                       size="sm"
-                      onClick={() => simulateWatchVideo(video.id)}
+                      onClick={() => watchVideo(video.id)}
                       disabled={watchingVideo !== null || watchRewardClaimed}
                       className="bg-gradient-to-r from-[#e879f9] to-[#22d3ee] text-white"
                     >

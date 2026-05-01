@@ -21,7 +21,7 @@ describe("GET /api/builder/projects", () => {
 
   it("returns 401 when not authenticated", async () => {
     vi.mocked(getUserIdOrBypassForApi).mockResolvedValue(null)
-    const res = await GET()
+    const res = await GET(new Request("http://localhost/api/builder/projects"))
     expect(res.status).toBe(401)
     const data = await res.json()
     expect(data.error).toBe("Unauthorized")
@@ -39,7 +39,7 @@ describe("GET /api/builder/projects", () => {
         }),
       }),
     } as any)
-    const res = await GET()
+    const res = await GET(new Request("http://localhost/api/builder/projects"))
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)

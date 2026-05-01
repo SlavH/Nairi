@@ -161,5 +161,10 @@ export const RATE_LIMITS = {
   auth: {
     maxRequests: 5,
     windowMs: 60 * 1000
+  },
+  // Creation API: 10 requests per minute
+  create: {
+    maxRequests: 10,
+    windowMs: 60 * 1000
   }
 }

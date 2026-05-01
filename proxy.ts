@@ -7,11 +7,64 @@ import { validateOrigin, MAX_REQUEST_SIZES } from './lib/security/request-valida
  * Proxy for Next.js 16+ (replaces middleware.ts)
  *
  * Implements:
- * - Supabase session management
+ * - Production blocking of test/debug pages
+ * - Edge rate limiting for API routes
  * - CSRF protection via origin validation
  * - Request size limits
+ * - Supabase session management
  * - Security headers
  */
+
+// Routes that must be BLOCKED in production (test/debug pages)
+const blockedInProduction = [
+  "/test-error",
+  "/test-interface",
+  "/admin/seed",
+]
+
+// Rate limit store (in-memory; use Redis in production)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, entry] of rateLimitStore.entries()) {
+    if (now > entry.resetTime) rateLimitStore.delete(key)
+  }
+}, 60_000)
+
+const apiRateLimits: Record<string, { max: number; window: number }> = {
+  "/api/chat": { max: 30, window: 60_000 },
+  "/api/nairi/chat": { max: 30, window: 60_000 },
+  "/api/generate": { max: 10, window: 60_000 },
+  "/api/generate-image": { max: 5, window: 60_000 },
+  "/api/generate-video": { max: 3, window: 60_000 },
+  "/api/generate-3d": { max: 3, window: 60_000 },
+  "/api/create": { max: 10, window: 60_000 },
+  "/api/auth": { max: 5, window: 60_000 },
+}
+
+function checkRateLimit(identifier: string, max: number, window: number): boolean {
+  const now = Date.now()
+  const key = `${identifier}:${max}:${window}`
+  let entry = rateLimitStore.get(key)
+  if (!entry || now > entry.resetTime) {
+    entry = { count: 1, resetTime: now + window }
+    rateLimitStore.set(key, entry)
+    return true
+  }
+  entry.count++
+  if (entry.count > max) return false
+  return true
+}
+
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for")
+  if (forwarded) return forwarded.split(",")[0].trim()
+  const realIp = request.headers.get("x-real-ip")
+  if (realIp) return realIp
+  return "unknown"
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -22,6 +75,29 @@ export async function proxy(request: NextRequest) {
     pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|woff|woff2|ttf|eot)$/)
   ) {
     return await updateSession(request)
+  }
+
+  // Block test/debug routes in production
+  if (process.env.NODE_ENV === "production") {
+    for (const blocked of blockedInProduction) {
+      if (pathname === blocked || pathname.startsWith(`${blocked}/`)) {
+        return new NextResponse("Not Found", { status: 404 })
+      }
+    }
+  }
+
+  // Edge rate limiting for API routes (before heavier checks)
+  for (const [prefix, config] of Object.entries(apiRateLimits)) {
+    if (pathname.startsWith(prefix)) {
+      const clientId = getClientIp(request)
+      if (!checkRateLimit(clientId, config.max, config.window)) {
+        return NextResponse.json(
+          { error: "Too many requests. Please try again later." },
+          { status: 429 }
+        )
+      }
+      break
+    }
   }
 
   // CSRF Protection: Validate origin for state-changing requests
@@ -53,7 +129,6 @@ export async function proxy(request: NextRequest) {
       const size = parseInt(contentLength, 10)
       let maxSize = MAX_REQUEST_SIZES.default
 
-      // Determine max size based on endpoint
       if (pathname.includes('/chat')) {
         maxSize = MAX_REQUEST_SIZES.chat
       } else if (pathname.includes('/builder')) {

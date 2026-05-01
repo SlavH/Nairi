@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Terminal, Clock, CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronRight, Filter, Search } from 'lucide-react'
+import { Terminal, Clock, CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronRight, Filter, Search, RefreshCw } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 type TraceStatus = 'success' | 'error' | 'warning' | 'running'
 
@@ -27,77 +29,54 @@ interface ExecutionTrace {
 }
 
 export default function ExecutionTracesPage() {
-  const [traces] = useState<ExecutionTrace[]>([
-    {
-      id: '1',
-      name: 'Image Generation - Futuristic City',
-      type: 'image',
-      status: 'success',
-      startTime: '2 minutes ago',
-      duration: '12.4s',
-      steps: [
-        { id: '1a', name: 'Parse prompt', status: 'success', duration: '0.1s' },
-        { id: '1b', name: 'Select model', status: 'success', duration: '0.05s', details: 'Pollinations.ai' },
-        { id: '1c', name: 'Generate image', status: 'success', duration: '11.8s' },
-        { id: '1d', name: 'Post-process', status: 'success', duration: '0.4s' }
-      ],
-      input: 'A futuristic cityscape at sunset with flying cars',
-      output: 'Image generated successfully (1024x1024)'
-    },
-    {
-      id: '2',
-      name: 'Code Generation - React Component',
-      type: 'code',
-      status: 'success',
-      startTime: '15 minutes ago',
-      duration: '3.2s',
-      steps: [
-        { id: '2a', name: 'Analyze request', status: 'success', duration: '0.2s' },
-        { id: '2b', name: 'Generate code', status: 'success', duration: '2.5s', details: 'Groq LLM' },
-        { id: '2c', name: 'Format output', status: 'success', duration: '0.3s' },
-        { id: '2d', name: 'Syntax validation', status: 'success', duration: '0.2s' }
-      ],
-      input: 'Create a dashboard component with charts',
-      output: '156 lines of TypeScript generated'
-    },
-    {
-      id: '3',
-      name: 'Agent Task - Repository Analysis',
-      type: 'agent',
-      status: 'warning',
-      startTime: '1 hour ago',
-      duration: '45.6s',
-      steps: [
-        { id: '3a', name: 'Clone repository', status: 'success', duration: '5.2s' },
-        { id: '3b', name: 'Analyze structure', status: 'success', duration: '12.3s' },
-        { id: '3c', name: 'Check dependencies', status: 'warning', duration: '8.1s', details: '3 outdated packages' },
-        { id: '3d', name: 'Security scan', status: 'success', duration: '15.4s' },
-        { id: '3e', name: 'Generate report', status: 'success', duration: '4.6s' }
-      ],
-      input: 'Analyze github.com/user/project',
-      output: 'Analysis complete with 3 warnings'
-    },
-    {
-      id: '4',
-      name: 'Video Generation - Product Demo',
-      type: 'video',
-      status: 'error',
-      startTime: '2 hours ago',
-      duration: '120s',
-      steps: [
-        { id: '4a', name: 'Parse prompt', status: 'success', duration: '0.1s' },
-        { id: '4b', name: 'Select model', status: 'success', duration: '0.05s', details: 'Veo 2' },
-        { id: '4c', name: 'Generate video', status: 'error', duration: '119s', details: 'Timeout exceeded' },
-        { id: '4d', name: 'Post-process', status: 'error', duration: '0s' }
-      ],
-      input: 'Create a 10-second product demo animation',
-      output: 'Error: Generation timeout'
-    }
-  ])
-
-  const [expandedTraces, setExpandedTraces] = useState<Set<string>>(new Set(['1']))
+  const router = useRouter()
+  const [traces, setTraces] = useState<ExecutionTrace[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expandedTraces, setExpandedTraces] = useState<Set<string>>(new Set())
   const [filter, setFilter] = useState<'all' | TraceStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const fetchTraces = async () => {
+    setLoading(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      router.push("/auth/login")
+      return
+    }
+
+    let tracesData: any[] = []
+    try {
+      const { data } = await supabase
+        .from('execution_traces')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      tracesData = data || []
+    } catch {
+      // Table might not exist yet
+    }
+
+    const formatted: ExecutionTrace[] = tracesData.map((t: any) => ({
+      id: t.id,
+      name: t.name || `${t.type} execution`,
+      type: t.type || 'unknown',
+      status: t.status || 'success',
+      startTime: new Date(t.created_at).toLocaleString(),
+      duration: t.duration_ms ? `${(t.duration_ms / 1000).toFixed(1)}s` : 'N/A',
+      steps: t.steps || [],
+      input: t.input,
+      output: t.output,
+    }))
+
+    setTraces(formatted)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchTraces()
+  }, [])
 
   const toggleTrace = (id: string) => {
     const newExpanded = new Set(expandedTraces)
@@ -153,6 +132,10 @@ export default function ExecutionTracesPage() {
               <h1 className="text-2xl font-bold">Execution Traces</h1>
             </div>
           </div>
+          <button onClick={fetchTraces} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors min-h-[44px]" aria-label="Refresh traces">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         </div>
       </header>
 

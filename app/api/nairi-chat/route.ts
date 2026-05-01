@@ -1,18 +1,15 @@
 /**
- * POST /api/nairi-chat – web-grounded Nairi chat.
- * Model decides: if the message is greeting/short chitchat -> single natural reply (no web).
- * Otherwise: SearXNG search -> WEB_CONTEXT -> 2-pass (PLAN → FINAL). Rate limit 10 req/min per IP.
+ * POST /api/nairi-chat — web-grounded Nairi chat.
+ * Routes through BITNET_BASE_URL (GPU) for all AI inference.
+ * Model decides: greeting/short chitchat → single reply; else → web search + 2-pass (PLAN → FINAL).
  */
 
 import { NextRequest, NextResponse } from "next/server"
 import { searxngSearch, type SearchResult } from "@/lib/searxng"
-import { hfEnsureHealthy, hfChat, isHfConfigured, type HfChatMessage } from "@/lib/hf-client"
+import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
 
 const MAX_HISTORY = 20
-const CLASSIFIER_MAX_TOKENS = 20
-const PLAN_MAX_TOKENS = 160
-const FINAL_MAX_TOKENS_MAX = 400
 const RATE_LIMIT_REQUESTS = 10
 const RATE_LIMIT_WINDOW_MS = 60_000
 
@@ -21,12 +18,6 @@ export interface NairiChatSource {
   title: string
   url: string
   snippet?: string
-}
-
-export interface NairiChatResponseBody {
-  response: string
-  sources: NairiChatSource[]
-  meta: { web_ms: number; plan_ms: number; answer_ms: number }
 }
 
 function buildWebContext(results: SearchResult[], searchOk: boolean): string {
@@ -39,14 +30,6 @@ function buildWebContext(results: SearchResult[], searchOk: boolean): string {
   return `WEB_CONTEXT (use for factual grounding; cite sources as [1],[2],[3]):\n${lines.join("\n")}`
 }
 
-function trimHistory(messages: { role: string; content: string }[]): HfChatMessage[] {
-  const allowed = messages
-    .filter((m) => m.role === "user" || m.role === "assistant")
-    .slice(-MAX_HISTORY)
-  return allowed.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }))
-}
-
-/** Model decides: reply contains "search" -> use web + 2-pass; otherwise (greeting/short) -> no web. */
 function modelWantsWebSearch(classifierReply: string): boolean {
   const t = classifierReply.trim().toLowerCase()
   return t.includes("search") && !t.includes("greeting")
@@ -65,10 +48,6 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  if (!isHfConfigured()) {
-    return NextResponse.json({ error: "Nairi HF backend not configured" }, { status: 503 })
-  }
-
   let body: { messages?: Array<{ role?: string; content?: string }>; max_tokens?: number }
   try {
     body = await req.json()
@@ -83,36 +62,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No user message found" }, { status: 400 })
   }
 
-  const meta = { web_ms: 0, plan_ms: 0, answer_ms: 0 }
-  const healthy = await hfEnsureHealthy()
-  if (!healthy) {
-    return NextResponse.json(
-      { error: "Nairi is waking up. Please try again in a moment." },
-      { status: 503 }
-    )
-  }
+  const meta: { web_ms: number; plan_ms: number; answer_ms: number } = { web_ms: 0, plan_ms: 0, answer_ms: 0 }
 
-  const history = trimHistory(messages.filter((m): m is { role: string; content: string } => Boolean(m?.role && m?.content)))
-
-  // Let the model decide: greeting/short chitchat -> no web; else web + 2-pass
+  // Classifier: greeting vs search — using GPU backend
   const classifierPrompt = `Reply with exactly one word: GREETING or SEARCH. Does the user's message need web search to answer well, or is it just a greeting or very short chitchat? User message: "${userQuestion}"`
   let classifierReply: string
   try {
-    classifierReply = await hfChat([{ role: "user", content: classifierPrompt }], CLASSIFIER_MAX_TOKENS)
+    const { text } = await generateWithFallback({
+      system: "Reply with exactly one word: GREETING or SEARCH.",
+      prompt: classifierPrompt,
+      temperature: 0,
+      maxOutputTokens: 5,
+      fast: true,
+    })
+    classifierReply = text.trim()
   } catch {
     classifierReply = "SEARCH"
   }
 
   const useWeb = modelWantsWebSearch(classifierReply)
+  const requestedMax = typeof body.max_tokens === "number" ? Math.min(4096, Math.max(1, body.max_tokens)) : 400
 
   if (!useWeb) {
-    // Single natural reply, no web search
-    const requestedMax = typeof body.max_tokens === "number" ? Math.min(4096, Math.max(1, body.max_tokens)) : 400
-    const maxTokens = Math.min(FINAL_MAX_TOKENS_MAX, requestedMax)
+    // Single natural reply, no web search — GPU backend
     const answerStart = Date.now()
     let response: string
     try {
-      response = await hfChat(history, maxTokens)
+      const historyText = messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-MAX_HISTORY)
+        .map((m) => `${m.role}: ${m.content}`)
+        .join("\n")
+
+      const { text } = await generateWithFallback({
+        system: "You are Nairi, a helpful and knowledgeable AI assistant. Be concise and natural.",
+        prompt: historyText ? `${historyText}\nassistant: ` : userQuestion,
+        temperature: 0.7,
+        maxOutputTokens: requestedMax,
+      })
+      response = text
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       return NextResponse.json({ error: `Chat failed: ${msg}` }, { status: 502 })
@@ -123,9 +111,10 @@ export async function POST(req: NextRequest) {
       response,
       sources: [],
       meta,
-    } satisfies NairiChatResponseBody)
+    })
   }
 
+  // Web search path
   const webStart = Date.now()
   const { results, ok: searchOk } = await searxngSearch(userQuestion)
   meta.web_ms = Date.now() - webStart
@@ -138,8 +127,9 @@ export async function POST(req: NextRequest) {
     snippet: r.snippet ?? "",
   }))
 
+  // Plan pass — GPU backend
   const planStart = Date.now()
-  const planUserContent = `Create a short plan to answer using WEB_CONTEXT. Output ONLY:
+  const planPrompt = `Create a short plan to answer using WEB_CONTEXT. Output ONLY:
 PLAN:
 - ...
 - ...
@@ -150,22 +140,25 @@ ${WEB_CONTEXT}
 
 USER_QUESTION:
 ${userQuestion}`
-  const planMessages: HfChatMessage[] = [
-    ...history.slice(0, -1),
-    { role: "user" as const, content: planUserContent },
-  ]
+
   let planText: string
   try {
-    planText = await hfChat(planMessages, PLAN_MAX_TOKENS)
+    const { text } = await generateWithFallback({
+      system: "You are a research assistant. Create a brief plan for answering the user's question using the provided web context.",
+      prompt: planPrompt,
+      temperature: 0.3,
+      maxOutputTokens: 160,
+    })
+    planText = text
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return NextResponse.json({ error: `Plan pass failed: ${msg}` }, { status: 502 })
   }
   meta.plan_ms = Date.now() - planStart
 
-  const requestedMax = typeof body.max_tokens === "number" ? Math.min(4096, Math.max(1, body.max_tokens)) : 400
-  const finalMaxTokens = Math.min(FINAL_MAX_TOKENS_MAX, requestedMax)
-  const finalUserContent = `Answer the user's question directly. Do NOT output "PLAN:" or a plan again — that was already done. Write only the final answer to the user.
+  // Final answer pass — GPU backend
+  const finalMaxTokens = Math.min(400, requestedMax)
+  const finalPrompt = `Answer the user's question directly. Do NOT output "PLAN:" or a plan again — that was already done. Write only the final answer to the user.
 
 Requirements:
 - Concise but complete answer to USER_QUESTION
@@ -184,15 +177,15 @@ ${userQuestion}
 Answer (direct reply only):`
 
   const answerStart = Date.now()
-  const finalMessages: HfChatMessage[] = [
-    ...history.slice(0, -1),
-    { role: "user" as const, content: planUserContent },
-    { role: "assistant" as const, content: planText },
-    { role: "user" as const, content: finalUserContent },
-  ]
   let response: string
   try {
-    response = await hfChat(finalMessages, finalMaxTokens)
+    const { text } = await generateWithFallback({
+      system: "You are Nairi, a helpful AI assistant. Answer questions using the provided web context. Cite sources with [1], [2], etc.",
+      prompt: finalPrompt,
+      temperature: 0.7,
+      maxOutputTokens: finalMaxTokens,
+    })
+    response = text
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     return NextResponse.json({ error: `Answer pass failed: ${msg}` }, { status: 502 })
@@ -203,7 +196,7 @@ Answer (direct reply only):`
     response = "I couldn't generate a reply this time. Please try again."
   }
 
-  // If the model echoed a plan instead of an answer, strip leading "PLAN:" line(s)
+  // Strip leading PLAN: if model echoed it
   let cleaned = response.trim()
   const planLine = /^PLAN\s*:\s*\n?/i
   while (planLine.test(cleaned)) {
@@ -215,5 +208,5 @@ Answer (direct reply only):`
     response,
     sources,
     meta,
-  } satisfies NairiChatResponseBody)
+  })
 }

@@ -592,7 +592,7 @@ export function CircularNavigation() {
       >
         {/* Central Circle */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <CentralCircle size={mainSize} onNodeHover={handleNodeHover} />
+          <CentralCircle size={mainSize} onClick={() => {}} />
         </div>
 
         {/* Add custom circle - TOP-LEFT (opens modal or expands to show custom circles) */}

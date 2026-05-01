@@ -1,8 +1,21 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+
+const PROFILE_UPDATE_LIMIT = { maxRequests: 5, windowMs: 60_000 }
+const PROFILE_READ_LIMIT = { maxRequests: 30, windowMs: 60_000 }
 
 // GET - Fetch current user's profile
-export async function GET() {
+export async function GET(req: Request) {
+  const clientId = getClientIdentifier(req)
+  const rateLimitResult = checkRateLimit(`profile:get:${clientId}`, PROFILE_READ_LIMIT)
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down.", retryAfter: rateLimitResult.retryAfter },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfter) } }
+    )
+  }
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -32,6 +45,15 @@ export async function GET() {
 
 // PATCH - Update current user's profile
 export async function PATCH(req: Request) {
+  const clientId = getClientIdentifier(req)
+  const rateLimitResult = checkRateLimit(`profile:patch:${clientId}`, PROFILE_UPDATE_LIMIT)
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down.", retryAfter: rateLimitResult.retryAfter },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfter) } }
+    )
+  }
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -42,7 +64,7 @@ export async function PATCH(req: Request) {
 
     const body = await req.json()
     
-    // Allowed fields to update
+    // Allowed fields to update with validation rules
     const allowedFields = [
       "full_name",
       "avatar_url",
@@ -58,10 +80,41 @@ export async function PATCH(req: Request) {
       "onboarding_completed"
     ]
 
-    // Filter to only allowed fields
+    // Filter to only allowed fields with length validation
     const updates: Record<string, any> = {}
+    const maxLengths: Record<string, number> = {
+      full_name: 100,
+      bio: 500,
+      website: 500,
+      company: 200,
+      location: 200,
+      preferred_language: 10,
+      timezone: 50,
+    }
+
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
+        // Length validation for string fields
+        if (typeof body[field] === "string") {
+          const maxLen = maxLengths[field]
+          if (maxLen && body[field].length > maxLen) {
+            return NextResponse.json(
+              { error: `${field} too long. Maximum ${maxLen} characters.` },
+              { status: 400 }
+            )
+          }
+        }
+        // URL validation for website and avatar_url
+        if ((field === "website" || field === "avatar_url") && typeof body[field] === "string" && body[field].length > 0) {
+          try {
+            new URL(body[field])
+          } catch {
+            return NextResponse.json(
+              { error: `${field} must be a valid URL.` },
+              { status: 400 }
+            )
+          }
+        }
         updates[field] = body[field]
       }
     }
@@ -108,7 +161,16 @@ export async function PATCH(req: Request) {
 }
 
 // DELETE - Request account deletion (soft delete / mark for deletion)
-export async function DELETE() {
+export async function DELETE(req: Request) {
+  const clientId = getClientIdentifier(req)
+  const rateLimitResult = checkRateLimit(`profile:delete:${clientId}`, { maxRequests: 2, windowMs: 3600_000 })
+  if (!rateLimitResult.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down.", retryAfter: rateLimitResult.retryAfter },
+      { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfter) } }
+    )
+  }
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

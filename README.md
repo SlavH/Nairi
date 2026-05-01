@@ -1,180 +1,233 @@
-# Nairi
+# Nairi Factory — AI Dev Team in a Box
 
-Nairi is an AI assistant platform built with Next.js 16, React 19, and TypeScript. All AI (chat, builder, workflows, etc.) goes through a single configurable endpoint: your **Google Colab** server URL in `.env`. It also provides agent marketplace, studio, presentations, workspace, and billing.
+> **AMD Developer Hackathon** — Track 1: AI Agents & Agentic Workflows
 
-## Setup
+**Describe a web app. Three AI agents collaborate to build it — with live preview, code review, and one-click deploy.**
 
-### 1. Clone and install
+[![Demo](https://img.shields.io/badge/Demo-Live-purple)](https://nairi-seven.vercel.app/factory)
+[![AMD GPU](https://img.shields.io/badge/GPU-AMD%20MI300X-red)](https://www.amd.com/en/developer)
+[![ROCm](https://img.shields.io/badge/Framework-ROCm%206.2-blue)](https://rocm.docs.amd.com)
+[![Qwen](https://img.shields.io/badge/Model-Qwen--2.5--72B-green)](https://huggingface.co/Qwen)
+
+---
+
+## What is Nairi Factory?
+
+Nairi Factory is an **agentic AI system** where three specialized agents collaborate to build web applications from a single natural-language prompt:
+
+| Agent | Role | Model |
+|-------|------|-------|
+| **🏗️ Architect** | Plans architecture, tech decisions, file structure | Qwen-2.5-72B |
+| **👨‍💻 Developer** | Writes production-ready React + Tailwind code | Qwen-2.5-Coder-32B |
+| **🔍 Reviewer** | Reviews code quality, finds bugs, ensures polish | Qwen-2.5-72B |
+
+Unlike single-pass code generators, our agents **iterate**: the Reviewer finds issues, sends them back, and the Developer fixes them. The entire system runs on **AMD MI300X GPUs** via **ROCm** and **vLLM**.
+
+## Quick Demo
+
+1. Go to `/factory`
+2. Type: *"Build a landing page for an AI fitness coaching app"*
+3. Watch three agents plan, code, and review in real-time
+4. See the live preview update as code is generated
+5. Download or copy the production-ready code
+
+**In 90 seconds, you get what would take a human developer 3 hours.**
+
+---
+
+## Tech Stack
+
+### Frontend
+- **Next.js 16** + React 19 + TypeScript
+- **Tailwind CSS** + Shadcn/ui + Framer Motion
+- **Sandpack** for live code preview
+
+### AI / Agentic System
+- **3-Agent Orchestration** — Planner → Builder → Critic loop
+- **Qwen-2.5 models** via OpenAI-compatible API
+- **Streaming responses** for real-time agent visualization
+
+### Infrastructure
+- **AMD Instinct MI300X** GPU (AMD Developer Cloud)
+- **ROCm 6.2** + **vLLM** for serving
+- **Supabase** for auth + database
+- **Cloudflared** for secure tunneling
+
+---
+
+## Getting Started
+
+### 1. Clone & Install
 
 ```bash
-git clone <repo-url>
-cd nairi_v34
+git clone https://github.com/SlavH/Nairi.git
+cd Nairi
 npm install
-# or: pnpm install
 ```
 
-### 2. Environment variables
-
-Copy the example env file and fill in values (never commit `.env`):
+### 2. Environment Variables
 
 ```bash
 cp .env.example .env
 ```
 
-**Required:**
+**Minimum for Factory demo:**
 
-- **Supabase**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (for webhooks/server-only use)
-- **DATABASE_URL**: For migrations (Supabase → Project Settings → Database → Connection string, use Transaction pooler port 6543)
-- **Stripe**: `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`
-- **AI (Google Colab)**: All AI requests go to your Colab server. Set `BITNET_BASE_URL` in `.env` to your Colab tunnel URL (e.g. `https://xxxxx.trycloudflare.com/v1`). Run your model in Colab, expose it with cloudflared, then paste that URL here.
+```env
+# AI Backend (any OpenAI-compatible endpoint)
+BITNET_BASE_URL=https://your-endpoint/v1
 
-**Optional:** `BYPASS_AUTH` (dev only) — when set to `true`, protected routes allow access without login; **never enable in production.** Other optional vars (see `.env.example`): **Sentry**, **Redis**, **Replicate** for video generation.
+# Auth (dev mode — bypasses login)
+BYPASS_AUTH=true
 
-**Google Colab (AI):** Run your model in a Colab notebook, expose it with a tunnel (e.g. `cloudflared` or Colab’s “ngrok” style URL), then set `BITNET_BASE_URL` in `.env` to that URL including `/v1` (e.g. `https://xxxxx.trycloudflare.com/v1`). The app sends all AI requests to this endpoint (OpenAI-compatible `/v1/chat/completions`).
-
-**Nairi web-grounded chat (optional):** Set `NAIRI_HF_BASE_URL` (Qwen HF Space) and `SEARXNG_BASE_URL` (SearXNG HF Space) in `.env` to use Nairi chat with web search and 2-pass inference. See `docs/NAIRI_HF_INTEGRATION.md` for env vars and testing.
-
-**Validate environment variables:**
-
-```bash
-npm run env:validate
+# Supabase (optional for full features)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
 ```
 
-This checks DATABASE_URL format, required variables, and common configuration issues.
-
-### 3. Database (Supabase)
-
-Run the migration scripts **in order** against your Supabase project (SQL Editor or `psql`):
-
-1. `scripts/001_create_profiles.sql`
-2. `scripts/002_create_agents.sql`
-3. `scripts/003_create_user_agents.sql`
-4. `scripts/004_create_conversations.sql`
-5. `scripts/005_create_messages.sql`
-6. `scripts/006_create_subscriptions.sql`
-7. `scripts/007_create_knowledge_graph.sql`
-8. `scripts/008_create_education_tables.sql`
-9. `scripts/009_create_feed_tables.sql`
-10. `scripts/010_create_marketplace_extended.sql`
-11. `scripts/011_create_debate_reasoning.sql`
-12. `scripts/012_create_credits_system.sql`
-13. `scripts/013_create_creations.sql`
-14. `scripts/014_create_activity_logs.sql`
-15. `scripts/015_create_notifications.sql`
-16. `scripts/016_fix_credits_policies.sql`
-17. `scripts/017_fix_activity_policies.sql`
-18. `scripts/018_create_execution_traces.sql`
-19. `scripts/019_create_tempmail_log.sql` (optional; for tempmail abuse monitoring)
-20. `scripts/020_create_usage_logs.sql` (required for `/api/usage` and cost tracking)
-21. `scripts/021_create_builder_projects.sql` (required for builder “Save project” / “My projects”)
-22. `scripts/022_create_audit_log.sql` (optional; for audit logging)
-23. `scripts/023_create_conversation_folders_and_tags.sql` (optional; for chat folders, tags, shared links)
-24. `scripts/024_create_builder_deploys_and_usage.sql` (optional; for builder deploy history and usage limits)
-25. `scripts/025_add_agents_is_published.sql` (required for marketplace recommendations; adds `agents.is_published`)
-26. `scripts/025_create_migration_tracking.sql` (optional; migration status tracking)
-27. `scripts/026_add_database_indexes.sql` (optional; performance indexes)
-28. `scripts/027_auth_hardening.sql` through `scripts/041_knowledge_graph_enhancements.sql` (optional; run in numeric order if you use these features)
-
-**Note:** `npm run migrate` runs all `scripts/NNN_*.sql` files in numeric order and skips already-applied migrations. For manual runs, execute 001–024 (and 025+) in order. Learn progress and achievements require 008 and 038; marketplace recommendations require 025 (agents.is_published).
-
-**How to run migrations:**
-
-- **Supabase Dashboard:** Open your project → SQL Editor → New query. Paste the contents of each script and run them in numeric order (001, 002, …). Run one script at a time to avoid errors.
-- **psql:** From the project root, run each file in order. Get your connection string from Supabase → Project Settings → Database (URI, use the “Transaction” pooler for migrations if you use connection pooling):
-  ```bash
-  psql "postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres" -f scripts/001_create_profiles.sql
-  psql "..." -f scripts/002_create_agents.sql
-  # ... repeat for 003 through 024, then 025, 026, etc.
-  ```
-- **One-liner (bash, from project root):** Replace `$DATABASE_URL` with your Supabase connection string, then:
-  ```bash
-  for f in scripts/00*.sql scripts/01*.sql scripts/02*.sql; do [ -f "$f" ] && psql "$DATABASE_URL" -f "$f" && echo "OK $f"; done
-  ```
-- **Node (no psql required):** Add `DATABASE_URL` to `.env` (Supabase → Project Settings → Database → Connection string), then:
-  ```bash
-  # Validate environment variables first (recommended)
-  npm run env:validate
-  
-  # Run migrations
-  npm run migrate
-  ```
-  
-  **DATABASE_URL Setup:**
-  1. Go to Supabase → Project Settings → Database
-  2. Copy the **Connection string** (use **Transaction pooler** for port 6543, not Direct/5432)
-  3. Format: `postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres`
-  4. If your password contains special characters (e.g., `@`, `#`, `%`), URL-encode them:
-     - `@` → `%40`
-     - `#` → `%23`
-     - `%` → `%25`
-     - Or reset your password to one with only alphanumeric characters
-  5. Remove any brackets `[]` around the password - they are placeholders, not part of the URL
-  6. Add to `.env`: `DATABASE_URL=postgresql://...`
-  
-  **Common Issues:**
-  - **ETIMEDOUT**: Use Transaction pooler (port 6543) instead of Direct (5432)
-  - **Invalid URL**: Check for brackets `[]` or unencoded special characters in password
-  - **28P01 (password auth failed)**: Verify username and password match exactly from Supabase dashboard
-
-### 4. Stripe webhook (production)
-
-For payments to update subscriptions and agent purchases:
-
-1. In Stripe Dashboard → Developers → Webhooks, add an endpoint.
-2. URL: `https://your-domain.com/api/webhooks/stripe` (or `https://your-ngrok-url/api/webhooks/stripe` for local testing).
-3. Events: `checkout.session.completed`.
-4. Copy the **Signing secret** and set `STRIPE_WEBHOOK_SECRET` in `.env`.
-
-### 5. Run
+### 3. Run
 
 ```bash
 npm run dev
-# or: pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open **http://localhost:3000/factory**
 
-Build for production:
+---
 
-```bash
-npm run build
-npm run start
+## AMD GPU Setup
+
+See [docs/AMD_GPU_INTEGRATION.md](docs/AMD_GPU_INTEGRATION.md) for full instructions on deploying Qwen models on AMD MI300X via ROCm and vLLM.
+
+**Quick start:**
+1. Launch MI300X instance on AMD Developer Cloud
+2. Install ROCm + vLLM
+3. Serve Qwen-2.5-72B: `python -m vllm.entrypoints.openai.api_server --model Qwen/Qwen2.5-72B-Instruct`
+4. Tunnel with cloudflared: `cloudflared tunnel --url http://localhost:8000`
+5. Set `BITNET_BASE_URL` to the tunnel URL
+
+---
+
+## Architecture
+
+```
+User Prompt
+    │
+    ▼
+┌─────────────────┐
+│   Architect     │  Plans: sections, components, colors, tasks
+│  (Qwen-72B)     │
+└────────┬────────┘
+         │  Plan (JSON)
+         ▼
+┌─────────────────┐
+│   Developer     │  Generates: React + Tailwind code
+│  (Qwen-Coder)   │
+└────────┬────────┘
+         │  Code files
+         ▼
+┌─────────────────┐
+│   Reviewer      │  Checks: quality, bugs, accessibility
+│  (Qwen-72B)     │
+└────────┬────────┘
+         │  Approve or fix
+    ┌────┴─────┐
+    │          │
+  APPROVE   NEEDS FIX → Developer iterates
 ```
 
-Before deploying to production, see the [Pre-production checklist](docs/production.md#pre-production-checklist) (BYPASS_AUTH off, env vars, migrations, health/readiness).
+---
 
-## Testing
+## Agent Prompts
 
-With `BYPASS_AUTH=true` (dev only), all protected pages and key APIs (chat, create, generate-presentation, usage) work without login using a bypass user id. Use the [Testing & QA guide](docs/TESTING.md) for a full checklist: auth, nav, core flows, APIs, error/loading UX, and build.
+### Architect (Planner)
+```
+You are a senior software architect. Analyze the user's web app request
+and create a detailed build plan: sections, components, color scheme,
+tech decisions, and ordered tasks.
+```
 
-Quick smoke test: `npm run dev` → open `/nav` → visit Dashboard, Chat, Workspace, Presentations, Studio; send a chat message and run one workspace creation.
+### Developer (Builder)
+```
+You are an expert React developer. Generate production-quality single-page
+React apps with Tailwind CSS, real content, animations, and responsive design.
+```
 
-## Documentation
+### Reviewer (Critic)
+```
+You are a senior code reviewer. Check for syntax errors, missing imports,
+responsive design, accessibility, and polish. Approve or list specific fixes.
+```
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [API](docs/API_DOCUMENTATION.md)
-- [Testing & QA](docs/TESTING.md)
+---
 
-### Builder
+## Project Structure
 
-The **Builder** (`/builder`) is an AI website builder: describe what you want in chat, and the AI generates or updates project code. You get a live preview, file explorer, tasks, and version history; you can save/load projects, export (Download ZIP, Copy code), and deploy. If the preview shows an error, use **Use safe starter page** to unblock, or **Fix Error** in chat to ask the AI to fix the code. See [API Documentation — Builder](docs/API_DOCUMENTATION.md#builder) and [Testing — Builder](docs/TESTING.md) for API details and E2E notes.
-- [Backup & recovery](docs/BACKUP_RECOVERY.md)
-- [Production readiness](docs/production.md) — health checks, CI/CD, backup/restore, monitoring
-- [Development guide](docs/DEVELOPMENT.md) — setup, scripts, structure, testing, deployment
-- [Troubleshooting](docs/TROUBLESHOOTING.md) — env, database, auth, build, tests, production
-- [Next development steps](docs/NEXT_DEVELOPMENT_STEPS.md) — documentation, schema/lib fixes, caching, validation, deploy
-- [Security](SECURITY.md) — reporting vulnerabilities, supported versions, auth, RLS, audit, rate limit, CSP
+```
+app/
+├── factory/                    # Factory page (hackathon feature)
+│   └── page.tsx
+├── api/factory/generate/       # Agent orchestration API
+│   └── route.ts
+├── builder/                    # AI website builder (existing)
+├── chat/                       # AI chat (existing)
+└── ...
+lib/
+├── agents/                     # Agent system (new)
+│   └── types.ts
+├── ai/                         # AI generation
+└── builder-v2/                 # Builder engine (existing)
+docs/
+├── AMD_GPU_INTEGRATION.md      # AMD setup guide (new)
+└── ...
+```
 
-### Next.js 16 proxy
+---
 
-Auth, CSRF, and request-size logic live in `proxy.ts` (Next.js 16 proxy convention). See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) “Middleware → Proxy” and the [proxy convention](https://nextjs.org/docs/messages/middleware-to-proxy).
+## Demo Prompts
 
-## Contributing
+Try these in the Factory:
 
-**Start here:** [Setup](#setup) above, [Development guide](docs/DEVELOPMENT.md) (scripts, testing, deployment), [Testing & QA](docs/TESTING.md), and [API](docs/API_DOCUMENTATION.md) / [Architecture](docs/ARCHITECTURE.md) for code and docs expectations.
+1. **SaaS Landing Page** — *"Build a landing page for an AI-powered fitness coaching app called FitMind. Dark theme with purple accents, hero section, features grid, pricing cards, testimonials."*
 
-- **Setup:** Follow [Setup](#setup) above; use `.env.example` and never commit `.env`.
-- **Branch strategy:** Use feature branches; main is protected; PRs required for changes.
-- **Testing:** Run `npm run test` (Vitest) and `npm run test:e2e` (Playwright) before submitting; see [docs/TESTING.md](docs/TESTING.md).
-- **Component library:** Run `npm run storybook` to open Storybook (port 6006) for UI components (buttons, cards, etc.); see `components/ui/*.stories.tsx`.
-- **PR expectations:** Lint and typecheck pass; tests pass; keep [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) in sync when changing APIs or structure.
+2. **Dashboard** — *"Create a SaaS dashboard for a project management tool with sidebar navigation, charts, task list, and team members panel. Light theme with blue accents."*
+
+3. **Portfolio** — *"Build a portfolio website for a photographer with a full-screen hero gallery, about section, portfolio grid, and contact form. Minimal black and white design."*
+
+---
+
+## Why AMD?
+
+- **192 GB HBM3 memory** — runs 70B+ models without quantization
+- **5.3 TB/s memory bandwidth** — fast inference for large models
+- **ROCm open ecosystem** — no vendor lock-in, PyTorch native
+- **Cost-effective** — better price/performance than equivalent NVIDIA GPUs
+
+---
+
+## Beyond Factory
+
+Nairi Factory is built on the **Nairi platform** — a full-stack AI assistant with:
+- Multi-provider AI chat (`/chat`)
+- AI website builder (`/builder`)
+- Agent marketplace (`/marketplace`)
+- Presentation generator (`/presentations`)
+- Learning platform (`/learn`)
+- Knowledge graph (`/knowledge`)
+
+Factory represents our evolution from **single AI assistant** to **collaborative AI teams**.
+
+---
+
+## Hackathon Submission
+
+- **Track:** AI Agents & Agentic Workflows
+- **Tech:** AMD Developer Cloud, ROCm, vLLM, Qwen-2.5
+- **Demo:** http://localhost:3000/factory
+- **Code:** Open source (MIT)
+
+---
+
+## License
+
+MIT

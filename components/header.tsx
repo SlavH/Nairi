@@ -9,6 +9,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { useTranslation } from "@/lib/i18n/context"
+import { cn } from "@/lib/utils"
 
 export function Header() {
   const { t } = useTranslation()
@@ -20,6 +21,7 @@ export function Header() {
     { label: t.nav.capabilities, href: "#capabilities" },
     { label: t.nav.marketplace, href: "#marketplace" },
     { label: t.nav.security, href: "#security" },
+    { label: "Factory", href: "/factory", isPage: true, highlight: true },
     { label: t.nav.builder, href: "/builder", isPage: true },
     { label: t.nav.docs, href: "/docs", isPage: true },
   ]
@@ -80,10 +82,18 @@ export function Header() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  className={cn(
+                    "text-sm transition-colors",
+                    (item as { highlight?: boolean }).highlight
+                      ? "text-purple-400 hover:text-purple-300 font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                   data-testid={item.href === "/docs" ? "docs-nav-link" : undefined}
                 >
                   {item.label}
+                  {(item as { highlight?: boolean }).highlight && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[9px] rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">NEW</span>
+                  )}
                 </Link>
               ) : (
                 <a
@@ -128,11 +138,19 @@ export function Header() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px] flex items-center px-2 rounded-md hover:bg-muted"
+                  className={cn(
+                    "text-sm transition-colors min-h-[44px] flex items-center px-2 rounded-md hover:bg-muted",
+                    (item as { highlight?: boolean }).highlight
+                      ? "text-purple-400 font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                   onClick={() => setIsOpen(false)}
                   data-testid={item.href === "/docs" ? "docs-nav-link-mobile" : undefined}
                 >
                   {item.label}
+                  {(item as { highlight?: boolean }).highlight && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[9px] rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">NEW</span>
+                  )}
                 </Link>
               ) : (
                 <a

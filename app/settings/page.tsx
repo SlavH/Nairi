@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import { 
   Settings, 
   User, 
@@ -16,7 +18,8 @@ import {
   Trash2,
   Download,
   ChevronLeft,
-  Menu
+  Menu,
+  Save,
 } from 'lucide-react'
 import Link from 'next/link'
 import { AccessibleInput } from '@/components/ui/accessible-input'
@@ -24,11 +27,14 @@ import { AccessibleSelect } from '@/components/ui/accessible-select'
 import { AccessibleToggle } from '@/components/ui/accessible-toggle'
 import { AccessibleTextarea } from '@/components/ui/accessible-textarea'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('general')
   const [darkMode, setDarkMode] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -40,6 +46,58 @@ export default function SettingsPage() {
     analytics: true,
     personalization: true
   })
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push("/auth/login")
+        return
+      }
+
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('settings')
+          .eq('id', user.id)
+          .single()
+        if (data?.settings) {
+          const s = data.settings
+          if (s.notifications) setNotifications(s.notifications)
+          if (s.privacy) setPrivacy(s.privacy)
+          if (typeof s.darkMode === 'boolean') setDarkMode(s.darkMode)
+        }
+      } catch {
+        // Profile table might not exist
+      }
+    }
+    loadSettings()
+  }, [router])
+
+  const saveSettings = async () => {
+    setSaving(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setSaving(false)
+      return
+    }
+
+    try {
+      await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          settings: { notifications, privacy, darkMode },
+        })
+      toast.success("Settings saved successfully")
+    } catch {
+      toast.error("Failed to save settings")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
@@ -73,6 +131,10 @@ export default function SettingsPage() {
             <span className="text-border">/</span>
             <h1 className="text-lg sm:text-2xl font-bold">Settings</h1>
           </div>
+          <Button onClick={saveSettings} disabled={saving} className="min-h-[44px] bg-gradient-to-r from-[#e879f9] to-[#22d3ee] text-white">
+            <Save className="w-4 h-4 mr-2" />
+            {saving ? "Saving..." : "Save"}
+          </Button>
         </div>
       </header>
 

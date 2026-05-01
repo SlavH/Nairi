@@ -2,14 +2,14 @@
  * Custom Tool Builder (Phase 39)
  * Allows users to create custom tools
  */
-import { tool, zodSchema } from "ai";
+import { tool as aiTool } from "ai";
 import { z } from "zod";
 
 export interface CustomToolDefinition {
   name: string;
   description: string;
   parameters: z.ZodObject<any>;
-  execute: (params: any) => Promise<any>;
+  execute: (params: Record<string, unknown>) => Promise<unknown>;
 }
 
 export class CustomToolBuilder {
@@ -17,11 +17,11 @@ export class CustomToolBuilder {
    * Create a custom tool from definition
    */
   static createTool(definition: CustomToolDefinition) {
-    return tool({
+    return aiTool({
       description: definition.description,
-      parameters: zodSchema(definition.parameters),
+      parameters: definition.parameters,
       execute: definition.execute,
-    });
+    } as unknown as Parameters<typeof aiTool>[0]);
   }
 
   /**

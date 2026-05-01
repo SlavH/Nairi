@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getUserIdOrBypassForApi } from "@/lib/auth"
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { generateDesignBrief, designBriefToPromptEnhancement, type DesignBrief } from "@/lib/ai/design-brief"
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
 
 export const maxDuration = 120
 
@@ -93,6 +94,16 @@ Use clear sections with data-driven insights.`
 
 export async function POST(req: Request) {
   try {
+    // Rate limiting
+    const clientId = getClientIdentifier(req)
+    const rateLimitResult = checkRateLimit(`create:${clientId}`, RATE_LIMITS.create)
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "Too many creation requests. Please slow down.", retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfter) } }
+      )
+    }
+
     const supabase = await createClient()
     const userId = await getUserIdOrBypassForApi(() => supabase.auth.getUser())
     if (!userId) {
@@ -104,6 +115,14 @@ export async function POST(req: Request) {
 
     if (!type || !prompt) {
       return NextResponse.json({ error: "Type and prompt are required" }, { status: 400 })
+    }
+
+    if (typeof prompt !== "string" || prompt.trim().length === 0) {
+      return NextResponse.json({ error: "Prompt must be a non-empty string" }, { status: 400 })
+    }
+
+    if (prompt.length > 2000) {
+      return NextResponse.json({ error: "Prompt too long. Maximum 2000 characters." }, { status: 400 })
     }
 
     if (COMING_SOON_TYPES.includes(type)) {

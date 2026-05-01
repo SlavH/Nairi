@@ -4,12 +4,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { RBACManager } from "@/lib/auth/rbac";
 
-// Mock Supabase client
-const mockSupabase = {
+// Mock Supabase client — chainable methods return mockSupabase
+// Terminal methods (rpc, in) return Promises
+const mockSupabase: any = {
   rpc: vi.fn(),
   from: vi.fn(() => mockSupabase),
   select: vi.fn(() => mockSupabase),
-  in: vi.fn(() => mockSupabase),
+  // in() is the terminal method in getUserRoles
+  in: vi.fn(),
 };
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -70,8 +72,8 @@ describe("RBACManager", () => {
   describe("getUserRoles", () => {
     it("should retrieve user roles", async () => {
       const mockRoleData = [
-        { role_name: "user", role_level: 1 },
-        { role_name: "pro", role_level: 2 },
+        { role_name: "user" },
+        { role_name: "pro" },
       ];
 
       const mockRoles = [

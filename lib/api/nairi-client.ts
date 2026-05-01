@@ -30,16 +30,16 @@ async function fetchWithTimeout(
 }
 
 /**
- * GET /api/nairi/health with 5s timeout.
+ * GET /api/nairi-chat/health with 5s timeout.
  */
 export async function healthCheck(): Promise<HealthResult> {
-  const res = await fetchWithTimeout("/api/nairi/health", { method: "GET" }, HEALTH_TIMEOUT_MS)
+  const res = await fetchWithTimeout("/api/nairi-chat/health", { method: "GET" }, HEALTH_TIMEOUT_MS)
   const data: unknown = await res.json().catch(() => ({}))
-  const ok = res.ok && isNairiHealthResponse(data) && (data as NairiHealthResponse).status === "ok"
+  const ok = res.ok && (data as { ok?: boolean })?.ok === true
   return {
     ok,
-    name: isNairiHealthResponse(data) ? (data as NairiHealthResponse).name : undefined,
-    model: isNairiHealthResponse(data) ? (data as NairiHealthResponse).model : undefined,
+    name: (data as { primary?: string })?.primary,
+    model: (data as { primary?: string })?.primary,
   }
 }
 

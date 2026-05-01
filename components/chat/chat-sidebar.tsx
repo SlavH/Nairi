@@ -426,7 +426,7 @@ export function ChatSidebar({
             onClick={createNewConversation}
             disabled={isCreating}
             className="w-full min-h-[44px] sm:min-h-0 bg-gradient-to-r from-[#e052a0] to-[#00c9c8] text-white hover:opacity-90 cursor-pointer touch-manipulation rounded-xl font-medium shadow-lg shadow-pink-500/20"
-            aria-label={isCreating ? t.chat.sidebarCreatingNewChat : t.chat.sidebarStartNewChat}
+            aria-label={isCreating ? t.chat.sidebarCreating : t.chat.sidebarStartNewChat}
           >
             <Plus className="h-4 w-4 mr-2 shrink-0" />
             {isCreating ? t.chat.sidebarCreating : t.chat.sidebarNewChat}
