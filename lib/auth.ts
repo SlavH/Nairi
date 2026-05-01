@@ -29,3 +29,21 @@ export async function getUserIdOrBypassForApi(
   if (user) return user.id
   return null
 }
+
+/**
+ * Get session or bypass (backward compat).
+ * No bypass mode - always returns real session or null.
+ */
+export async function getSessionOrBypass(
+  getSupabaseUser: () => Promise<{ data: { user: { id: string; email?: string | null } | null } }>
+): Promise<SessionUser | null> {
+  return getSession(getSupabaseUser)
+}
+
+/**
+ * Get bypass user id (backward compat).
+ * No bypass mode - always returns null.
+ */
+export function getBypassUserId(): string | null {
+  return null
+}
