@@ -12,6 +12,11 @@ function hasAnyAiBackend(): boolean {
   return !!url || isRouterConfigured()
 }
 
+/** NAIRI_AI_BASE_URL takes priority over the old async router. */
+function useNairiAiProvider(): boolean {
+  return !!(process.env.NAIRI_AI_BASE_URL?.trim() || process.env.COLAB_AI_BASE_URL?.trim())
+}
+
 function requireNairiAiConfig(): void {
   if (!hasAnyAiBackend()) {
     throw new Error(
@@ -57,6 +62,32 @@ export async function streamWithFallback(opts: {
   onFinish?: (result: { text: string }) => void | Promise<void>
   fast?: boolean
 }): Promise<ReturnType<typeof streamText>> {
+  // NAIRI_AI_BASE_URL takes priority over old async router
+  if (useNairiAiProvider()) {
+    requireNairiAiConfig()
+    if (isCircuitOpen(NAIRI_AI_MODEL)) {
+      throw new Error(`Nairi AI model ${NAIRI_AI_MODEL}: circuit open (temporarily unavailable)`)
+    }
+    try {
+      const result = streamText({
+        model: nairiAiProvider(NAIRI_AI_MODEL),
+        system: opts.system,
+        ...(opts.messages
+          ? { messages: opts.messages }
+          : { prompt: opts.prompt ?? "" }),
+        temperature: opts.temperature ?? 0.7,
+        maxOutputTokens: opts.maxOutputTokens ?? 4096,
+        abortSignal: opts.signal,
+        onFinish: opts.onFinish,
+      })
+      recordSuccess(NAIRI_AI_MODEL)
+      return result
+    } catch (error) {
+      recordFailure(NAIRI_AI_MODEL)
+      throw error
+    }
+  }
+  // Fallback to old async HF router
   if (isRouterConfigured()) {
     const prompt = buildPromptForRouter(opts)
     const { job_id } = await routerGenerate("text", prompt, {})
@@ -112,6 +143,30 @@ export async function generateWithFallback(opts: {
   maxOutputTokens?: number
   fast?: boolean
 }): Promise<{ text: string; model: string }> {
+  // NAIRI_AI_BASE_URL takes priority over old async router
+  if (useNairiAiProvider()) {
+    requireNairiAiConfig()
+    if (isCircuitOpen(NAIRI_AI_MODEL)) {
+      throw new Error(`Nairi AI model ${NAIRI_AI_MODEL}: circuit open (temporarily unavailable)`)
+    }
+    try {
+      const result = await generateText({
+        model: nairiAiProvider(NAIRI_AI_MODEL),
+        system: opts.system,
+        ...(opts.messages
+          ? { messages: opts.messages }
+          : { prompt: opts.prompt ?? "" }),
+        temperature: opts.temperature ?? 0.7,
+        maxOutputTokens: opts.maxOutputTokens ?? 4096,
+      })
+      recordSuccess(NAIRI_AI_MODEL)
+      return { text: result.text, model: NAIRI_AI_MODEL }
+    } catch (error) {
+      recordFailure(NAIRI_AI_MODEL)
+      throw error
+    }
+  }
+  // Fallback to old async HF router
   if (isRouterConfigured()) {
     const prompt = buildPromptForRouter(opts)
     const { job_id } = await routerGenerate("text", prompt, {})
