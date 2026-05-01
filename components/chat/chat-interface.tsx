@@ -67,6 +67,7 @@ import { useTranslation } from "@/lib/i18n/context"
 import { ThinkingSteps } from "./thinking-steps"
 import { AnimatedMessageContent } from "./animated-message-content"
 import { AnimatedConversationTitle } from "./animated-conversation-title"
+import { Artifact, parseArtifacts } from "./artifacts"
 
 // Voice input languages with native names
 const VOICE_LANGUAGES = [
@@ -143,48 +144,16 @@ export function ChatInterface({
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   
-  
-  // Code copy state
-  const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   
   // Tools menu state
   const [showToolsMenu, setShowToolsMenu] = useState(false)
-  
-  // Copy code handler
-  const copyCode = useCallback((code: string, id: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedCode(id)
-    toast.success("Code copied to clipboard!")
-    setTimeout(() => setCopiedCode(null), 2000)
-  }, [])
 
   const copyMessage = useCallback((text: string, messageId: string) => {
     navigator.clipboard.writeText(text)
     setCopiedMessageId(messageId)
     toast.success("Message copied to clipboard")
     setTimeout(() => setCopiedMessageId(null), 2000)
-  }, [])
-  
-  // Extract code blocks from message
-  const extractCodeBlocks = useCallback((text: string) => {
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g
-    const blocks: { language: string; code: string; id: string }[] = []
-    let match
-    let index = 0
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-      blocks.push({
-        language: match[1] || 'text',
-        code: match[2].trim(),
-        id: `code-${index++}`
-      })
-    }
-    return blocks
-  }, [])
-  
-  // Remove code blocks for clean text display
-  const removeCodeBlocks = useCallback((text: string) => {
-    return text.replace(/```(\w+)?\n[\s\S]*?```/g, '').trim()
   }, [])
 
   // Render markdown text with full formatting support
@@ -707,10 +676,7 @@ export function ChatInterface({
         {messages.map((message, index) => {
           const metadata = getMessageMetadata(message.id)
           const messageText = getMessageText(message)
-          const codeBlocks = message.role === "assistant" ? extractCodeBlocks(messageText) : []
-          const cleanText = message.role === "assistant" && codeBlocks.length > 0 
-            ? removeCodeBlocks(messageText) 
-            : messageText
+          const { text: cleanText, artifacts } = message.role === "assistant" ? parseArtifacts(messageText) : { text: messageText, artifacts: [] }
           
           return (
             <div
@@ -748,7 +714,7 @@ export function ChatInterface({
                 )}
               >
                 {/* Text content */}
-                {cleanText && (
+                {cleanText && cleanText !== "[See artifact above]" && (
                   <div
                     className={cn(
                       "rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 overflow-visible transition-all duration-300 ease-out",
@@ -773,41 +739,17 @@ export function ChatInterface({
                   </div>
                 )}
                 
-                {/* Code blocks for builder mode */}
-                {message.role === "assistant" && codeBlocks.length > 0 && (
+                {/* Artifacts (code, HTML, SVG, etc.) with live preview */}
+                {artifacts.length > 0 && (
                   <div className="space-y-3">
-                    {codeBlocks.map((block, blockIndex) => (
-                      <Card key={block.id} className="overflow-hidden border-white/20 bg-white/10 backdrop-blur-md shadow-lg">
-                        <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/20 backdrop-blur-sm">
-                          <div className="flex items-center gap-2">
-                            <Code className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium text-muted-foreground capitalize">
-                              {block.language}
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => copyCode(block.code, `${message.id}-${blockIndex}`)}
-                            className="min-h-[44px] min-w-[44px] sm:min-h-8 sm:min-w-8 h-8 w-8 bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 touch-manipulation shadow-lg rounded-lg"
-                            aria-label={copiedCode === `${message.id}-${blockIndex}` ? t.chat.copied : t.chat.copyMessage}
-                          >
-                            {copiedCode === `${message.id}-${blockIndex}` ? (
-                              <Check className="h-3.5 w-3.5" />
-                            ) : (
-                              <Copy className="h-3.5 w-3.5" />
-                            )}
-                          </Button>
-                        </div>
-                        <CardContent className="p-0 bg-white/5 backdrop-blur-sm">
-                          <pre className="p-3 sm:p-4 overflow-x-auto text-xs sm:text-sm max-w-full" style={{ WebkitOverflowScrolling: "touch" }}>
-                            <code className={`language-${block.language}`}>
-                              {block.code}
-                            </code>
-                          </pre>
-                        </CardContent>
-                      </Card>
+                    {artifacts.map((artifact, artifactIndex) => (
+                      <Artifact
+                        key={`${message.id}-artifact-${artifactIndex}`}
+                        type={artifact.type}
+                        title={artifact.title}
+                        content={artifact.content}
+                        language={artifact.language}
+                      />
                     ))}
                   </div>
                 )}
@@ -836,10 +778,10 @@ export function ChatInterface({
                     {metadata?.provider && (
                       <span className="text-xs text-muted-foreground">via {metadata.provider}</span>
                     )}
-                    {chatMode === "builder" && codeBlocks.length > 0 && (
+                    {chatMode === "builder" && artifacts.length > 0 && (
                       <Badge variant="outline" className="text-xs bg-white/10 border-white/20 backdrop-blur-md shadow-lg">
                         <Code className="h-3 w-3 mr-1" />
-                        {codeBlocks.length} code block{codeBlocks.length > 1 ? 's' : ''}
+                        {artifacts.length} artifact{artifacts.length > 1 ? 's' : ''}
                       </Badge>
                     )}
                     {chatMode === "learn" && (

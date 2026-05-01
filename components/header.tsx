@@ -21,7 +21,7 @@ export function Header() {
     { label: t.nav.capabilities, href: "#capabilities" },
     { label: t.nav.marketplace, href: "#marketplace" },
     { label: t.nav.security, href: "#security" },
-    { label: "Factory", href: "/factory", isPage: true, highlight: true },
+    { label: "Factory", href: "/chat", isPage: true, highlight: true },
     { label: t.nav.builder, href: "/builder", isPage: true },
     { label: t.nav.docs, href: "/docs", isPage: true },
   ]
