@@ -31,10 +31,11 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
   } = useNairiChat({ maxTokens: 200, sessionId: conversation.id })
   const [inputValue, setInputValue] = useState("")
   const [showTools, setShowTools] = useState(false)
+  const [showCanvas, setShowCanvas] = useState(true)
   
   // Track the most recent message with previewable content
   const lastPreviewableMessage = [...messages].reverse().find(m => 
-    m.content.includes("```") || m.content.includes("[PRESENTATION]")
+    m.content.includes("```") || m.content.includes('"type": "presentation"')
   )
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -90,10 +91,15 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
                   </span>
                 )}
                 <Button onClick={() => setShowTools(!showTools)} size="sm" variant="ghost">Toggle Tools</Button>
+                {lastPreviewableMessage && (
+                  <Button onClick={() => setShowCanvas(!showCanvas)} size="sm" variant="ghost">
+                    {showCanvas ? "Hide Preview" : "Show Preview"}
+                  </Button>
+                )}
                 {errorMessage && (
-                    <Button type="button" variant="ghost" size="sm" onClick={clearError} className="text-xs h-7">
-                        Dismiss
-                    </Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={clearError} className="text-xs h-7">
+                      Dismiss
+                  </Button>
                 )}
             </div>
 
@@ -179,9 +185,9 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
                 <OpenCodeToolsPanel sessionId={conversation.id} opencodeUrl={process.env.OPENCODE_API_URL} />
             </div>
         )}
-        {lastPreviewableMessage && !showTools && (
-            <div className="w-96">
-                <CanvasView content={lastPreviewableMessage.content} />
+        {lastPreviewableMessage && showCanvas && (
+            <div className="w-[500px] border-l border-white/20 bg-slate-950 flex flex-col">
+                <CanvasView content={lastPreviewableMessage.content} onClose={() => setShowCanvas(false)} />
             </div>
         )}
     </div>

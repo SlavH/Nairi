@@ -1,31 +1,50 @@
 import { cn } from "@/lib/utils"
+import { SlideDeck } from "./slide-deck"
+import { Sandpack } from "@codesandbox/sandpack-react"
 
 interface CanvasViewProps {
   content: string
+  onClose?: () => void
 }
 
-export function CanvasView({ content }: CanvasViewProps) {
-  // Simple detection logic
-  const isCode = content.includes("```")
-  const isPresentation = content.includes("[PRESENTATION]")
+export function CanvasView({ content, onClose }: CanvasViewProps) {
+  // Detection logic: Look for JSON structure or code blocks
+  let parsedPresentation = null
+  try {
+      if(content.includes('"type": "presentation"')) {
+          parsedPresentation = JSON.parse(content.split('```json')[1]?.split('```')[0] || content)
+      }
+  } catch(e) {}
+
+  const isCode = content.includes("```") && !parsedPresentation
+  const isPresentation = !!parsedPresentation
 
   return (
-    <div className="h-full flex flex-col bg-white/5 border-l border-white/20 p-4">
-      <h3 className="font-semibold text-sm text-muted-foreground mb-4">Preview</h3>
-      <div className="flex-1 overflow-y-auto">
+    <div className="h-full flex flex-col bg-slate-950 border-l border-white/10 shadow-2xl relative w-full">
+      <div className="flex justify-between items-center p-3 border-b border-white/10">
+          <h3 className="font-semibold text-sm text-slate-300">Canvas Preview</h3>
+          <Button size="sm" variant="ghost" onClick={onClose} className="h-6 w-6 p-0 rounded-full">×</Button>
+      </div>
+
+      <div className="flex-1 overflow-hidden p-4">
         {isCode && (
-          <div className="font-mono text-xs text-green-400 bg-black/50 p-4 rounded-lg">
-            <pre>{content.split("```")[1]}</pre>
-          </div>
+          <Sandpack 
+            template="react" 
+            files={{
+              "App.js": content.split("```")[1].replace(/^(html|js|javascript|typescript|ts)/, "")
+            }}
+            options={{ showNavigator: true, editorHeight: 400 }}
+          />
         )}
+        
         {isPresentation && (
-          <div className="bg-white/10 p-6 rounded-lg text-center">
-            <p className="text-lg">Presentation Preview</p>
-            <p className="text-sm text-muted-foreground mt-2">{content.split("[PRESENTATION]")[1].split("[/PRESENTATION]")[0]}</p>
-          </div>
+          <SlideDeck slides={parsedPresentation.slides} />
         )}
+
         {!isCode && !isPresentation && (
-          <p className="text-muted-foreground text-sm italic">No preview available for this content.</p>
+          <div className="flex items-center justify-center h-full text-slate-500 italic">
+            No preview available
+          </div>
         )}
       </div>
     </div>
