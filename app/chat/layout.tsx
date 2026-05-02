@@ -47,16 +47,6 @@ async function loadChatLayoutData(): Promise<{
   return { conversations: conversations ?? [], projects, userId: user.id }
 }
 
-  let projects: { id: string; name: string }[] = []
-  try {
-    projects = await getConversationFolders(user.id)
-  } catch {
-    projects = []
-  }
-
-  return { conversations, projects, userId: user.id }
-}
-
 export default async function ChatLayout({
   children,
 }: {
