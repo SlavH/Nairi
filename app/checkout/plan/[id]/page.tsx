@@ -15,7 +15,7 @@ export default async function PlanCheckoutPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

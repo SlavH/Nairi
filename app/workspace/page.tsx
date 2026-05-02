@@ -84,7 +84,7 @@ function getTypeDisplayName(type: string): string {
 
 export default async function WorkspacePage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     const { redirect } = await import("next/navigation")

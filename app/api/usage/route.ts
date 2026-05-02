@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       )
     }
     const supabase = await createClient()
-    const { user } = await getSession(() => supabase.auth.getUser())
+    const user = await getSession(() => supabase.auth.getUser())
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

@@ -18,7 +18,7 @@ async function loadFlowLayoutData(): Promise<{
   userId: string
 }> {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

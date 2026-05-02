@@ -10,7 +10,7 @@ import { ChevronLeft, Plus } from "lucide-react"
 
 export default async function CreatorPage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

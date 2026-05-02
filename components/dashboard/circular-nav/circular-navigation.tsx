@@ -391,6 +391,7 @@ export function CircularNavigation() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/")
+    router.refresh() // Ensures session state is cleared on the server
   }
 
   const handleNodeHover = (position: { x: number; y: number } | null) => {

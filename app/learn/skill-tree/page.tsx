@@ -5,7 +5,7 @@ import { getSession } from "@/lib/auth"
 
 export default async function SkillTreePage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

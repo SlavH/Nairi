@@ -7,7 +7,7 @@ import { ChatWelcomeCards } from "@/components/chat/chat-welcome-cards"
 
 export default async function ChatPage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

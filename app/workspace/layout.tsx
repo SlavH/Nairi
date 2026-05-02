@@ -19,7 +19,7 @@ export default async function WorkspaceLayout({
     const result = await Promise.race([
       (async () => {
         const supabase = await createClient()
-        const { user } = await getSession(() => supabase.auth.getUser())
+        const user = await getSession(() => supabase.auth.getUser())
         if (!user) redirect("/auth/login")
         return user
       })(),

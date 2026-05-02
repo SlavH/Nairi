@@ -65,7 +65,7 @@ interface CreatePageProps {
 
 export default async function CreatePage({ searchParams }: CreatePageProps) {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     const { redirect } = await import("next/navigation")

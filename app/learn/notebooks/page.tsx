@@ -8,7 +8,7 @@ import { LearnNotebooksList } from "@/components/learn/learn-notebooks-list"
 
 export default async function LearnNotebooksPage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const { data: notebooks } = await supabase

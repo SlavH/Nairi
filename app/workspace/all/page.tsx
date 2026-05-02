@@ -47,7 +47,7 @@ const typeColors: Record<string, string> = {
 
 export default async function AllCreationsPage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     const { redirect } = await import("next/navigation")

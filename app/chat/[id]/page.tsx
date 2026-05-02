@@ -13,7 +13,7 @@ export default async function ChatConversationPage({
   const { id } = await params
   const { suggestion } = await searchParams
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     redirect("/auth/login")

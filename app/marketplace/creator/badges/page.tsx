@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 
 export default async function CreatorBadgesPage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const [earned, catalog] = await Promise.all([

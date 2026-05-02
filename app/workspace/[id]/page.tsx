@@ -13,7 +13,7 @@ interface WorkspaceDetailProps {
 
 export default async function WorkspaceDetailPage({ params }: WorkspaceDetailProps) {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
     const { redirect } = await import("next/navigation")

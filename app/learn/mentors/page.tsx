@@ -8,7 +8,7 @@ import { AIMentorsList } from "@/components/learn/ai-mentors-list"
 
 export default async function MentorsPage() {
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const mentors = await listMentorsForUser(user.id)

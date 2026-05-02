@@ -14,7 +14,7 @@ export default async function MentorDomainPage({
   const { domain } = await params
   const decoded = decodeURIComponent(domain)
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const mentor = await getMentorByDomain(user.id, decoded)

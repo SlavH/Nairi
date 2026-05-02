@@ -13,7 +13,7 @@ export default async function NotebookDetailPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { user } = await getSession(() => supabase.auth.getUser())
+  const user = await getSession(() => supabase.auth.getUser())
   if (!user) redirect("/auth/login")
 
   const { data: notebook } = await supabase
