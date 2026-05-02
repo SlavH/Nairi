@@ -28,6 +28,7 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
     retry,
     clearError,
     isSending,
+    activity,
   } = useNairiChat({ maxTokens: 200 })
   const [inputValue, setInputValue] = useState("")
   const [showTools, setShowTools] = useState(false)
@@ -78,6 +79,11 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
                     )}
                     {CONNECTION_LABELS[connectionState]}
                 </span>
+                {activity && activity.type !== "idle" && (
+                  <span className="text-xs text-muted-foreground animate-pulse ml-2">
+                    {activity.label}
+                  </span>
+                )}
                 <Button onClick={() => setShowTools(!showTools)} size="sm" variant="ghost">Toggle Tools</Button>
                 {errorMessage && (
                     <Button type="button" variant="ghost" size="sm" onClick={clearError} className="text-xs h-7">

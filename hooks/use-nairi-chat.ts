@@ -12,6 +12,14 @@ const CHAT_RETRY_DELAY_MS = 2000
 
 export type NairiConnectionState = "online" | "waking_up" | "searching_web" | "generating" | "error"
 
+export interface NairiActivity {
+  type: "thinking" | "tool" | "agent_switch" | "idle"
+  label: string           // Human-readable: "Running: npm test", "Thinking...", "Using Build agent"
+  toolName?: string       // e.g. "Shell", "FileRead", "WebSearch"
+  toolInput?: unknown
+  toolOutput?: unknown
+}
+
 export interface NairiChatMessage {
   role: "user" | "assistant"
   content: string
@@ -36,6 +44,8 @@ export interface UseNairiChatReturn {
   retry: () => void
   clearError: () => void
   isSending: boolean
+  activity: NairiActivity | null
+  sessionId: string | null
 }
 
 function generateId(): string {
@@ -51,11 +61,109 @@ export function useNairiChat(options: UseNairiChatOptions = {}): UseNairiChatRet
   const [connectionState, setConnectionState] = useState<NairiConnectionState>("online")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
+  const [activity, setActivity] = useState<NairiActivity | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const inFlightRef = useRef(false)
   const messagesRef = useRef<NairiChatMessage[]>(messages)
+  const eventSourceRef = useRef<EventSource | null>(null)
   useEffect(() => {
     messagesRef.current = messages
   }, [messages])
+
+  // SSE connection to OpenCode events
+  useEffect(() => {
+    const es = new EventSource(`/api/opencode-events?sessionId=${sessionId || ""}`)
+    eventSourceRef.current = es
+
+    es.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        handleOpenCodeEvent(data)
+      } catch {
+        // ignore parse errors
+      }
+    }
+
+    es.onerror = () => {
+      // Reconnect on error
+      es.close()
+      setTimeout(() => {
+        if (eventSourceRef.current === es) {
+          const newEs = new EventSource(`/api/opencode-events?sessionId=${sessionId || ""}`)
+          eventSourceRef.current = newEs
+        }
+      }, 3000)
+    }
+
+    return () => {
+      es.close()
+      eventSourceRef.current = null
+    }
+  }, [sessionId])
+
+  function handleOpenCodeEvent(event: { type: string; properties?: { part?: { type: string; tool?: string; input?: unknown; output?: unknown; state?: { status?: string }; synthetic?: boolean; ignored?: boolean }; sessionID?: string; status?: { type: string } }) {
+    switch (event.type) {
+      case "message.part.updated": {
+        const part = event.properties?.part
+        if (!part) break
+
+        // Text streaming
+        if (part.type === "text" && !part.synthetic && !part.ignored) {
+          setActivity({ type: "thinking", label: "Thinking..." })
+        }
+
+        // Tool call
+        if (part.type === "tool") {
+          const toolName = part.tool || "Unknown"
+          const label = toolName === "Shell"
+            ? `Running: ${(part.input as { command?: string })?.command || toolName}`
+            : `Using: ${toolName}`
+          setActivity({
+            type: "tool",
+            label,
+            toolName,
+            toolInput: part.input,
+            toolOutput: part.state?.status === "completed" ? part.output : undefined,
+          })
+        }
+
+        // Reasoning/thinking block
+        if (part.type === "reasoning") {
+          setActivity({ type: "thinking", label: "Thinking..." })
+        }
+        break
+      }
+
+      case "session.status": {
+        const status = event.properties?.status
+        if (status?.type === "busy") {
+          setConnectionState("generating")
+        } else if (status?.type === "idle") {
+          setConnectionState("online")
+          setActivity({ type: "idle", label: "Ready" })
+        } else if (status?.type === "retry") {
+          setConnectionState("waking_up")
+          setActivity({ type: "thinking", label: `Retrying... (attempt ${status.attempt})` })
+        }
+        break
+      }
+
+      case "session.idle": {
+        setConnectionState("online")
+        setActivity({ type: "idle", label: "Ready" })
+        break
+      }
+
+      case "session.error": {
+        setConnectionState("error")
+        setActivity({ type: "idle", label: "Error" })
+        break
+      }
+
+      default:
+        break
+    }
+  }
 
   const clearError = useCallback(() => setErrorMessage(null), [])
 
@@ -189,5 +297,7 @@ export function useNairiChat(options: UseNairiChatOptions = {}): UseNairiChatRet
     retry,
     clearError,
     isSending,
+    activity,
+    sessionId,
   }
 }
