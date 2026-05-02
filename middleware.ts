@@ -1,10 +1,9 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from "@/lib/supabase/session"
 import { validateOrigin, MAX_REQUEST_SIZES } from './lib/security/request-validator'
 
 /**
- * Proxy for Next.js 16+ (replaces middleware.ts)
+ * Middleware for Next.js 16+
  *
  * Implements:
  * - Production blocking of test/debug pages
@@ -66,8 +65,6 @@ function getClientIp(request: NextRequest): string {
 }
 
 export async function middleware(request: NextRequest) {
-  return await proxy(request)
-}
   const { pathname } = request.nextUrl
 
   // Skip security checks for static files and Next.js internals
