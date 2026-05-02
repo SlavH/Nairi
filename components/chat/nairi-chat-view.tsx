@@ -16,8 +16,7 @@ const CONNECTION_LABELS: Record<NairiConnectionState, string> = {
 }
 
 import { OpenCodeToolsPanel } from "@/components/chat/opencode-tools-panel"
-
-// ... existing imports ...
+import { CanvasView } from "@/components/chat/canvas-view"
 
 export function NairiChatView({ conversation }: { conversation: { id: string } }) {
   const {
@@ -32,6 +31,12 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
   } = useNairiChat({ maxTokens: 200 })
   const [inputValue, setInputValue] = useState("")
   const [showTools, setShowTools] = useState(false)
+  
+  // Track the most recent message with previewable content
+  const lastPreviewableMessage = [...messages].reverse().find(m => 
+    m.content.includes("```") || m.content.includes("[PRESENTATION]")
+  )
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
 
@@ -172,6 +177,11 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
         {showTools && (
             <div className="w-80 border-l border-white/20 bg-white/5 p-4 overflow-y-auto">
                 <OpenCodeToolsPanel sessionId={conversation.id} opencodeUrl={process.env.OPENCODE_API_URL} />
+            </div>
+        )}
+        {lastPreviewableMessage && !showTools && (
+            <div className="w-96">
+                <CanvasView content={lastPreviewableMessage.content} />
             </div>
         )}
     </div>
