@@ -189,6 +189,10 @@ function MessageBubble({
 }) {
   const isUser = message.role === "user"
   const isLoading = message.isPlaceholder && isSending
+  
+  // Simple check for code blocks
+  const hasCode = message.content.includes("```");
+  const codeContent = hasCode ? message.content.split("```")[1] : null;
 
   return (
     <div
@@ -225,6 +229,18 @@ function MessageBubble({
             <p className="text-sm whitespace-pre-wrap break-words">{message.content || "—"}</p>
           )}
         </div>
+        
+        {/* Simple Code Preview */}
+        {hasCode && codeContent && !isUser && (
+           <div className="mt-2 bg-black/50 p-3 rounded-lg overflow-x-auto text-xs font-mono text-green-400">
+             <div className="flex justify-between items-center mb-1">
+               <span className="text-muted-foreground">Preview (Code)</span>
+               <Button size="sm" variant="ghost" className="h-6">Copy</Button>
+             </div>
+             <pre>{codeContent}</pre>
+           </div>
+        )}
+
         {!isUser && message.latency_sec != null && message.content && (
           <span className="text-xs text-muted-foreground">{message.latency_sec.toFixed(2)}s</span>
         )}
