@@ -34,35 +34,17 @@ export interface NairiChatMessage {
 export interface UseNairiChatOptions {
   maxTokens?: number
   initialMessages?: NairiChatMessage[]
+  sessionId?: string
 }
 
-export interface UseNairiChatReturn {
-  messages: NairiChatMessage[]
-  connectionState: NairiConnectionState
-  errorMessage: string | null
-  sendMessage: (content: string) => Promise<void>
-  retry: () => void
-  clearError: () => void
-  isSending: boolean
-  activity: NairiActivity | null
-  sessionId: string | null
-}
-
-function generateId(): string {
-  return `nairi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-}
-
-/**
- * Nairi chat hook: health check before send, wake-up retries, chat retry, single-flight.
- */
 export function useNairiChat(options: UseNairiChatOptions = {}): UseNairiChatReturn {
-  const { maxTokens = 200, initialMessages = [] } = options
+  const { maxTokens = 200, initialMessages = [], sessionId: initialSessionId } = options
   const [messages, setMessages] = useState<NairiChatMessage[]>(initialMessages)
   const [connectionState, setConnectionState] = useState<NairiConnectionState>("online")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isSending, setIsSending] = useState(false)
   const [activity, setActivity] = useState<NairiActivity | null>(null)
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId || null)
   const inFlightRef = useRef(false)
   const messagesRef = useRef<NairiChatMessage[]>(messages)
   const eventSourceRef = useRef<EventSource | null>(null)

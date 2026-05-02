@@ -28,7 +28,7 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
     clearError,
     isSending,
     activity,
-  } = useNairiChat({ maxTokens: 200 })
+  } = useNairiChat({ maxTokens: 200, sessionId: conversation.id })
   const [inputValue, setInputValue] = useState("")
   const [showTools, setShowTools] = useState(false)
   
