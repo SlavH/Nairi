@@ -47,7 +47,7 @@ export function ChatPageClient({
   }
 
   if (nairiEnabled) {
-    return <NairiChatView />
+    return <NairiChatView conversation={conversation} />
   }
 
   return (

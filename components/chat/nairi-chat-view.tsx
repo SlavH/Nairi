@@ -15,43 +15,28 @@ const CONNECTION_LABELS: Record<NairiConnectionState, string> = {
   error: "Connection error",
 }
 
-export function NairiChatView() {
-  const {
-    messages,
-    connectionState,
-    errorMessage,
-    sendMessage,
-    retry,
-    clearError,
-    isSending,
-  } = useNairiChat({ maxTokens: 200 })
-  const [inputValue, setInputValue] = useState("")
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const messagesContainerRef = useRef<HTMLDivElement>(null)
+import { OpenCodeToolsPanel } from "@/components/chat/opencode-tools-panel"
 
-  const scrollToBottom = useCallback(() => {
-    messagesContainerRef.current?.scrollTo({ top: messagesContainerRef.current.scrollHeight, behavior: "smooth" })
-  }, [])
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages.length, scrollToBottom])
+// ... existing imports ...
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault()
-      const t = inputValue.trim()
-      if (!t || isSending) return
-      sendMessage(t)
-      setInputValue("")
-    },
-    [inputValue, isSending, sendMessage]
+export function NairiChatView({ conversation }: { conversation: { id: string } }) {
+  const [showTools, setShowTools] = useState(false)
+  // ... existing code ...
+
+  return (
+    <div className="flex flex-1 min-h-0 overflow-hidden">
+        <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            {/* ... existing content ... */}
+            <Button onClick={() => setShowTools(!showTools)}>Toggle Tools</Button>
+        </div>
+        {showTools && (
+            <div className="w-80 border-l border-white/20 bg-white/5 p-4 overflow-y-auto">
+                <OpenCodeToolsPanel sessionId={conversation.id} opencodeUrl={process.env.OPENCODE_API_URL} />
+            </div>
+        )}
+    </div>
   )
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(e as unknown as React.FormEvent)
-    }
+}
   }
 
   return (
