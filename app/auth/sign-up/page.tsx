@@ -145,6 +145,7 @@ export default function SignUpPage() {
           data: {
             full_name: fullName.trim(),
           },
+          captchaToken: tokenToUse,
         },
       })
       

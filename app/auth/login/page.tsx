@@ -13,6 +13,7 @@ import Image from "next/image"
 import { useTranslation } from "@/lib/i18n/context"
 import { LiveRegion } from "@/components/ui/live-region"
 import { Chrome } from "lucide-react"
+import { HCaptcha } from "@/components/hcaptcha-wrapper"
 
 function LoginForm() {
   const { t } = useTranslation()
@@ -20,11 +21,14 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState("")
   const [checkingSession, setCheckingSession] = useState(true)
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirect") || "/nav"
+
+  const HCAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_HCAPTCHA_SITE_KEY || '10000000-ffff-ffff-ffff-000000000001'
 
   // If user is already signed in, redirect so they don't see login again until they log out
   useEffect(() => {
@@ -42,10 +46,22 @@ function LoginForm() {
     setError(null)
     setStatusMessage("Signing in...")
 
+    // Check captcha token (skip in development)
+    const isDev = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
+    if (!captchaToken && !isDev) {
+      setError("Please complete the captcha verification")
+      setStatusMessage("Error: Please complete the captcha")
+      setIsLoading(false)
+      return
+    }
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken: captchaToken || (isDev ? 'dev-test-token' : undefined),
+        },
       })
       if (error) throw error
       setStatusMessage("Sign in successful! Redirecting...")
@@ -135,7 +151,24 @@ function LoginForm() {
                   />
                 </div>
                 {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
-                <Button
+                 
+                 <HCaptcha
+                   sitekey={HCAPTCHA_SITE_KEY}
+                   onVerify={(token) => {
+                     setCaptchaToken(token)
+                     setError(null)
+                   }}
+                   onError={() => {
+                     setCaptchaToken(null)
+                     setError("Captcha verification failed. Please try again.")
+                   }}
+                   onExpire={() => {
+                     setCaptchaToken(null)
+                     setError("Captcha expired. Please verify again.")
+                   }}
+                 />
+                 
+                 <Button
                   type="submit"
                   className="w-full bg-gradient-to-r from-[#e052a0] to-[#00c9c8] text-white hover:opacity-90"
                   disabled={isLoading}
