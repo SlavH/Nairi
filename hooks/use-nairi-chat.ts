@@ -101,7 +101,24 @@ export function useNairiChat(options: UseNairiChatOptions = {}): UseNairiChatRet
     }
   }, [sessionId])
 
-  function handleOpenCodeEvent(event: { type: string; properties?: { part?: { type: string; tool?: string; input?: unknown; output?: unknown; state?: { status?: string }; synthetic?: boolean; ignored?: boolean }; sessionID?: string; status?: { type: string } }) {
+interface OpenCodeEvent {
+  type: string
+  properties?: {
+    part?: {
+      type: string
+      tool?: string
+      input?: unknown
+      output?: unknown
+      state?: { status?: string }
+      synthetic?: boolean
+      ignored?: boolean
+    }
+    sessionID?: string
+    status?: { type: string; attempt?: number }
+  }
+}
+
+function handleOpenCodeEvent(event: OpenCodeEvent) {
     switch (event.type) {
       case "message.part.updated": {
         const part = event.properties?.part
@@ -143,7 +160,7 @@ export function useNairiChat(options: UseNairiChatOptions = {}): UseNairiChatRet
           setActivity({ type: "idle", label: "Ready" })
         } else if (status?.type === "retry") {
           setConnectionState("waking_up")
-          setActivity({ type: "thinking", label: `Retrying... (attempt ${status.attempt})` })
+          setActivity({ type: "thinking", label: `Retrying... (attempt ${status.attempt ?? 1})` })
         }
         break
       }
@@ -163,7 +180,7 @@ export function useNairiChat(options: UseNairiChatOptions = {}): UseNairiChatRet
       default:
         break
     }
-  }
+}
 
   const clearError = useCallback(() => setErrorMessage(null), [])
 
