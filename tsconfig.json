@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -9,14 +13,20 @@
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     }
   },
   "include": [
@@ -27,5 +37,11 @@
     "**/*.ts",
     "**/*.tsx"
   ],
-  "exclude": ["node_modules", "e2e", "**/*.stories.ts", "**/*.stories.tsx", "playwright.config.ts"]
+  "exclude": [
+    "node_modules",
+    "e2e",
+    "**/*.stories.ts",
+    "**/*.stories.tsx",
+    "playwright.config.ts"
+  ]
 }
