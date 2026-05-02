@@ -17,7 +17,10 @@ async function loadChatLayoutData(): Promise<{
   const supabase = await createClient()
   const user = await getSession(() => supabase.auth.getUser())
 
+  console.log("ChatLayout: user fetched", user?.id)
+
   if (!user) {
+    console.log("ChatLayout: No user, redirecting")
     redirect("/auth/login")
   }
 
@@ -28,6 +31,8 @@ async function loadChatLayoutData(): Promise<{
     .order("is_pinned", { ascending: false, nullsFirst: false })
     .order("pinned_at", { ascending: false, nullsFirst: true })
     .order("updated_at", { ascending: false })
+
+  console.log("ChatLayout: conversations query finished", withFolder.error ? "Error: " + withFolder.error.message : "Success")
 
   let conversations: { id: string; title: string; updated_at: string; is_pinned?: boolean; pinned_at?: string | null; folder_id?: string | null }[]
   if (withFolder.error && (String(withFolder.error.message).includes("folder_id") || String(withFolder.error.message).includes("column"))) {
