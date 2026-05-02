@@ -65,7 +65,9 @@ function getClientIp(request: NextRequest): string {
   return "unknown"
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  return await proxy(request)
+}
   const { pathname } = request.nextUrl
 
   // Skip security checks for static files and Next.js internals
