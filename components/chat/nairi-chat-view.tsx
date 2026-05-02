@@ -171,7 +171,81 @@ export function NairiChatView({ conversation }: { conversation: { id: string } }
     </div>
   )
 }
-  }
+
+function MessageBubble({
+  message,
+  isSending,
+  connectionState,
+}: {
+  message: NairiChatMessage
+  isSending: boolean
+  connectionState: NairiConnectionState
+}) {
+  const isUser = message.role === "user"
+  const isLoading = message.isPlaceholder && isSending
+
+  return (
+    <div
+      className={cn(
+        "flex gap-3 transition-opacity duration-200",
+        isUser ? "ml-auto flex-row-reverse max-w-3xl" : "max-w-4xl"
+      )}
+    >
+      <div
+        className={cn(
+          "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+          isUser ? "bg-gradient-to-r from-[#e052a0] to-[#00c9c8]" : "bg-gradient-to-r from-[#00c9c8] to-[#4fd1c5]"
+        )}
+      >
+        {isUser ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
+      </div>
+      <div className={cn("flex flex-col gap-2 min-w-0", isUser ? "w-fit max-w-3xl items-end" : "flex-1")}>
+        <div
+          className={cn(
+            "rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 overflow-visible",
+            isUser
+              ? "bg-gradient-to-r from-[#e052a0] to-[#00c9c8] text-white w-fit max-w-full"
+              : message.isError
+                ? "bg-destructive/20 border border-destructive/40 text-destructive"
+                : "bg-white/10 border border-white/20 backdrop-blur-md"
+          )}
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {connectionState === "searching_web" ? "Searching web…" : "Generating…"}
+            </span>
+          ) : (
+            <p className="text-sm whitespace-pre-wrap break-words">{message.content || "—"}</p>
+          )}
+        </div>
+        {!isUser && message.latency_sec != null && message.content && (
+          <span className="text-xs text-muted-foreground">{message.latency_sec.toFixed(2)}s</span>
+        )}
+        {!isUser && message.sources && message.sources.length > 0 && (
+          <div className="mt-2 space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">Sources</p>
+            <ul className="space-y-1.5 text-xs">
+              {message.sources.map((s) => (
+                <li key={s.id}>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1 break-all"
+                  >
+                    [{s.id}] {s.title || s.url}
+                    <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
