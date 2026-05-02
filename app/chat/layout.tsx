@@ -24,29 +24,28 @@ async function loadChatLayoutData(): Promise<{
     redirect("/auth/login")
   }
 
-  const withFolder = await supabase
+  // Simplify query to the most essential columns
+  const { data: conversations, error } = await supabase
     .from("conversations")
-    .select("id, title, updated_at, is_pinned, pinned_at, folder_id")
+    .select("id, title, updated_at")
     .eq("user_id", user.id)
-    .order("is_pinned", { ascending: false, nullsFirst: false })
-    .order("pinned_at", { ascending: false, nullsFirst: true })
     .order("updated_at", { ascending: false })
 
-  console.log("ChatLayout: conversations query finished", withFolder.error ? "Error: " + withFolder.error.message : "Success")
-
-  let conversations: { id: string; title: string; updated_at: string; is_pinned?: boolean; pinned_at?: string | null; folder_id?: string | null }[]
-  if (withFolder.error && (String(withFolder.error.message).includes("folder_id") || String(withFolder.error.message).includes("column"))) {
-    const withoutFolder = await supabase
-      .from("conversations")
-      .select("id, title, updated_at, is_pinned, pinned_at")
-      .eq("user_id", user.id)
-      .order("is_pinned", { ascending: false, nullsFirst: false })
-      .order("pinned_at", { ascending: false, nullsFirst: true })
-      .order("updated_at", { ascending: false })
-    conversations = withoutFolder.data ?? []
-  } else {
-    conversations = withFolder.data ?? []
+  if (error) {
+    console.error("ChatLayout: Error fetching conversations:", error)
   }
+
+  // Handle projects/folders
+  let projects: { id: string; name: string }[] = []
+  try {
+    projects = await getConversationFolders(user.id)
+  } catch (err) {
+    console.error("ChatLayout: Error fetching folders:", err)
+    projects = []
+  }
+
+  return { conversations: conversations ?? [], projects, userId: user.id }
+}
 
   let projects: { id: string; name: string }[] = []
   try {
