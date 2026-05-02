@@ -4,9 +4,9 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
-  const rawNext = requestUrl.searchParams.get("next") || "/nav"
+  const rawNext = requestUrl.searchParams.get("next") || "/dashboard"
   // SECURITY: Prevent open redirect by ensuring next is a relative path
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/nav"
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard"
   const error = requestUrl.searchParams.get("error")
   const error_description = requestUrl.searchParams.get("error_description")
 
