@@ -1,20 +1,29 @@
 /**
  * SSE proxy: forwards OpenCode /event stream to the browser.
  * Query: ?sessionId=...  (optional filter)
+ * Events are scoped to the authenticated user's workspace.
  */
 import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
+import { getUserIdForApi } from "@/lib/auth"
+import { WorkspaceManager } from "@/lib/workspace/manager"
 
 const OPENCODE_URL = process.env.OPENCODE_API_URL || "https://solid-baroquely-leola.ngrok-free.dev"
 
 export const dynamic = "force-dynamic"
 
+async function getUserId(): Promise<string | null> {
+  const supabase = await createClient()
+  return getUserIdForApi(() => supabase.auth.getUser())
+}
+
 export async function GET(request: NextRequest) {
+  const userId = await getUserId()
   const { searchParams } = new URL(request.url)
   const sessionId = searchParams.get("sessionId")
 
   const upstream = await fetch(`${OPENCODE_URL}/event`, {
     headers: { Accept: "text/event-stream" },
-    // No signal here — we want to keep the connection open
   }).catch((err) => {
     return null
   })
@@ -48,12 +57,25 @@ export async function GET(request: NextRequest) {
 
           for (const line of lines) {
             if (!line.trim()) continue
-            // Parse and optionally filter by sessionId
+            // Filter by sessionId and user workspace
             if (sessionId && line.includes("sessionID")) {
               try {
                 const json = line.replace(/^data:\s*/, "")
                 const evt = JSON.parse(json)
                 if (evt.properties?.sessionID !== sessionId) continue
+              } catch {
+                // If we can't parse, forward anyway
+              }
+            }
+            // Filter out events referencing paths outside user's workspace
+            if (userId && line.includes("path")) {
+              try {
+                const json = line.replace(/^data:\s*/, "")
+                const evt = JSON.parse(json)
+                if (evt.properties?.path) {
+                  const wsPath = WorkspaceManager.getWorkspacePath(userId)
+                  if (!evt.properties.path.startsWith(wsPath)) continue
+                }
               } catch {
                 // If we can't parse, forward anyway
               }

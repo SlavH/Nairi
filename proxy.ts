@@ -67,10 +67,11 @@ function getClientIp(request: NextRequest): string {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip security checks for static files and Next.js internals
+  // Skip security checks for static files, Next.js internals, and Let's Encrypt validation
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/static') ||
+    pathname.startsWith('/.well-known') ||
     pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|woff|woff2|ttf|eot)$/)
   ) {
     return await updateSession(request)

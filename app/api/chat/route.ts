@@ -17,6 +17,11 @@ function useColabBackend(): boolean {
 function useOllamaBackend(): boolean {
   return isOllamaConfigured() && !process.env.NAIRI_AI_BASE_URL?.trim()
 }
+
+/** Use OpenCode backend when OPENCODE_API_URL is set. */
+function useOpenCodeBackend(): boolean {
+  return !!process.env.OPENCODE_API_URL?.trim()
+}
 import { wrapStreamWithQualityGates } from "@/lib/ai/stream-quality"
 import { truncateMessages } from "@/lib/ai/context-window"
 import { filterInput, filterOutput } from "@/lib/ai/content-filters"
@@ -24,6 +29,7 @@ import { getSystemPrompt, detectPromptInjection } from "@/lib/ai/system-prompts"
 import { checkRateLimitAsync, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
 import { validateRequestSize, validateContentType, sanitizeString, detectSuspiciousPatterns, MAX_REQUEST_SIZES } from "@/lib/security/request-validator"
 import { getUserIdForApi } from "@/lib/auth"
+import { WorkspaceManager } from "@/lib/workspace/manager"
 
 export const maxDuration = 180
 
@@ -1341,10 +1347,14 @@ The website should be production-ready and visually appealing.`
 
         // Create new session if none reused
         if (!sessionId) {
+          const workspacePath = userId ? await WorkspaceManager.ensureWorkspace(userId) : undefined
           const sessRes = await fetch(`${process.env.OPENCODE_API_URL}/session`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title: `nairi-chat-${conversationId || "anon"}` }),
+            body: JSON.stringify({
+              title: `nairi-chat-${conversationId || "anon"}`,
+              workspacePath,
+            }),
             signal: AbortSignal.timeout(60000),
           })
           if (!sessRes.ok) {

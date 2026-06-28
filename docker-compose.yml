@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  nairi:
+    build: .
+    image: nairi:latest
+    container_name: nairi
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NODE_OPTIONS=--max-old-space-size=256
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENCODE_API_URL=http://opencode:4096
+      - NAIRI_AI_BASE_URL=${NAIRI_AI_BASE_URL}
+      - NAIRI_AI_API_KEY=${NAIRI_AI_API_KEY}
+      - NAIRI_AI_MODEL=${NAIRI_AI_MODEL}
+      - SEARXNG_BASE_URL=${SEARXNG_BASE_URL}
+    volumes:
+      - /workspaces:/workspaces:rw
+    depends_on:
+      - opencode
+
+  opencode:
+    image: opencodeai/opencode:latest
+    container_name: opencode
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4096:4096"
+    environment:
+      - OPENCODE_CONFIG=/etc/opencode-config.json
+    volumes:
+      - /workspaces:/workspaces:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./opencode-config.json:/etc/opencode-config.json:ro
+    command: ["serve", "--config", "/etc/opencode-config.json"]
+
+networks:
+  default:
+    name: nairi-network

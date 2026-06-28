@@ -3,6 +3,8 @@ import { generateCSPHeader, generateDevCSPHeader } from './lib/security/csp.mjs'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: "standalone",
+
   // TypeScript: ignore type errors during build for deployment
   typescript: {
     ignoreBuildErrors: true,
