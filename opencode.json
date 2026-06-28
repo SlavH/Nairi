@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/big-pickle",
+  "provider": "opencode",
+  "server": {
+    "port": 4096,
+    "hostname": "0.0.0.0"
+  },
+  "permission": {
+    "bash": "allow",
+    "read": "allow",
+    "edit": "allow",
+    "write": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "webfetch": "allow",
+    "websearch": "allow"
+  }
+}
