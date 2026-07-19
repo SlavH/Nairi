@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PointerLockControls, Sky, Stars, Text, Float, MeshReflectorMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 
-interface WorldSpec {
+export interface WorldSpec {
   name: string
   description: string
   skybox: {
@@ -296,7 +296,7 @@ function Particles({ particles }: { particles: { type: string; count: number; co
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={particles.count} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
         color={particles.color}
@@ -353,9 +353,10 @@ function PlayerController({ camera: cameraSpec }: { camera: { startPosition: [nu
   const direction = useRef(new THREE.Vector3())
 
   useEffect(() => {
-    camera.position.set(...cameraSpec.startPosition)
-    camera.fov = cameraSpec.fov
-    camera.updateProjectionMatrix()
+    const cam = camera as THREE.PerspectiveCamera
+    cam.position.set(...cameraSpec.startPosition)
+    cam.fov = cameraSpec.fov
+    cam.updateProjectionMatrix()
   }, [camera, cameraSpec])
 
   useEffect(() => {

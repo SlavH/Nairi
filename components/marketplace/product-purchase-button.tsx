@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { ComingSoonBadge } from "@/components/ui/coming-soon-badge"
 import { toast } from "sonner"
 import useSWR from "swr"
 
@@ -57,6 +56,12 @@ export function ProductPurchaseButton({
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Purchase failed")
+
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+        return
+      }
+
       toast.success(priceCents === 0 ? "Added to your library!" : `Purchased! ${data.creditsSpent ? `-${data.creditsSpent} credits` : ""}`)
       setShowPaymentModal(false)
       router.refresh()
@@ -191,7 +196,6 @@ export function ProductPurchaseButton({
               </div>
               <div className="flex-1 flex items-center gap-2">
                 <p className="font-medium text-foreground">Card (Stripe)</p>
-                <ComingSoonBadge />
               </div>
             </button>
           </div>

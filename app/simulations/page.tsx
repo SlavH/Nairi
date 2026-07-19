@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { WorldViewer } from '@/components/simulations/world-viewer'
+import { WorldViewer, type WorldSpec } from '@/components/simulations/world-viewer'
 
 const WORLD_MODES = [
   { id: 'world', name: 'Full World', description: 'Explorable 3D environment' },
@@ -32,19 +32,6 @@ const WORLD_PROMPTS = [
   'An underwater coral reef teeming with colorful fish, sea anemones, and sunlight filtering through water',
   'A medieval castle courtyard with stone walls, a fountain, torches, and a drawbridge',
 ]
-
-interface WorldSpec {
-  name: string
-  description: string
-  skybox: Record<string, unknown>
-  lighting: Record<string, unknown>
-  terrain: Record<string, unknown>
-  objects: Array<Record<string, unknown>>
-  atmosphere: Record<string, unknown>
-  water: Record<string, unknown>
-  camera: Record<string, unknown>
-  metadata?: Record<string, unknown>
-}
 
 export default function SimulationsPage() {
   const [worldPrompt, setWorldPrompt] = useState('')

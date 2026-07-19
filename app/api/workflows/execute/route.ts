@@ -47,6 +47,15 @@ function serializeExecution(exec: WorkflowExecution): any {
 // POST - Execute a workflow using WorkflowExecutor
 export async function POST(request: NextRequest) {
   try {
+    // Auth enforcement: executing workflows can run arbitrary code nodes
+    // (new Function), so it must require an authenticated user.
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { workflow, triggerData, options } = body
 

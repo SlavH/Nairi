@@ -27,7 +27,7 @@ import { truncateMessages } from "@/lib/ai/context-window"
 import { filterInput, filterOutput } from "@/lib/ai/content-filters"
 import { getSystemPrompt, detectPromptInjection } from "@/lib/ai/system-prompts"
 import { checkRateLimitAsync, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
-import { validateRequestSize, validateContentType, sanitizeString, detectSuspiciousPatterns, MAX_REQUEST_SIZES } from "@/lib/security/request-validator"
+import { validateRequestSize, validateContentType, sanitizeString, detectSuspiciousPatterns, MAX_REQUEST_SIZES, assertSameOrigin } from "@/lib/security/request-validator"
 import { getUserIdForApi } from "@/lib/auth"
 import { WorkspaceManager } from "@/lib/workspace/manager"
 
@@ -44,6 +44,12 @@ type UIMessage = {
   content?: string
   parts?: Array<{ type: 'text'; text: string } | { type: string; [key: string]: unknown }>
   [key: string]: unknown
+}
+
+// Rough token estimate (~4 chars per token) for trace bookkeeping.
+function estimateTokens(text: string): number {
+  if (!text) return 0
+  return Math.max(1, Math.ceil(text.length / 4))
 }
 
 interface ChatRequest {
@@ -534,6 +540,9 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createClient()
     const userId = await getUserIdForApi(() => supabase.auth.getUser())
+
+    const originGuard = assertSameOrigin(req)
+    if (originGuard) return originGuard
 
     const body = await req.json()
     const { messages, conversationId, mode = "default" } = body
@@ -1398,7 +1407,7 @@ The website should be production-ready and visually appealing.`
         }
 
         const lastUserMsg = modelMessages.filter(m => m.role === "user").pop()
-        const userText = lastUserMsg?.content || userContent || ""
+        const userText = lastUserMsg?.content || ""
 
         if (!userText) {
           return new Response(JSON.stringify({ error: "No user message content" }), {
@@ -1494,6 +1503,30 @@ The website should be production-ready and visually appealing.`
 
     // Nairi Router or Nairi AI/Colab streaming (streamWithFallback uses Router when NAIRI_ROUTER_BASE_URL is set)
     try {
+      let traceId: string | null = null
+      const inputSummary = lastUserMessage ? getMessageContent(lastUserMessage).slice(0, 200) : null
+      if (userId && inputSummary) {
+        try {
+          const { data: trace } = await supabase
+            .from("execution_traces")
+            .insert({
+              user_id: userId,
+              operation_type: "chat",
+              conversation_id: conversationId,
+              input_summary: inputSummary,
+              provider: routerResult.preferredProviderId || "nairi",
+              model: routerResult.preferredModelId || null,
+              status: "running",
+              started_at: new Date().toISOString(),
+            })
+            .select("id")
+            .single()
+          traceId = (trace as { id?: string } | null)?.id ?? null
+        } catch (traceErr) {
+          console.error("[chat] Failed to create execution trace:", traceErr)
+        }
+      }
+
       const result = await streamWithFallback({
         system: systemPrompt,
         messages: modelMessages,
@@ -1509,6 +1542,25 @@ The website should be production-ready and visually appealing.`
               role: "assistant",
               content: text,
             })
+          }
+          if (traceId) {
+            try {
+              const startedAt = Date.now()
+              await supabase
+                .from("execution_traces")
+                .update({
+                  status: "completed",
+                  output_summary: (text || "").slice(0, 200),
+                  tokens_input: estimateTokens(modelMessages.map((m) => m.content).join(" ")),
+                  tokens_output: estimateTokens(text || ""),
+                  duration_ms: Date.now() - startedAt,
+                  completed_at: new Date().toISOString(),
+                })
+                .eq("id", traceId)
+                .eq("user_id", userId)
+            } catch (traceErr) {
+              console.error("[chat] Failed to complete execution trace:", traceErr)
+            }
           }
         },
       })

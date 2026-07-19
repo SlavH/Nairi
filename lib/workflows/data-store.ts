@@ -4,6 +4,7 @@
  */
 
 import { DataStore, DataStoreEntry } from './types'
+import { compress, decompress } from '../utils/compression'
 
 // ============================================================================
 // In-Memory Data Store Implementation
@@ -56,13 +57,27 @@ class WorkflowDataStore {
       return undefined
     }
 
+    if (entry.compressed) {
+      return JSON.parse(decompress(entry.value))
+    }
+
     return entry.value
   }
 
   async set(key: string, value: any, options?: { ttl?: number; workflowId?: string; executionId?: string }): Promise<void> {
+    let storageValue = value
+    let compressed = false
+    const serializedValue = JSON.stringify(value)
+
+    if (serializedValue.length > 5000) {
+      storageValue = compress(serializedValue)
+      compressed = true
+    }
+
     const entry: DataStoreEntry = {
       key,
-      value,
+      value: storageValue,
+      compressed,
       type: typeof value,
       createdAt: new Date(),
       updatedAt: new Date(),

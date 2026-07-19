@@ -69,11 +69,12 @@ export default function ProfilePage() {
           .select('type')
           .eq('user_id', user.id)
         if (creations) {
+          const items = creations as Array<{ type?: string | null }>
           creationStats = {
-            conversations: creations.filter(c => c.type === 'chat').length,
-            code: creations.filter(c => c.type === 'code').length,
-            images: creations.filter(c => c.type === 'image').length,
-            videos: creations.filter(c => c.type === 'video').length,
+            conversations: items.filter(c => c.type === 'chat').length,
+            code: items.filter(c => c.type === 'code').length,
+            images: items.filter(c => c.type === 'image').length,
+            videos: items.filter(c => c.type === 'video').length,
           }
         }
       } catch {

@@ -62,7 +62,7 @@ interface PerformanceMetric {
 interface PerformanceCategory {
   id: string
   name: string
-  icon: React.ElementType
+  icon: React.ComponentType<{ className?: string }>
   score: number
   metrics: PerformanceMetric[]
 }

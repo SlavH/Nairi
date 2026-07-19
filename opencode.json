@@ -1,7 +1,16 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "opencode/big-pickle",
-  "provider": "opencode",
+  "provider": {
+    "opencode": {
+      "name": "opencode",
+      "npm": "@ai-sdk/openai-compatible",
+      "models": {
+        "big-pickle": {
+          "name": "opencode/big-pickle"
+        }
+      }
+    }
+  },
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0"

@@ -12,15 +12,21 @@ export default async function LearnPage() {
   }
 
   // Fetch user's learning data
-  // Simplified query - fetch courses without lessons join to avoid FK issues
   const [coursesResult, skillsResult, pathsResult] = await Promise.all([
     supabase
       .from("courses")
       .select("*")
       .eq("is_published", true)
       .order("created_at", { ascending: false }),
-    Promise.resolve({ data: [], error: null }),
-    Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("user_skills")
+      .select("*, skills(name, description, icon)")
+      .eq("user_id", user.id),
+    supabase
+      .from("skill_trees")
+      .select("*")
+      .eq("is_public", true)
+      .order("created_at", { ascending: false }),
   ])
 
   // Fetch completed lesson progress (lesson_progress table; status is represented by completed=true)
@@ -30,11 +36,18 @@ export default async function LearnPage() {
     .eq("user_id", user.id)
     .eq("completed", true)
 
+  const learningPaths = (pathsResult.data || []).map((tree: any) => ({
+    id: tree.id,
+    title: tree.name,
+    description: tree.description,
+    category: tree.category,
+  }))
+
   return (
     <LearnDashboard
       courses={coursesResult.data || []}
       userSkills={skillsResult.data || []}
-      learningPaths={pathsResult.data || []}
+      learningPaths={learningPaths}
       completedLessons={progressData || []}
       userId={user.id}
     />

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
+import { NextRequest } from "next/server"
 import { GET, POST } from "@/app/api/builder/projects/route"
 
 const mockUserId = "00000000-0000-0000-0000-000000000001"
@@ -21,7 +22,7 @@ describe("GET /api/builder/projects", () => {
 
   it("returns 401 when not authenticated", async () => {
     vi.mocked(getUserIdForApi).mockResolvedValue(null)
-    const res = await GET(new Request("http://localhost/api/builder/projects"))
+    const res = await GET(new NextRequest("http://localhost/api/builder/projects"))
     expect(res.status).toBe(401)
     const data = await res.json()
     expect(data.error).toBe("Unauthorized")
@@ -39,7 +40,7 @@ describe("GET /api/builder/projects", () => {
         }),
       }),
     } as any)
-    const res = await GET(new Request("http://localhost/api/builder/projects"))
+    const res = await GET(new NextRequest("http://localhost/api/builder/projects"))
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(Array.isArray(data)).toBe(true)
@@ -54,7 +55,7 @@ describe("POST /api/builder/projects", () => {
 
   it("returns 401 when not authenticated", async () => {
     const res = await POST(
-      new Request("http://localhost/api/builder/projects", {
+      new NextRequest("http://localhost/api/builder/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "Test", files: [] }),
@@ -67,7 +68,7 @@ describe("POST /api/builder/projects", () => {
     vi.mocked(getUserIdForApi).mockResolvedValue(mockUserId)
     vi.mocked(createClient).mockResolvedValue({} as any)
     const res = await POST(
-      new Request("http://localhost/api/builder/projects", {
+      new NextRequest("http://localhost/api/builder/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: "not json",
@@ -95,7 +96,7 @@ describe("POST /api/builder/projects", () => {
       }),
     } as any)
     const res = await POST(
-      new Request("http://localhost/api/builder/projects", {
+      new NextRequest("http://localhost/api/builder/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "My Project", files: [] }),

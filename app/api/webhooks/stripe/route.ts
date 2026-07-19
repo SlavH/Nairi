@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Webhook signature verification failed: ${message}` }, { status: 400 })
   }
 
+  const supabase = createAdminClient()
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     const metadata = session.metadata as Record<string, string> | null
@@ -54,7 +56,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ received: true })
       }
 
-      const supabase = createAdminClient()
       const subscriptionId = session.subscription as string | null
       const customerId = session.customer as string | null
 
@@ -106,7 +107,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ received: true })
       }
 
-      const supabase = createAdminClient()
       const { error: insertError } = await supabase.from("user_agents").insert({
         user_id: userId,
         agent_id: agentId,
@@ -118,6 +118,93 @@ export async function POST(request: NextRequest) {
         }
         console.error("[Stripe webhook] user_agents insert error:", insertError)
         return NextResponse.json({ error: "Failed to record agent purchase" }, { status: 500 })
+      }
+    } else if (type === "product_purchase") {
+      const userId = metadata?.userId
+      const productId = metadata?.productId
+      if (!userId || !productId) {
+        console.error("[Stripe webhook] product_purchase metadata missing userId or productId")
+        return NextResponse.json({ received: true })
+      }
+
+      const { data: product } = await supabase
+        .from("marketplace_products")
+        .select("id, title, creator_id, purchase_count")
+        .eq("id", productId)
+        .single()
+
+      const { error: insertError } = await supabase.from("product_purchases").insert({
+        user_id: userId,
+        product_id: productId,
+        amount_cents: session.amount_total ?? 0,
+      })
+
+      if (insertError && insertError.code !== "23505") {
+        console.error("[Stripe webhook] product_purchases insert error:", insertError)
+        return NextResponse.json({ error: "Failed to record product purchase" }, { status: 500 })
+      }
+
+      if (product) {
+        await supabase
+          .from("marketplace_products")
+          .update({
+            purchase_count: (product.purchase_count ?? 0) + 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", productId)
+      }
+    }
+  } else if (
+    event.type === "customer.subscription.updated" ||
+    event.type === "customer.subscription.deleted"
+  ) {
+    const subscription = event.data.object as Stripe.Subscription
+    const userId = subscription.metadata?.userId
+    const planId = subscription.items?.data?.[0]?.price?.metadata?.planId as string | undefined
+    const status = subscription.status // active | canceled | past_due | unpaid | trialing | etc.
+    const isActive = status === "active" || status === "trialing"
+
+    if (!userId) {
+      console.error("[Stripe webhook] subscription event missing userId in metadata")
+      return NextResponse.json({ received: true })
+    }
+
+    const effectiveTier = isActive ? (planId ?? "pro") : "free"
+
+    const { error: subError } = await supabase
+      .from("subscriptions")
+      .update({
+        plan: isActive ? (planId ?? "pro") : (subscription.metadata?.planId as string | undefined),
+        status,
+        cancel_at_period_end: (subscription as any).cancel_at_period_end ?? false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("stripe_subscription_id", subscription.id as string)
+
+    if (subError) {
+      console.error("[Stripe webhook] subscriptions update error:", subError)
+      return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 })
+    }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ subscription_tier: effectiveTier, updated_at: new Date().toISOString() })
+      .eq("id", userId)
+
+    if (profileError) {
+      console.error("[Stripe webhook] profiles update error:", profileError)
+    }
+  } else if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object as Stripe.Invoice
+    const subscriptionId = (invoice as any).subscription as string | null
+    if (subscriptionId) {
+      const { error: subError } = await supabase
+        .from("subscriptions")
+        .update({ status: "past_due", updated_at: new Date().toISOString() })
+        .eq("stripe_subscription_id", subscriptionId)
+      if (subError) {
+        console.error("[Stripe webhook] subscriptions past_due update error:", subError)
+        return NextResponse.json({ error: "Failed to update subscription" }, { status: 500 })
       }
     }
   }

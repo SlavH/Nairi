@@ -34,14 +34,16 @@ interface Course {
 
 interface UserSkill {
   id: string
-  skill_node_id: string
-  proficiency_level: number
-  xp_earned: number
-  skill_nodes: {
+  skill_id: string
+  current_xp: number
+  mastery_level: number
+  unlocked: boolean
+  completed: boolean
+  skills: {
     name: string
     description: string
     icon: string
-  }
+  } | null
 }
 
 interface LearningPath {
@@ -62,7 +64,7 @@ interface LearnDashboardProps {
 export function LearnDashboard({ courses, userSkills, learningPaths, completedLessons, userId }: LearnDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview")
 
-  const totalXP = userSkills.reduce((sum, skill) => sum + skill.xp_earned, 0)
+  const totalXP = userSkills.reduce((sum, skill) => sum + (skill.current_xp || 0), 0)
   const completedCount = completedLessons.length
   const streakDays = 7 // Would be calculated from actual data
 
@@ -160,7 +162,7 @@ export function LearnDashboard({ courses, userSkills, learningPaths, completedLe
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Skills Mastered</p>
-                <p className="text-2xl font-bold">{userSkills.filter((s) => s.proficiency_level >= 80).length}</p>
+                <p className="text-2xl font-bold">{userSkills.filter((s) => s.mastery_level >= 4).length}</p>
               </div>
             </CardContent>
           </Card>
@@ -254,15 +256,15 @@ export function LearnDashboard({ courses, userSkills, learningPaths, completedLe
                 {userSkills.length > 0 ? (
                   <div className="space-y-4">
                     {userSkills
-                      .sort((a, b) => b.proficiency_level - a.proficiency_level)
+                      .sort((a, b) => b.mastery_level - a.mastery_level)
                       .slice(0, 5)
                       .map((skill) => (
                         <div key={skill.id} className="space-y-2">
                           <div className="flex items-center justify-between">
-                            <span className="font-medium">{skill.skill_nodes?.name}</span>
-                            <span className="text-sm text-muted-foreground">{skill.proficiency_level}%</span>
+                            <span className="font-medium">{skill.skills?.name}</span>
+                            <span className="text-sm text-muted-foreground">{skill.mastery_level * 20}%</span>
                           </div>
-                          <Progress value={skill.proficiency_level} className="h-2" />
+                          <Progress value={skill.mastery_level * 20} className="h-2" />
                         </div>
                       ))}
                   </div>
@@ -355,12 +357,12 @@ export function LearnDashboard({ courses, userSkills, learningPaths, completedLe
                         <Sparkles className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <h3 className="font-medium">{skill.skill_nodes?.name}</h3>
-                        <p className="text-xs text-muted-foreground">{skill.xp_earned} XP earned</p>
+                        <h3 className="font-medium">{skill.skills?.name}</h3>
+                        <p className="text-xs text-muted-foreground">{skill.current_xp} XP earned</p>
                       </div>
                     </div>
-                    <Progress value={skill.proficiency_level} className="h-2" />
-                    <p className="text-xs text-muted-foreground mt-2">{skill.proficiency_level}% proficiency</p>
+                    <Progress value={skill.mastery_level * 20} className="h-2" />
+                    <p className="text-xs text-muted-foreground mt-2">{skill.mastery_level * 20}% proficiency</p>
                   </CardContent>
                 </Card>
               ))}

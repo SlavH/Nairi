@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { getUserIdForApi } from "@/lib/auth"
 import { BuilderProjectCreateSchema } from "@/lib/schemas/builder"
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+import { assertSameOrigin } from "@/lib/security/request-validator"
 
 const RATE_LIMIT_REQUESTS = 10
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -43,7 +44,10 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const originGuard = assertSameOrigin(req)
+  if (originGuard) return originGuard
+
   // Rate limiting
   const clientId = getClientIdentifier(req)
   const rateLimitResult = checkRateLimit(`builder:post:${clientId}`, {

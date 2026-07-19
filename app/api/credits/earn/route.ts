@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
+import { assertSameOrigin } from "@/lib/security/request-validator"
 
 const REWARD_AMOUNTS: Record<string, number> = {
   watch: 50,      // +50 credits for watching educational content
@@ -14,7 +15,10 @@ const MAX_DAILY_REWARDS: Record<string, number> = {
   streak: 100,    // Can only earn once per day
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const originGuard = assertSameOrigin(req)
+  if (originGuard) return originGuard
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

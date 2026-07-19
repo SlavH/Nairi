@@ -27,7 +27,7 @@ export default async function DashboardLayout({
     const result = await Promise.race([
       (async () => {
         const supabase = await createClient()
-        const { user: u } = await getSession(() => supabase.auth.getUser())
+        const u = await getSession(() => supabase.auth.getUser())
         if (!u) redirect("/auth/login")
         const { data: p } = await supabase.from("profiles").select("*").eq("id", u.id).single()
         return { user: u, profile: p as Profile | null }

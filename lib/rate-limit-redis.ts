@@ -23,8 +23,18 @@ async function getRedis(): Promise<import('ioredis').default | null> {
 }
 
 /**
- * Check rate limit using Redis (when REDIS_URL is set). Returns null if Redis unavailable.
+ * Redis-backed rate limiter using atomic Lua script.
  */
+
+const LUA_SCRIPT = `
+local current = redis.call("INCR", KEYS[1])
+if current == 1 then
+  redis.call("PEXPIRE", KEYS[1], ARGV[1])
+end
+local ttl = redis.call("PTTL", KEYS[1])
+return {current, ttl}
+`
+
 export async function checkRateLimitRedis(
   identifier: string,
   config: RateLimitConfig
@@ -32,30 +42,23 @@ export async function checkRateLimitRedis(
   const redis = await getRedis()
   if (!redis) return null
 
-  const now = Date.now()
   const key = `ratelimit:${identifier}`
-  const windowSec = Math.ceil(config.windowMs / 1000)
 
   try {
-    const multi = redis.multi()
-    multi.incr(key)
-    multi.pttl(key)
-    const results = await multi.exec()
-    if (!results) return null
+    // Run the rate-limit Lua script atomically via ioredis' generic `call`.
+    // (ioredis does not ship typed `eval`/`evalsha` overloads, so we cast.)
+    const call = (redis as unknown as { call: (...args: string[]) => Promise<[number, number]> }).call.bind(redis)
 
-    const incrResult = results[0]
-    const ttlResult = results[1]
-    if (incrResult[0] || ttlResult[0]) return null // Redis error
+    const result = await call(
+      "EVAL",
+      LUA_SCRIPT,
+      "1",
+      key,
+      config.windowMs.toString()
+    )
 
-    const count = incrResult[1] as number
-    let ttlMs = ttlResult[1] as number
-
-    if (ttlMs <= 0) {
-      await redis.pexpire(key, config.windowMs)
-      ttlMs = config.windowMs
-    }
-
-    const resetTime = now + ttlMs
+    const [count, ttlMs] = result
+    const resetTime = Date.now() + ttlMs
 
     if (count > config.maxRequests) {
       return {

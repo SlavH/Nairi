@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { SlideDeck } from "./slide-deck"
 import { Sandpack } from "@codesandbox/sandpack-react"
 

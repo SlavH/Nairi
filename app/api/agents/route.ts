@@ -102,6 +102,14 @@ export async function GET() {
 // POST - Execute agent action
 export async function POST(request: NextRequest) {
   try {
+    // Auth enforcement: agents run multi-step LLM loops (cost), require a user.
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const ip = request.headers.get("x-forwarded-for") || "unknown"
     if (!checkRateLimit(ip)) {
       return NextResponse.json(

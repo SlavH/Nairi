@@ -124,14 +124,15 @@ export default function VisualBuilderPage() {
       id: `deploy_${Date.now()}`,
       status: "building",
       environment,
-      url: `https://${environment === "production" ? "www" : environment}.example.com`,
+      url: `http://localhost:3000/builder/visual/preview/${environment}`,
       branch: "main",
       commit: Math.random().toString(36).substring(7),
       createdAt: new Date()
     }
     setDeployments((prev) => [newDeployment, ...prev])
     
-    // Simulate deployment completion
+    // Simulate local preview build completion. Live deploys happen via
+    // /api/builder/deploy (requires VERCEL_TOKEN / NETLIFY / GITHUB_TOKEN).
     setTimeout(() => {
       setDeployments((prev) =>
         prev.map((d) =>

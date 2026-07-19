@@ -17,3 +17,11 @@ test-results/
 opencode_tasks/
 *.backup
 pnpm-lock.yaml
+# Build/QA artifacts
+.playwright-mcp/
+*.tar.gz
+tsconfig.tsbuildinfo
+PROJECT_MASTER_SUMMARY.md
+manifest.md
+report_*.md
+structure.json

@@ -12,6 +12,25 @@ const CHAT_RETRY_DELAY_MS = 2000
 
 export type NairiConnectionState = "online" | "waking_up" | "searching_web" | "generating" | "error"
 
+export interface UseNairiChatReturn {
+  messages: NairiChatMessage[]
+  connectionState: NairiConnectionState
+  errorMessage: string | null
+  sendMessage: (content: string) => Promise<void>
+  retry: () => void
+  clearError: () => void
+  isSending: boolean
+  activity: NairiActivity | null
+  sessionId: string | null
+}
+
+function generateId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID()
+  }
+  return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 export interface NairiActivity {
   type: "thinking" | "tool" | "agent_switch" | "idle"
   label: string           // Human-readable: "Running: npm test", "Thinking...", "Using Build agent"

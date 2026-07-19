@@ -174,3 +174,52 @@ export function validateOrigin(
 
   return { valid: true }
 }
+
+/**
+ * Resolve the set of origins allowed to make state-changing requests.
+ * Combines an explicit allowlist (ALLOWED_ORIGINS, comma-separated) with the
+ * Supabase project host (so the deployed app domain is always permitted).
+ * Localhost/127.0.0.1 are always allowed for local development.
+ */
+export function getAllowedOrigins(): string[] {
+  const origins = new Set<string>()
+
+  const configured = process.env.ALLOWED_ORIGINS
+  if (configured) {
+    configured.split(',').map(o => o.trim()).filter(Boolean).forEach(o => origins.add(o))
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (supabaseUrl) {
+    try {
+      origins.add(new URL(supabaseUrl).origin)
+    } catch {
+      // ignore malformed URL
+    }
+  }
+
+  // Always permit local development
+  origins.add('http://localhost:3000')
+  origins.add('https://localhost:3000')
+  origins.add('http://127.0.0.1:3000')
+  origins.add('https://127.0.0.1:3000')
+
+  return Array.from(origins)
+}
+
+/**
+ * Convenience guard for mutating API routes (POST/PUT/PATCH/DELETE).
+ * Returns a 403 Response when the Origin/Referer is not allowlisted.
+ * Non-browser clients (no Origin/Referer header) are still permitted so that
+ * server-to-server calls, webhooks, and tests are not broken.
+ */
+export function assertSameOrigin(request: NextRequest): Response | null {
+  const result = validateOrigin(request, getAllowedOrigins())
+  if (!result.valid) {
+    return new Response(
+      JSON.stringify({ error: 'Cross-origin request blocked', detail: result.error }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+  return null
+}

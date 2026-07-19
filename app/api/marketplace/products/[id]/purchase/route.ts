@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { stripe } from "@/lib/stripe"
 
 /**
  * POST - Purchase a marketplace product (free or with credits).
@@ -161,11 +162,41 @@ export async function POST(
       })
     }
 
+    if (!stripe) {
+      return NextResponse.json({ error: "Payment processing not configured" }, { status: 500 })
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer_email: user.email || undefined,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: product.title,
+              description: `Marketplace product: ${product.title}`,
+            },
+            unit_amount: priceCents,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        userId: user.id,
+        productId,
+        type: "product_purchase",
+      },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/marketplace/product/${productId}?purchased=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/marketplace/product/${productId}?cancelled=true`,
+    })
+
     return NextResponse.json({
-      error: "Paid products require credits or card",
-      priceCents,
-      creditCost,
-    }, { status: 400 })
+      success: true,
+      checkoutUrl: session.url,
+      sessionId: session.id,
+    })
   } catch (e) {
     console.error("Product purchase error:", e)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

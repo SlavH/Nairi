@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from "@/lib/supabase/session"
 import { validateOrigin, MAX_REQUEST_SIZES } from './lib/security/request-validator'
+import { generateCSPHeader } from './lib/security/csp.mjs'
 
 /**
  * Middleware for Next.js 16+
@@ -89,11 +90,16 @@ export async function proxy(request: NextRequest) {
   // Edge rate limiting for API routes (before heavier checks)
   for (const [prefix, config] of Object.entries(apiRateLimits)) {
     if (pathname.startsWith(prefix)) {
-      const clientId = getClientIp(request)
+      // Combine IP with a coarse user signal (Supabase auth cookie) so limits
+      // are not purely IP-based (and thus spoofable via x-forwarded-for).
+      const ip = getClientIp(request)
+      const authCookie = request.cookies.get('sb-access-token')?.value
+        || request.cookies.get('sb-auth-token')?.value
+      const clientId = authCookie ? `${ip}:u` : ip
       if (!checkRateLimit(clientId, config.max, config.window)) {
         return NextResponse.json(
           { error: "Too many requests. Please try again later." },
-          { status: 429 }
+          { status: 429, headers: { 'Retry-After': String(Math.ceil(config.window / 1000)) } }
         )
       }
       break
@@ -155,6 +161,8 @@ export async function proxy(request: NextRequest) {
   const response = await updateSession(request)
 
   // Add security headers
+  response.headers.set('Content-Security-Policy', generateCSPHeader())
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-XSS-Protection', '1; mode=block')

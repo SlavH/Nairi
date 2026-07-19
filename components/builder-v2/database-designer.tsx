@@ -92,7 +92,7 @@ interface DatabaseDesignerProps {
   onGenerateSchema: (schema: string, prismaSchema: string) => void
 }
 
-const FIELD_TYPES: { value: FieldType; label: string; icon: React.ElementType }[] = [
+const FIELD_TYPES: { value: FieldType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { value: "string", label: "String", icon: Type },
   { value: "text", label: "Text", icon: Type },
   { value: "int", label: "Integer", icon: Hash },

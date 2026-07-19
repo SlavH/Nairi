@@ -17,7 +17,7 @@
 ### Pre-Existing Security (Verified ✅)
 | Feature | Status |
 |---------|--------|
-| Auth enforcement (Supabase) | ✅ All routes check `getUserIdOrBypassForApi()` |
+| Auth enforcement (Supabase) | ✅ All routes check `getUserIdForApi()` / `getSession()` |
 | Rate limiting infrastructure | ✅ Redis + in-memory fallback |
 | Content filters (input/output) | ✅ `filterInput`, `filterOutput` in chat |
 | Prompt injection detection | ✅ `detectPromptInjection` in chat |
@@ -27,9 +27,9 @@
 
 ## GPU Integration — Verified
 
-### Primary Path (BITNET_BASE_URL)
+### Primary Path (NAIRI_AI_BASE_URL)
 - ✅ `/api/nairi-chat` — All LLM inference routes through `generateWithFallback`
-- ✅ `/api/chat` — `streamWithFallback` uses BITNET as primary
+- ✅ `/api/chat` — `streamWithFallback` uses NAIRI_AI_BASE_URL as primary
 - ✅ `/api/factory/generate` — 3-agent orchestration uses BITNET
 - ✅ `/api/generate-video` — LLM prompt enhancement uses BITNET
 - ✅ `/api/generate-image` — No LLM needed (direct generation)
@@ -86,9 +86,36 @@ REDIS_URL=redis://xxx  # Rate limiting (optional, falls back to in-memory)
 - [ ] Check error tracking in Sentry dashboard
 
 ## Known Issues (Pre-Existing)
-- 13 TypeScript errors in test mocks (`__tests__/`) — not blocking, mocks need type updates
-- `lib/tools/custom-builder.ts` — type instantiation warning (not blocking)
-- `components/dashboard/circular-nav/circular-navigation.tsx` — missing prop (not blocking)
+- None. As of the latest audit all 28 TypeScript compile errors have been fixed and `npm run typecheck` passes cleanly with 73/73 unit tests passing.
+
+## Security Hardening (Latest Audit)
+- **CSRF / cross-origin protection**: Added `assertSameOrigin()` + `getAllowedOrigins()` in `lib/security/request-validator.ts`. Mutating routes now reject disallowed Origins with 403 while still permitting non-browser/server-to-server calls. Wired into `/api/chat` (POST) and `/api/credits/earn` (POST) and `/api/builder/projects` (POST) as a representative baseline; extend to other mutating routes as needed.
+- **Redis rate limiter fixed**: `lib/rate-limit-redis.ts` now invokes the Lua script via ioredis `call("EVAL", ...)` (the previous `redis.eval` API did not exist on the typed client and silently fell back to in-memory rate limiting).
+- **Auth is enforced**: No `BYPASS_AUTH` / `getUserIdOrBypassForApi` remains. All routes use `supabase.auth.getUser()` and `getUserIdForApi` / `getSession`.
+
+## Environment Variables (Current)
+```bash
+# Required
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+SUPABASE_SERVICE_ROLE_KEY=xxx
+DATABASE_URL=postgresql://...
+NAIRI_AI_BASE_URL=https://your-ai-endpoint/v1   # primary AI backend (OpenAI-compatible)
+NAIRI_AI_API_KEY=xxx
+NAIRI_AI_MODEL=nairi-llama
+GROQ_API_KEY=sk-xxx          # Fallback
+OPENROUTER_API_KEY=xxx       # Fallback 2
+
+# Optional
+NAIRI_ROUTER_BASE_URL=https://your-router        # Self-hosted media generation
+SEARXNG_BASE_URL=https://your-searxng            # Web search for chat
+REPLICATE_API_TOKEN=xxx                          # Video/image fallback
+REDIS_URL=redis://xxx                            # Shared rate limiting (recommended in prod)
+ALLOWED_ORIGINS=https://app.nairi.ai,https://nairi-seven.vercel.app  # CSRF allowlist
+STRIPE_SECRET_KEY=sk_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+```
+
 
 ## AMD Hackathon Submission
 - [ ] Hugging Face Space deployed

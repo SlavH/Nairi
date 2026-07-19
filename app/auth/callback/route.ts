@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+import { verifyHCaptcha } from "@/lib/hcaptcha-verify"
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -9,6 +10,7 @@ export async function GET(request: Request) {
   const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/dashboard"
   const error = requestUrl.searchParams.get("error")
   const error_description = requestUrl.searchParams.get("error_description")
+  const captchaToken = requestUrl.searchParams.get("captcha")
 
   // Handle error from Supabase
   if (error) {
@@ -16,6 +18,18 @@ export async function GET(request: Request) {
     return NextResponse.redirect(
       new URL(`/auth/error?error=${encodeURIComponent(error_description || error)}`, requestUrl.origin)
     )
+  }
+
+  // Verify the captcha token forwarded from the signup page (production only).
+  const isDev = process.env.NODE_ENV === "development" || requestUrl.hostname === "localhost"
+  if (captchaToken && !isDev) {
+    const captchaResult = await verifyHCaptcha(captchaToken)
+    if (!captchaResult.success) {
+      console.error("[auth/callback] Captcha verification failed for OAuth signup")
+      return NextResponse.redirect(
+        new URL("/auth/error?error=Captcha+verification+failed", requestUrl.origin)
+      )
+    }
   }
 
   if (code) {

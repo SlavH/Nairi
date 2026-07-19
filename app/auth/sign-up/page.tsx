@@ -199,7 +199,37 @@ export default function SignUpPage() {
     const supabase = createClient()
     setError(null)
     setStatusMessage("Redirecting to Google...")
-    const redirectToUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=${encodeURIComponent("/nav")}`
+
+    // Enforce captcha + IP/tempmail limits before initiating OAuth (production only).
+    const isDev = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
+    const tokenToUse = captchaToken || (isDev ? 'dev-test-token' : null)
+    if (!tokenToUse) {
+      const errorMsg = "Please complete the captcha verification"
+      setError(errorMsg)
+      setStatusMessage(`Error: ${errorMsg}`)
+      return
+    }
+
+    try {
+      const verifyResponse = await fetch('/api/auth/verify-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() || 'oauth-google', captchaToken: tokenToUse }),
+      })
+      if (!verifyResponse.ok) {
+        const verifyData = await verifyResponse.json()
+        const errorMsg = verifyData.error || 'Verification failed'
+        setError(errorMsg)
+        setStatusMessage(`Error: ${errorMsg}`)
+        setCaptchaToken(null)
+        return
+      }
+    } catch {
+      setError("Verification request failed. Please try again.")
+      return
+    }
+
+    const redirectToUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=${encodeURIComponent("/nav")}&captcha=${encodeURIComponent(tokenToUse)}`
     const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirectToUrl },

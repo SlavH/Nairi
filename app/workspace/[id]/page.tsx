@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ArrowLeft, ExternalLink, Copy, Calendar, Clock, Folder } from "lucide-react"
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 
 interface WorkspaceDetailProps {
   params: Promise<{ id: string }>
@@ -16,7 +16,6 @@ export default async function WorkspaceDetailPage({ params }: WorkspaceDetailPro
   const user = await getSession(() => supabase.auth.getUser())
 
   if (!user) {
-    const { redirect } = await import("next/navigation")
     redirect("/auth/login")
   }
 

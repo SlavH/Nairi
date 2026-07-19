@@ -79,7 +79,7 @@ interface FigmaImportProps {
   onImport: (code: string, assets: string[]) => void
 }
 
-const NODE_ICONS: Record<FigmaNode['type'], React.ElementType> = {
+const NODE_ICONS: Record<FigmaNode['type'], React.ComponentType<{ className?: string }>> = {
   FRAME: Layers,
   GROUP: Layers,
   TEXT: Type,

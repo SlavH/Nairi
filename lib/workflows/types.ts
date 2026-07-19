@@ -251,6 +251,7 @@ export interface DataStoreEntry {
   key: string
   value: any
   type: string
+  compressed?: boolean
   expiresAt?: Date
   createdAt: Date
   updatedAt: Date

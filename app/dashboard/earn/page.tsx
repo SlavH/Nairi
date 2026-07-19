@@ -76,6 +76,7 @@ const gradients: Record<string, string> = {
 export default function EarnPage() {
   const [copied, setCopied] = useState(false)
   const [watchingVideo, setWatchingVideo] = useState<string | null>(null)
+  const [watchProgress, setWatchProgress] = useState(0)
   const [claimingReward, setClaimingReward] = useState<string | null>(null)
 
   const { data: credits, mutate: mutateCredits } = useSWR("/api/credits", fetcher)

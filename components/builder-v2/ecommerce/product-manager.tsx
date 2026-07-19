@@ -99,7 +99,7 @@ function StatCard({ title, value, change, icon: Icon, trend }: {
   title: string
   value: string
   change?: string
-  icon: React.ElementType
+  icon: React.ComponentType<{ className?: string }>
   trend?: "up" | "down" | "neutral"
 }) {
   return (
