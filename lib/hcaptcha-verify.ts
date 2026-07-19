@@ -5,14 +5,16 @@ export async function verifyHCaptcha(token: string): Promise<{
   error?: string
 }> {
   const secret = process.env.HCAPTCHA_SECRET_KEY
-  
+
   if (!secret) {
-    console.error('HCAPTCHA_SECRET_KEY not configured')
-    // In development, allow without captcha
-    if (process.env.NODE_ENV === 'development') {
-      return { success: true }
-    }
-    return { success: false, error: 'Captcha verification not configured' }
+    // No secret configured → captcha is in test/disabled mode.
+    // Allow signups but warn loudly so this is never mistaken for protection.
+    // Set HCAPTCHA_SECRET_KEY (and a matching NEXT_PUBLIC_HCAPTCHA_SITE_KEY)
+    // to enable real bot protection.
+    console.warn(
+      '[hcaptcha] HCAPTCHA_SECRET_KEY not configured — captcha verification disabled (test mode). Signups are NOT protected by captcha.'
+    )
+    return { success: true }
   }
   
   try {

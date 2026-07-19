@@ -80,10 +80,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon", type: "image/jpeg", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/icon-192x192.png", type: "image/png", sizes: "192x192" },
       { url: "/images/nairi-logo-header.jpg", type: "image/jpeg", sizes: "any" },
     ],
-    apple: "/icon",
+    apple: "/icon-192x192.png",
   },
   manifest: "/manifest.json",
 }
