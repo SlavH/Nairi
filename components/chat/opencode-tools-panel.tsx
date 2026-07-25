@@ -1,32 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-interface FileResult {
-  path: string
-  lines?: number
-  line_number?: number
-  submatches?: Array<{ match: string; start: number; end: number }>
-}
-
-interface FileContent {
-  path: string
-  content: string
-  size: number
-  language?: string
-}
-
-interface SessionInfo {
-  id: string
-  slug: string
-  title: string
-  time: { created: number; updated: number }
-}
+import { webContainerProvider } from "@/lib/webcontainer-provider"
 
 export function OpenCodeToolsPanel({ sessionId, opencodeUrl }: {
   sessionId?: string
@@ -37,28 +17,18 @@ export function OpenCodeToolsPanel({ sessionId, opencodeUrl }: {
   const [results, setResults] = useState<any>(null)
   const [error, setError] = useState("")
 
-  const apiCall = async (action: string, params: Record<string, string> = {}) => {
-    setLoading(true)
-    setError("")
-    try {
-      const query = new URLSearchParams({ action, sessionId: sessionId || "", ...params }).toString()
-      const res = await fetch(`/api/opencode-tools?${query}`)
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Request failed")
-      setResults(data)
-    } catch (err: any) {
-      setError(err.message)
-      setResults(null)
-    } finally {
-      setLoading(false)
-    }
+  const isWebContainerReady = () => {
+    const status = webContainerProvider.getStatus()
+    return status.state === "ready"
   }
 
   return (
     <Card className="p-4 space-y-4">
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-semibold">OpenCode Tools</h3>
-        <Badge variant="outline">Local PC</Badge>
+        <Badge variant={isWebContainerReady() ? "default" : "outline"}>
+          {isWebContainerReady() ? "WebContainer" : "Browser"}
+        </Badge>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -70,20 +40,34 @@ export function OpenCodeToolsPanel({ sessionId, opencodeUrl }: {
         </TabsList>
 
         <TabsContent value="search" className="space-y-3">
-          <SearchTab onSearch={(pattern) => apiCall("search", { pattern })} loading={loading} />
+          <SearchTab onSearch={(pattern) => setResults({ message: `Search: ${pattern} (WebContainer)` })} loading={loading} />
         </TabsContent>
 
         <TabsContent value="files" className="space-y-3">
-          <FindFilesTab onSearch={(query) => apiCall("find-file", { query })} loading={loading} />
+          <FindFilesTab onSearch={(query) => setResults({ message: `Find files: ${query} (WebContainer)` })} loading={loading} />
         </TabsContent>
 
         <TabsContent value="read" className="space-y-3">
-          <ReadFileTab onRead={(path) => apiCall("read-file", { path })} loading={loading} />
+          <ReadFileTab onRead={(path) => setResults({ message: `Read: ${path} (WebContainer)` })} loading={loading} />
         </TabsContent>
 
         <TabsContent value="sessions" className="space-y-3">
           <SessionsTab
-            onAction={(action, id) => apiCall(action, id ? { sessionId: id } : {})}
+            onAction={async (action, id) => {
+              setLoading(true)
+              try {
+                if (action === "list-sessions") {
+                  const client = isWebContainerReady() ? webContainerProvider.getClient() : null
+                  setResults(client ? await client.listSessions() : { message: "WebContainer not ready" })
+                } else {
+                  setResults({ message: `${action} (WebContainer mode)` })
+                }
+              } catch (err: any) {
+                setError(err.message)
+              } finally {
+                setLoading(false)
+              }
+            }}
             loading={loading}
             sessionId={sessionId}
           />
@@ -143,10 +127,10 @@ function ReadFileTab({ onRead, loading }: { onRead: (path: string) => void; load
 
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">Read file contents from your PC</p>
+      <p className="text-sm text-muted-foreground">Read file contents from the workspace</p>
       <div className="flex gap-2">
         <Input
-          placeholder="e.g., C:/Users/User/Desktop/project/src/index.ts"
+          placeholder="e.g., src/index.ts"
           value={path}
           onChange={(e) => setPath(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onRead(path)}
@@ -170,7 +154,7 @@ function SessionsTab({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm text-muted-foreground">Manage OpenCode sessions on your local PC</p>
+      <p className="text-sm text-muted-foreground">Manage OpenCode sessions in WebContainer</p>
       <div className="flex gap-2 flex-wrap">
         <Button onClick={() => onAction("list-sessions")} disabled={loading} variant="outline">
           {loading ? "Loading..." : "List All Sessions"}

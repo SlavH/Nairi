@@ -3,7 +3,7 @@
  * Standardized error handling and response formatting
  */
 import { NextResponse } from "next/server";
-import { AppErrorClass, ErrorCode, internalError } from "./types";
+import { AppErrorClass, ErrorCode } from "./types";
 import { config } from "../config/env";
 
 export interface ErrorResponse {

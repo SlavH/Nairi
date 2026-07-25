@@ -182,7 +182,7 @@ export async function POST(req: Request) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey) {
       try {
-        console.log("[VIDEO] Attempting Replicate (zeroscope-v2-xl)...")
+        // console.log("[VIDEO] Attempting Replicate (zeroscope-v2-xl)...")
         const replicateResponse = await fetch(
           "https://api.replicate.com/v1/predictions",
           {
@@ -279,7 +279,7 @@ export async function POST(req: Request) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey) {
       try {
-        console.log("[VIDEO] Attempting HuggingFace (text-to-video-ms-1.7b)...")
+        // console.log("[VIDEO] Attempting HuggingFace (text-to-video-ms-1.7b)...")
         const hfResponse = await fetch(
           "https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b",
           {
@@ -345,7 +345,7 @@ export async function POST(req: Request) {
 
     // TIER 3: Try Pollinations.ai video (if available) - FREE
     try {
-      console.log("[VIDEO] Attempting Pollinations.ai video...")
+      // console.log("[VIDEO] Attempting Pollinations.ai video...")
       // Check if Pollinations has video endpoint
       const pollinationsVideoUrl = `https://video.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?duration=${duration}&nologo=true`
       
@@ -391,7 +391,7 @@ export async function POST(req: Request) {
 
     // TIER 4: Generate image sequence as fallback (better than nothing)
     try {
-      console.log("[VIDEO] Falling back to image sequence generation...")
+      // console.log("[VIDEO] Falling back to image sequence generation...")
       const frames = 8
       const framePrompts = []
       for (let i = 0; i < frames; i++) {

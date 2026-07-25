@@ -10,12 +10,11 @@ import { getUserIdForApi } from "@/lib/auth";
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q") || "";
     const folderId = searchParams.get("folderId");

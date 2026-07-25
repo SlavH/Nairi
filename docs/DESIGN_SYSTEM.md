@@ -87,7 +87,7 @@ Shadcn/ui components in [components/ui](components/ui) use the CSS variables abo
 - **Reduced motion:** `prefers-reduced-motion: reduce` in globals.css shortens all CSS animations and transitions. Framer Motion usage (e.g. circular nav) should respect reduced motion (e.g. `useReducedMotion()` or disable animations when true).
 - **When to use CSS vs Framer Motion:** Use CSS (Tailwind or keyframes in globals) for simple enter/exit and hover (modals, dropdowns, buttons). Use Framer Motion for orchestrated or list stagger animations (e.g. nav, dashboard cards).
 - **Duration:** Use motion tokens (`--duration-fast`, `--duration-normal`) so animations feel consistent (e.g. modal 250ms, button hover 150ms).
-- **Entrance/exit:** Reusable keyframes in globals: `fadeInUp`, `scaleIn`, `float`, `pulse-glow`, `shimmer`. Use `.animate-fade-in-up`, `.animate-scale-in` or equivalent. For Framer Motion, use shared variants in `lib/motion.ts` (getEntranceVariants, getTransition). Builder animation library ([components/builder-v2/animation-library.tsx](components/builder-v2/animation-library.tsx)) uses the same timing (DURATION_NORMAL_S = 0.25s) for entrance/exit so generated code matches design tokens.
+- **Entrance/exit:** Reusable keyframes in globals: `fadeInUp`, `scaleIn`, `float`, `pulse-glow`, `shimmer`. Use `.animate-fade-in-up`, `.animate-scale-in` or equivalent. For Framer Motion, use shared variants in `lib/motion.ts` (getEntranceVariants, getTransition). Builder animation library ([components/builder/animation-library.tsx](components/builder/animation-library.tsx)) uses the same timing (DURATION_NORMAL_S = 0.25s) for entrance/exit so generated code matches design tokens.
 
 ---
 

@@ -23,12 +23,11 @@ const createGalleryItemSchema = z.object({
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const { searchParams } = new URL(req.url);
     const mediaType = searchParams.get("type");
     const tags = searchParams.get("tags")?.split(",").filter(Boolean);
@@ -59,12 +58,11 @@ export const GET = withLogging(async (req: NextRequest) => {
 
 export const POST = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const body = await req.json();
     const {
       mediaType,

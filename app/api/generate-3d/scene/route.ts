@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const blockadeKey = process.env.BLOCKADE_LABS_API_KEY
     if (blockadeKey && isValidApiKey(blockadeKey) && type === "skybox") {
       try {
-        console.log("[SCENE] Attempting Blockade Labs Skybox...")
+        // console.log("[SCENE] Attempting Blockade Labs Skybox...")
         
         const response = await fetch("https://backend.blockadelabs.com/api/v1/skybox", {
           method: "POST",
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[SCENE] Attempting Replicate panorama generation...")
+        // console.log("[SCENE] Attempting Replicate panorama generation...")
         
         // Use a panorama generation model
         const response = await fetch("https://api.replicate.com/v1/predictions", {
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
 
     // TIER 3: Generate panoramic image with Pollinations
     try {
-      console.log("[SCENE] Generating panoramic image with Pollinations...")
+      // console.log("[SCENE] Generating panoramic image with Pollinations...")
       
       const panoramaPrompt = `${enhancedPrompt}, wide panoramic view, landscape orientation`
       const encodedPrompt = encodeURIComponent(panoramaPrompt)

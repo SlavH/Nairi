@@ -137,7 +137,7 @@ export function BrandKitManager({ onApplyBrandKit, onClose }: BrandKitManagerPro
 
   const handleSave = () => {
     // In a real app, this would save to backend
-    console.log('Saving brand kit:', brandKit)
+    // console.log('Saving brand kit:', brandKit)
     setHasChanges(false)
     if (onApplyBrandKit) {
       onApplyBrandKit(brandKit)

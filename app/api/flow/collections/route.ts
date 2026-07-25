@@ -17,12 +17,11 @@ const createCollectionSchema = z.object({
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const { data: collections, error } = await supabase
       .from("feed_collections")
       .select("*, collection_posts(post_id)")
@@ -39,12 +38,11 @@ export const GET = withLogging(async (req: NextRequest) => {
 
 export const POST = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const body = await req.json();
     const { name, description, isPublic } = createCollectionSchema.parse(body);
 

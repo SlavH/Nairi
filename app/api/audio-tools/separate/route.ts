@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[SEPARATE] Attempting Replicate Demucs...")
+        // console.log("[SEPARATE] Attempting Replicate Demucs...")
         
         const response = await fetch("https://api.replicate.com/v1/predictions", {
           method: "POST",
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[SEPARATE] Attempting HuggingFace Demucs...")
+        // console.log("[SEPARATE] Attempting HuggingFace Demucs...")
         
         // Note: HuggingFace doesn't have a direct Demucs inference endpoint
         // This would require a custom Space or local processing

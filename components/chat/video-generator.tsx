@@ -140,7 +140,7 @@ export function VideoGenerator({ onVideoGenerated }: VideoGeneratorProps) {
       if (!videoUrl && data.videoFrames && data.videoFrames.length > 0) {
         // For now, show the first frame as a preview with a message
         videoUrl = data.videoFrames[0];
-        console.log("Video frames generated:", data.videoFrames);
+        // console.log("Video frames generated:", data.videoFrames);
       }
       
       // Fallback to demo video if nothing else works

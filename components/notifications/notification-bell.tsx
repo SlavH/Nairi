@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Bell, Check, CheckCheck, Trash2, X, Zap, Gift, Shield, AlertTriangle, Info, Sparkles } from "lucide-react"
+import { Bell, Check, CheckCheck, X, Zap, Gift, Shield, AlertTriangle, Info, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {

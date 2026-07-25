@@ -1,6 +1,12 @@
 // Nairi AI Extension Popup Script
 
-const NAIRI_BASE_URL = 'http://localhost:3000';
+const NAIRI_BASE_URL = (() => {
+  const url = new URL(chrome.runtime.getURL('/'));
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return 'http://localhost:3000';
+  }
+  return 'https://nairi-seven.vercel.app';
+})();
 
 // DOM Elements
 const openChatBtn = document.getElementById('openChat');

@@ -2,38 +2,19 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Sparkles } from "lucide-react"
+import { ArrowRight, Sparkles, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { DemoModal } from "@/components/demo-modal"
-import Image from "next/image"
 import { useTranslation } from "@/lib/i18n/context"
 
 export function HeroSection() {
   const { t } = useTranslation()
   const [demoModalOpen, setDemoModalOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
-  const [typingText, setTypingText] = useState("")
-  const fullText = t.hero.typingText
 
   useEffect(() => {
     setIsVisible(true)
   }, [])
-
-  useEffect(() => {
-    if (!isVisible) return
-
-    let i = 0
-    const typingInterval = setInterval(() => {
-      if (i < fullText.length) {
-        setTypingText(fullText.slice(0, i + 1))
-        i++
-      } else {
-        clearInterval(typingInterval)
-      }
-    }, 30)
-
-    return () => clearInterval(typingInterval)
-  }, [isVisible, fullText])
 
   return (
     <>
@@ -110,62 +91,18 @@ export function HeroSection() {
             }`}
           >
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10 pointer-events-none" />
-            <div className="relative rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-4 glow-pink">
-              <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
-                <Image
-                  src="/images/chat-icon.jpg"
-                  alt="Chat"
-                  width={32}
-                  height={32}
-                  className="flex-shrink-0"
-                  style={{ width: '32px', height: '32px', objectFit: 'contain' }}
-                />
+            <div className="relative rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-8 glow-pink text-center">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <MessageSquare className="w-6 h-6 text-[#e879f9]" />
                 <span className="text-sm font-medium">{t.hero.interfaceTitle}</span>
-                <div className="ml-auto flex gap-1">
-                  <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                  <div className="w-3 h-3 rounded-full bg-green-500/50" />
-                </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-                    U
-                  </div>
-                  <div className="flex-1 bg-muted rounded-2xl rounded-tl-none px-4 py-3 max-w-md">
-                    <p className="text-sm">
-                      {typingText}
-                      <span className="animate-pulse">|</span>
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <Image
-                    src="/images/nairi-logo-header.jpg"
-                    alt="Nairi"
-                    width={32}
-                    height={32}
-                    className="rounded-full flex-shrink-0"
-                    style={{ width: '32px', height: '32px', objectFit: 'contain' }}
-                  />
-                  <div className="flex-1 bg-gradient-to-r from-[#e879f9]/10 to-[#22d3ee]/10 border border-border rounded-2xl rounded-tl-none px-4 py-3 max-w-lg">
-                    <p className="text-sm mb-2">{t.hero.responseText}</p>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• {t.hero.responseItems.item1}</li>
-                      <li>• {t.hero.responseItems.item2}</li>
-                      <li>• {t.hero.responseItems.item3}</li>
-                      <li>• {t.hero.responseItems.item4}</li>
-                    </ul>
-                    <div className="mt-3 flex gap-2">
-                      <button className="px-2 py-1 rounded-md bg-[#e879f9]/20 text-[#e879f9] text-xs hover:bg-[#e879f9]/30 transition-colors">
-                        {t.hero.downloadButton}
-                      </button>
-                      <button className="px-2 py-1 rounded-md bg-[#22d3ee]/20 text-[#22d3ee] text-xs hover:bg-[#22d3ee]/30 transition-colors">
-                        {t.hero.editButton}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <p className="text-muted-foreground text-base max-w-md mx-auto">
+                {t.hero.interfacePlaceholder}
+              </p>
+              <div className="mt-6 flex justify-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500/40" />
+                <div className="w-2 h-2 rounded-full bg-yellow-500/40" />
+                <div className="w-2 h-2 rounded-full bg-green-500/40" />
               </div>
             </div>
           </div>

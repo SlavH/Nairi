@@ -122,7 +122,7 @@ async function handleCreateCharacter(
       // In production, this would extract actual face embeddings
       // For now, we'll use the image directly
     } catch (error) {
-      console.log("[CHARACTER] Face embedding extraction skipped")
+      // console.log("[CHARACTER] Face embedding extraction skipped")
     }
   }
 
@@ -143,7 +143,7 @@ async function handleCreateCharacter(
 
     if (error) {
       // Table might not exist, create it or use alternative storage
-      console.log("[CHARACTER] Database storage failed, using metadata")
+      // console.log("[CHARACTER] Database storage failed, using metadata")
     }
   }
 
@@ -214,7 +214,7 @@ async function handleGenerateWithCharacter(
   const replicateKey = process.env.REPLICATE_API_TOKEN
   if (replicateKey && isValidApiKey(replicateKey) && characterRef?.reference_image) {
     try {
-      console.log("[CHARACTER] Attempting Replicate IP-Adapter...")
+      // console.log("[CHARACTER] Attempting Replicate IP-Adapter...")
       
       const response = await fetch("https://api.replicate.com/v1/predictions", {
         method: "POST",

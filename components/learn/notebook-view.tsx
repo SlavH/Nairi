@@ -6,10 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, Link as LinkIcon, Send, Loader2, Trash2, Sparkles, BookOpen, HelpCircle, FileCheck, Upload, Mic, ListOrdered, Lightbulb, ListChecks } from "lucide-react"
+import { FileText, Send, Loader2, Trash2, Sparkles, BookOpen, HelpCircle, FileCheck, Mic, ListOrdered, Lightbulb, ListChecks, Network, Zap, MessageSquare, Camera } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { toast } from "sonner"
+import { BookProvider } from "./book-context"
+import { ConceptMapPanel } from "./concept-map-panel"
+import { RagChatPanel } from "./rag-chat-panel"
+import { ExercisesPanel } from "./exercises-panel"
+import { ProblemSolverPanel } from "./problem-solver-panel"
+import { PhotoCheckPanel } from "./photo-check-panel"
 
 interface Source {
   id: string
@@ -40,6 +46,7 @@ export function NotebookView({ notebookId, notebookTitle, initialSources }: Note
   const [generations, setGenerations] = useState<Record<string, string>>({})
   const [generating, setGenerating] = useState<string | null>(null)
   const [generationsOpen, setGenerationsOpen] = useState(true)
+  const [mainTab, setMainTab] = useState<"chat" | "concepts" | "rag" | "exercises" | "problem" | "photo">("chat")
 
   const [uploadFile, setUploadFile] = useState<File | null>(null)
 
@@ -206,6 +213,7 @@ export function NotebookView({ notebookId, notebookTitle, initialSources }: Note
   }
 
   return (
+    <BookProvider notebookId={notebookId} notebookTitle={notebookTitle} initialSources={sources} onNavigateToConcepts={() => setMainTab("concepts")}>
     <div className="flex-1 flex min-h-0">
       {/* Sources panel */}
       <div className="w-72 shrink-0 border-r border-white/20 flex flex-col bg-white/5 backdrop-blur-md">
@@ -312,8 +320,33 @@ export function NotebookView({ notebookId, notebookTitle, initialSources }: Note
         </div>
       </div>
 
-      {/* Chat + Generations */}
+      {/* Chat + Generations + Concept Map */}
       <div className="flex-1 flex flex-col min-h-0 bg-transparent">
+          <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as "chat" | "concepts" | "rag" | "exercises" | "problem" | "photo")} className="flex-1 flex flex-col min-h-0">
+          <div className="shrink-0 border-b border-white/20 px-3 py-1.5">
+            <TabsList className="bg-white/10 border border-white/10 backdrop-blur-sm">
+              <TabsTrigger value="chat" className="text-xs gap-1.5">
+                <Send className="h-3.5 w-3.5" /> Chat
+              </TabsTrigger>
+              <TabsTrigger value="concepts" className="text-xs gap-1.5">
+                <Network className="h-3.5 w-3.5" /> Concept Map
+              </TabsTrigger>
+              <TabsTrigger value="rag" className="text-xs gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" /> RAG Chat
+              </TabsTrigger>
+              <TabsTrigger value="exercises" className="text-xs gap-1.5">
+                <Zap className="h-3.5 w-3.5" /> Exercises
+              </TabsTrigger>
+              <TabsTrigger value="problem" className="text-xs gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5" /> Problem Solver
+              </TabsTrigger>
+              <TabsTrigger value="photo" className="text-xs gap-1.5">
+                <Camera className="h-3.5 w-3.5" /> Check Photo
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-0 data-[state=inactive]:hidden">
         {sources.length > 0 && (
           <Collapsible open={generationsOpen} onOpenChange={setGenerationsOpen} className="shrink-0 border-b border-white/20">
             <CollapsibleTrigger asChild>
@@ -370,8 +403,8 @@ export function NotebookView({ notebookId, notebookTitle, initialSources }: Note
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 && (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              <p className="font-medium text-foreground mb-1">Ask about your sources</p>
-              <p>Questions are answered only using the sources in this NairiBook. Add sources (URL or paste), use Generations, or ask anything.</p>
+              <p className="font-medium text-foreground mb-1">Chat</p>
+              <p>Free-form chat about your sources. For answers grounded in specific chapters with citations, switch to the <strong>RAG Chat</strong> tab.</p>
             </div>
           )}
           {messages.map((m, i) => (
@@ -425,8 +458,31 @@ export function NotebookView({ notebookId, notebookTitle, initialSources }: Note
           {sources.length === 0 && (
             <p className="text-xs text-muted-foreground mt-1">Add at least one source to enable chat.</p>
           )}
-        </div>
+          </div>
+          </TabsContent>
+
+          <TabsContent value="concepts" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden">
+            <ConceptMapPanel />
+          </TabsContent>
+
+          <TabsContent value="rag" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden">
+            <RagChatPanel />
+          </TabsContent>
+
+          <TabsContent value="exercises" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden">
+            <ExercisesPanel />
+          </TabsContent>
+
+          <TabsContent value="problem" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden">
+            <ProblemSolverPanel />
+          </TabsContent>
+
+          <TabsContent value="photo" className="flex-1 min-h-0 mt-0 data-[state=inactive]:hidden">
+            <PhotoCheckPanel />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
+    </BookProvider>
   )
 }

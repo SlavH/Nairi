@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { 
   Mail, Lightbulb, FileText, Globe, Brain, BarChart3, 
-  Code, Image, Video, Mic, Sparkles, BookOpen,
-  PenTool, Calculator, Search, MessageSquare
+  Code, Image, Sparkles, BookOpen,
+  PenTool,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 

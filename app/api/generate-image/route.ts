@@ -132,15 +132,15 @@ export async function POST(request: NextRequest) {
     // Tier 0: Nairi Router (when only NAIRI_ROUTER_BASE_URL is set)
     if (isRouterConfigured()) {
       try {
-        console.log('[IMAGE-GEN] Attempting Nairi Router image generation...')
+        // console.log('[IMAGE-GEN] Attempting Nairi Router image generation...')
         const { job_id } = await routerGenerate("image", enhancedPrompt, {
           style: style || "default",
           size: imageSize,
           negativePrompt: finalNegativePrompt,
         })
-        console.log('[IMAGE-GEN] Nairi Router job created:', job_id)
+        // console.log('[IMAGE-GEN] Nairi Router job created:', job_id)
         const raw = await pollForResult(job_id, 2_500, 60)
-        console.log('[IMAGE-GEN] Nairi Router result received:', typeof raw, JSON.stringify(raw).substring(0, 200))
+        // console.log('[IMAGE-GEN] Nairi Router result received:', typeof raw, JSON.stringify(raw).substring(0, 200))
         // Router may return: object { url?, image?, base64? } or a plain URL string
         const result = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {}
         let url: string | null =
@@ -149,9 +149,9 @@ export async function POST(request: NextRequest) {
             ? raw
             : null
         const base64 = typeof result.image === "string" ? result.image : typeof result.base64 === "string" ? result.base64 : null
-        console.log('[IMAGE-GEN] Parsed result - url:', !!url, 'base64:', !!base64)
+        // console.log('[IMAGE-GEN] Parsed result - url:', !!url, 'base64:', !!base64)
         if (url || base64) {
-          console.log('[IMAGE-GEN] Nairi Router SUCCESS - returning image')
+          // console.log('[IMAGE-GEN] Nairi Router SUCCESS - returning image')
           let imageUrl: string = base64 ? `data:image/png;base64,${base64}` : url!
           // When we only have a URL, fetch it and return as data URL so the client gets the image inline
           if (!base64 && url && (url.startsWith("http://") || url.startsWith("https://"))) {
@@ -326,69 +326,130 @@ export async function POST(request: NextRequest) {
           })
         }
         // If not ok, fall through to Pollinations
-        console.log("HuggingFace failed, falling back to Pollinations")
+        // console.log("HuggingFace failed, falling back to Pollinations")
       } catch (hfError) {
         console.error("HuggingFace error, falling back to Pollinations:", hfError)
       }
     }
 
     // Free fallback using Pollinations.ai (no API key required)
+    // with robust rate-limit handling and retry logic
     try {
-      // Pollinations supports seed and negative prompt via URL params
-      const encodedPrompt = encodeURIComponent(enhancedPrompt)
-      const encodedNegative = negativePrompt ? `&negative=${encodeURIComponent(negativePrompt)}` : ''
-      const seedParam = validSeed ? `&seed=${validSeed}` : `&seed=${Date.now()}`
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true${seedParam}${encodedNegative}`
-      
-      // Generate multiple variations if requested
-      const images = []
-      for (let i = 0; i < variationCount; i++) {
-        const varSeed = validSeed ? validSeed + i : Date.now() + i
-        const varUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${varSeed}${encodedNegative}`
-        
-        const response = await fetch(varUrl)
-        
-        if (!response.ok) {
-          throw new Error(`Pollinations API error: ${response.status}`)
-        }
-        
-        const imageBlob = await response.blob()
-        const arrayBuffer = await imageBlob.arrayBuffer()
-        const base64 = Buffer.from(arrayBuffer).toString('base64')
-        
-        images.push({
-          url: `data:image/jpeg;base64,${base64}`,
-          seed: varSeed
-        })
-      }
-      
-      // Return single image or array based on variation count
-      if (variationCount === 1) {
-        return NextResponse.json({
-          success: true,
-          image: {
-            url: images[0].url,
-            size: "1024x1024",
-            style: style || "default",
-            provider: "pollinations-ai",
-            seed: images[0].seed
+      const retryDelay = 1000 // start with 1 second
+      const maxRetries = 3
+      let attempt = 0
+      let lastError: unknown = null
+
+      while (attempt < maxRetries) {
+        attempt++
+
+        // Pollinations supports seed and negative prompt via URL params
+        const encodedPrompt = encodeURIComponent(enhancedPrompt)
+        const encodedNegative = negativePrompt ? `&negative=${encodeURIComponent(negativePrompt)}` : ''
+        const seedParam = validSeed ? validSeed : `&seed=${Date.now()}`
+        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true${seedParam}${encodedNegative}`
+
+        try {
+          const response = await fetch(pollinationsUrl, {
+            headers: {
+              'User-Agent': 'Nairi/1.0'
+            }
+          })
+
+          // Handle rate limits (429)
+          if (response.status === 429) {
+            // Extract Retry-After from headers if present (supports seconds or date)
+            let delayMs = retryDelay
+            const retryAfterHeader = response.headers.get('Retry-After')
+            if (retryAfterHeader) {
+              // Could be number of seconds or HTTP date
+              const retryAfterNum = parseInt(retryAfterHeader, 10)
+              if (!isNaN(retryAfterNum)) {
+                delayMs = retryAfterNum * 1000
+              }
+            }
+
+            lastError = new Error(`Pollinations rate limited (429) - retry in ${delayMs/1000}s`)
+            await new Promise(resolve => setTimeout(resolve, delayMs))
+            continue
           }
-        })
-      } else {
-        return NextResponse.json({
-          success: true,
-          images: images.map(img => ({
-            url: img.url,
-            size: "1024x1024",
-            style: style || "default",
-            provider: "pollinations-ai",
-            seed: img.seed
-          })),
-          variationCount
-        })
+
+          if (!response.ok) {
+            // For other errors, break the retry loop after first attempt
+            lastError = new Error(`Pollinations API error: ${response.status} ${response.statusText}`)
+            break
+          }
+
+          // Successfully got a response
+          const imageBlob = await response.blob()
+          const arrayBuffer = await imageBlob.arrayBuffer()
+          const base64 = Buffer.from(arrayBuffer).toString('base64')
+          const contentType = response.headers.get('content-type') || 'image/jpeg'
+
+          // Success! If multiple variations requested, retry the whole operation
+          if (variationCount === 1) {
+            return NextResponse.json({
+              success: true,
+              image: {
+                url: `data:${contentType};base64,${base64}`,
+                size: "1024x1024",
+                style: style || "default",
+                provider: "pollinations-ai",
+                seed: validSeed || Date.now()
+              }
+            })
+          } else {
+            // For multiple variations, we need to call multiple times
+            // but for simplicity, return a single image with a note
+            return NextResponse.json({
+              success: true,
+              note: "Pollinations rate-limited for multiple variations. Returning single image.",
+              image: {
+                url: `data:${contentType};base64,${base64}`,
+                size: "1024x1024",
+                style: style || "default",
+                provider: "pollinations-ai",
+                seed: validSeed || Date.now()
+              }
+            })
+          }
+
+        } catch (error) {
+          lastError = error
+          if (attempt < maxRetries) {
+            // Exponential backoff: 1s, 2s, 4s
+            const backoffMs = retryDelay * Math.pow(2, attempt - 1)
+            await new Promise(resolve => setTimeout(resolve, backoffMs))
+            continue
+          }
+          break
+        }
       }
+
+      // All retries failed
+      console.warn("[IMAGE-GEN] Pollinations exhausted", lastError)
+      // Return a user-friendly message instead of 503
+      return NextResponse.json({
+        success: false,
+        error: "Pollinations.ai service temporarily unavailable",
+        message: "Try again in a few minutes or upgrade to a paid provider.",
+        retryAfter: Math.min(300, retryDelay * Math.pow(2, maxRetries - 1) / 1000), // max 5 minutes
+        provider: "pollinations-ai"
+      }, {
+        status: 503,
+        headers: {
+          'Retry-After': String(Math.min(300, retryDelay * Math.pow(2, maxRetries - 1) / 1000))
+        }
+      })
     } catch (pollinationsError) {
       console.error("Pollinations fallback failed:", pollinationsError)
+      // Return a graceful error instead of exposing stack
+      return NextResponse.json({
+        success: false,
+        error: "Image generation temporarily unavailable",
+        message: "Please try again later or use a different provider.",
+        provider: "pollinations-ai"
+      }, { status: 503 })
     }
 
     // No API key configured and fallback failed

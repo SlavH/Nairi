@@ -35,7 +35,7 @@ export default async function WorkspaceDetailPage({ params }: WorkspaceDetailPro
   }
 
   if (!creation) {
-    // Return a placeholder for demo purposes
+    // Fallback when creation is not found in the database
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">

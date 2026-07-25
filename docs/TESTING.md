@@ -29,7 +29,7 @@ Use this checklist for comprehensive testing (as CEO, QA, or developer).
 - [ ] **Chat:** `/chat` → redirects to `/chat/[id]`; send a message; response streams; with bypass, message and reply are saved (conversation id in URL).
 - [ ] **Workspace:** `/workspace` — Creations list (or empty); `/workspace/create` — select type, prompt, generate; result and download work.
 - [ ] **Presentations:** `/presentations` — Topic, slide count, style, theme; Generate; slides appear; edit, export HTML/PPTX.
-- [ ] **Builder:** `/builder` (or `/builder-v2` → redirects) — Chat prompt; AI generates/updates project; preview and code panels; file explorer, tasks, version history; preview error boundary shows on runtime errors; "Use safe starter page" on preview error; Save project / My projects (list and load); version history persists with project and Restore works; Export: Download ZIP (runnable with `npm install && npm run dev`), Deploy to Vercel (opens vercel.com/new). **E2E:** Send prompt, save project, and restore version tests may require `BYPASS_AUTH=true` and a stable or mocked generate API (`GROQ_API_KEY`) to avoid flakiness. **Integration:** `__tests__/integration/api/builder.test.ts` POSTs to `/api/builder/generate` with minimal body; the test that asserts 200 and NDJSON (plan/message/complete/error) is skipped in CI when `GROQ_API_KEY` is unset or placeholder.
+- [ ] **Builder:** `/builder` (or `/builder` → redirects) — Chat prompt; AI generates/updates project; preview and code panels; file explorer, tasks, version history; preview error boundary shows on runtime errors; "Use safe starter page" on preview error; Save project / My projects (list and load); version history persists with project and Restore works; Export: Download ZIP (runnable with `npm install && npm run dev`), Deploy to Vercel (opens vercel.com/new). **E2E:** Send prompt, save project, and restore version tests may require `BYPASS_AUTH=true` and a stable or mocked generate API (`GROQ_API_KEY`) to avoid flakiness. **Integration:** `__tests__/integration/api/builder.test.ts` POSTs to `/api/builder/generate` with minimal body; the test that asserts 200 and NDJSON (plan/message/complete/error) is skipped in CI when `GROQ_API_KEY` is unset or placeholder.
 - [ ] **Studio:** `/studio` — Tabs: Image, Video, Audio, Slides; each generator runs without hard errors (external APIs may fail; check error UI).
 - [ ] **Marketplace:** `/marketplace` — Agent list; open an agent; purchase flow (free or Stripe if configured).
 - [ ] **Learn / Flow / Knowledge / Debate:** Pages load; content or empty state shown (no 500). See “Feature status (Marketplace, Learn, Debate, Flow, Knowledge)” below for what is implemented vs stub.
@@ -131,7 +131,7 @@ QA can verify: **Focus** — tab order on dashboard, chat, builder, marketplace 
 | **Health** | Vitest: `GET /api/health`, `GET /api/v1/health`, `HEAD /api/health` (status, shape) | — |
 | **Auth callback** | Vitest: redirect when no code; redirect to error when `error` param | Login/sign-up flows, OAuth |
 | **Builder projects API** | Vitest: GET/POST with mocked auth (401 when unauthenticated; 200 + project when authenticated) | Save/load project in UI |
-| **Builder generate (parsing)** | Vitest: `lib/builder-v2/json-normalizers` (valid JSON, backticks, control chars, trailing commas) | Full builder prompt to preview |
+| **Builder generate (parsing)** | Vitest: `lib/builder/json-normalizers` (valid JSON, backticks, control chars, trailing commas) | Full builder prompt to preview |
 | **Builder generate (integration)** | Vitest: POST `/api/builder/generate` with minimal body; 400 for invalid/missing prompt; 200 + NDJSON when BYPASS_AUTH and GROQ_API_KEY (skip in CI if no API key) | Stream shape and validation |
 | **E2E (optional)** | Playwright: builder load, prompt input, save/projects; send prompt and wait for completion, restore version (E2E may require BYPASS_AUTH and stable or mocked generate API to avoid flakiness) | Full user journeys |
 
@@ -199,7 +199,7 @@ After a full project completion audit, ensure:
 
 - [ ] **Docs:** [API_DOCUMENTATION.md](API_DOCUMENTATION.md) paths match implementation (`/api/profile`, `/api/usage`, chat/marketplace/presentations/builder as documented).
 - [ ] **DB:** Migration `scripts/020_create_usage_logs.sql` has been run if using `/api/usage` or cost tracking; `scripts/021_create_builder_projects.sql` for builder Save project / My projects.
-- [ ] **Auth:** Protected routes in `lib/supabase/session.ts` include `/presentations`, `/builder`, `/builder-v2`; builder layout also redirects unauthenticated users to login.
+- [ ] **Auth:** Protected routes in `lib/supabase/session.ts` include `/presentations`, `/builder`, `/builder`; builder layout also redirects unauthenticated users to login.
 - [ ] **Error UX:** Global error page ([app/error.tsx](../app/error.tsx)) includes “Open navigation” and “Home” links.
 - [ ] **Rate limits:** [docs/api/RATE_LIMITS.md](api/RATE_LIMITS.md) and [ARCHITECTURE.md](ARCHITECTURE.md) describe in-memory vs production (Redis) behavior.
 

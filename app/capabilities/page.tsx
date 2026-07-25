@@ -11,17 +11,17 @@ export default function CapabilitiesPage() {
       items: [
         { icon: MessageSquare, title: 'Natural Language Chat', description: 'Have natural conversations with AI that understands context and nuance.' },
         { icon: Brain, title: 'Multiple Chat Modes', description: 'Choose from Default, Debate, Reasoning, Tutor, and Creator modes.' },
-        { icon: Users, title: 'Group Chats', description: 'Collaborate with multiple AI models in the same conversation.' },
+        { icon: Users, title: 'Group Chats', description: 'Collaborate with multiple AI models in the same conversation.', comingSoon: true },
         { icon: Globe, title: '100+ Languages', description: 'Communicate in over 100 languages with automatic translation.' }
       ]
     },
     {
       category: 'Content Generation',
       items: [
-        { icon: Image, title: 'Image Generation', description: 'Create stunning images from text descriptions using DALL-E, Midjourney, and more.', comingSoon: true },
+        { icon: Image, title: 'Image Generation', description: 'Create stunning images from text descriptions using AI models.' },
         { icon: Video, title: 'Video Generation', description: 'Generate videos with AI using Runway, Veo, and Sora models.', comingSoon: true },
         { icon: Music, title: 'Audio & Voice', description: 'Text-to-speech, voice cloning, and audio generation capabilities.', comingSoon: true },
-        { icon: Palette, title: 'Canvas Editor', description: 'Visual editing with AI-powered tools for diagrams and designs.' }
+        { icon: Palette, title: 'Canvas Editor', description: 'Visual editing with AI-powered tools for diagrams and designs.', comingSoon: true }
       ]
     },
     {

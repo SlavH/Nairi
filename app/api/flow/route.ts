@@ -154,14 +154,13 @@ const mockFlowData = [
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient()
     const userId = await getUserIdForApi(() => supabase?.auth?.getUser())
     
     const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get("page") || "1")
     const limit = parseInt(searchParams.get("limit") || "12")
     const sort = searchParams.get("sort") || "trending"
-    
-    const supabase = await createClient()
     
     let data: typeof mockFlowData = []
     let hasMore = false
@@ -199,7 +198,7 @@ export const GET = withLogging(async (req: NextRequest) => {
         hasMore = posts.length === limit
       }
     } catch (dbError) {
-      console.log("Database not available, using mock data")
+      // console.log("Database not available, using mock data")
     }
     
     if (data.length === 0) {

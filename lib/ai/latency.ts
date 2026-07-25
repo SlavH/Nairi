@@ -9,7 +9,7 @@ export function recordLatency(ms: number, label: string): void {
   samples.push(ms)
   if (samples.length > MAX_SAMPLES) samples.shift()
   if (process.env.NAIRI_LOG_LATENCY === "true") {
-    console.log("[latency]", label, "ms", ms)
+    // console.log("[latency]", label, "ms", ms)
   }
 }
 

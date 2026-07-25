@@ -15,12 +15,11 @@ const querySchema = z.object({
 
 export const POST = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const body = await req.json();
     const { query } = querySchema.parse(body);
 

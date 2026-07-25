@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
           )
         }
       } catch (error) {
-        console.log("[LONGVIDEO] Scene generation failed, using default")
+        // console.log("[LONGVIDEO] Scene generation failed, using default")
       }
 
       // Fallback: create simple scene variations
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     const runwayKey = process.env.RUNWAY_API_KEY
     if (runwayKey && isValidApiKey(runwayKey)) {
       try {
-        console.log("[LONGVIDEO] Attempting Runway Gen-3...")
+        // console.log("[LONGVIDEO] Attempting Runway Gen-3...")
         // Runway API implementation would go here
         // Note: Runway API access is limited, this is a placeholder
       } catch (error) {
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     const klingKey = process.env.KLING_API_KEY
     if (klingKey && isValidApiKey(klingKey)) {
       try {
-        console.log("[LONGVIDEO] Attempting Kling...")
+        // console.log("[LONGVIDEO] Attempting Kling...")
         // Kling API implementation would go here
       } catch (error) {
         console.error("[LONGVIDEO] Kling failed:", error)
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log(`[LONGVIDEO] Generating ${numSegments} segments with Replicate...`)
+        // console.log(`[LONGVIDEO] Generating ${numSegments} segments with Replicate...`)
         
         const segmentUrls: string[] = []
         
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 
             if (videoUrl) {
               segmentUrls.push(videoUrl)
-              console.log(`[LONGVIDEO] Segment ${i + 1}/${numSegments} completed`)
+              // console.log(`[LONGVIDEO] Segment ${i + 1}/${numSegments} completed`)
             }
           }
         }
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
 
     // TIER 4: Generate image sequence as fallback
     try {
-      console.log("[LONGVIDEO] Falling back to image sequence...")
+      // console.log("[LONGVIDEO] Falling back to image sequence...")
       
       const framesPerSecond = 2 // Lower for image sequence
       const totalFrames = Math.min(validDuration * framesPerSecond, 60) // Max 60 frames

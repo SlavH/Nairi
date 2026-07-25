@@ -10,7 +10,7 @@ Disallow: /api/
 
 # Disallow crawling of builder interface
 Disallow: /builder/
-Disallow: /builder-v2/
+Disallow: /builder/
 
 # Disallow crawling of admin and user areas
 Disallow: /admin/

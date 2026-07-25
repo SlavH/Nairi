@@ -37,7 +37,7 @@ export function logApiRequest(context: ApiLogContext & { message?: string }): vo
   if (errorCode || (statusCode != null && statusCode >= 400)) {
     console.error(line)
   } else {
-    console.log(line)
+    // console.log(line)
   }
 }
 

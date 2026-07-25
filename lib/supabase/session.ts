@@ -55,7 +55,6 @@ export async function updateSession(request: NextRequest) {
     "/chat",
     "/marketplace",
     "/builder",
-    "/builder-v2",
     "/studio",
     "/presentations",
     "/knowledge",

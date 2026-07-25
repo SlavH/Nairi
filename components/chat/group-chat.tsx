@@ -33,7 +33,6 @@ import {
   Paperclip,
   Smile,
   AtSign,
-  Hash,
   Search,
   Bell,
   BellOff,

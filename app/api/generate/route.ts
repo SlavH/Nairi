@@ -560,9 +560,9 @@ export async function POST(req: Request) {
 
     // STEP 1: Generate design brief (V0-style workflow; builder types use website-style briefs)
     const briefType: "website" | "presentation" = "website"
-    console.log("🎨 Generating design brief...")
+    // console.log("🎨 Generating design brief...")
     const designBrief = await generateDesignBrief(briefType, prompt, options)
-    console.log('✅ Design brief generated:', designBrief)
+    // console.log('✅ Design brief generated:', designBrief)
 
     // STEP 2: Build the generation prompt with design brief
     const systemPrompt = CODE_GENERATION_PROMPTS[validatedType] + `

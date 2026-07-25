@@ -1,1034 +1,950 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import { Card } from "@/components/ui/card"
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { 
-  Maximize2, 
-  Minimize2, 
-  RotateCcw, 
-  Smartphone, 
-  Tablet, 
-  Monitor,
-  Code,
-  Eye,
-  Copy,
-  Check,
-  Download,
-  ExternalLink
+import { Badge } from "@/components/ui/badge"
+import {
+  RefreshCw,
+  ExternalLink,
+  MousePointer2,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Wrench,
+  Info,
+  Sparkles
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import {
+  SandpackProvider,
+  SandpackPreview,
+  useSandpack,
+  SandpackLayout
+} from "@codesandbox/sandpack-react"
 
 interface LivePreviewProps {
   code: string
-  isLoading?: boolean
-  className?: string
+  viewport: "mobile" | "tablet" | "desktop"
+  isFullscreen?: boolean
+  files?: Record<string, string>
+  /** Reason from last generation — shown as info banner when no previewError */
+  reason?: string | null
+  /** When set, preview shows this AI/API error instead of website (no Sandpack) */
+  previewError?: string | null
+  onFixError?: (errorMessage: string) => void
+  /** Called when Sandpack reports an error (so parent can auto-fix until clean) */
+  onErrorDetected?: (errorMessage: string) => void
+  /** Called when user chooses to replace code with a safe starter page to unblock preview */
+  onUseSafeStarter?: () => void
+  /** Called when user clicks "Make it pop" — add wow element via AI */
+  onMakeItPop?: () => void
 }
 
-type ViewportSize = "mobile" | "tablet" | "desktop" | "full"
-
-const VIEWPORT_SIZES: Record<ViewportSize, { width: string; label: string }> = {
-  mobile: { width: "375px", label: "Mobile" },
-  tablet: { width: "768px", label: "Tablet" },
-  desktop: { width: "1024px", label: "Desktop" },
-  full: { width: "100%", label: "Full" }
+const VIEWPORT_WIDTHS = {
+  mobile: 375,
+  tablet: 768,
+  desktop: 1280
 }
 
-export function LivePreview({ code, isLoading, className }: LivePreviewProps) {
-  const [viewport, setViewport] = useState<ViewportSize>("full")
-  const [showCode, setShowCode] = useState(false)
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [copied, setCopied] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [previewLoading, setPreviewLoading] = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+// Sandpack theme matching Nairi's dark theme
+const nairiTheme = {
+  colors: {
+    surface1: "#0a0a0a",
+    surface2: "#1a1a1a",
+    surface3: "#2a2a2a",
+    clickable: "#999999",
+    base: "#ffffff",
+    disabled: "#4D4D4D",
+    hover: "#c5c5c5",
+    accent: "#a855f7",
+    error: "#ff453a",
+    errorSurface: "#3a1d1d"
+  },
+  syntax: {
+    plain: "#FFFFFF",
+    comment: { color: "#757575", fontStyle: "italic" as const },
+    keyword: "#c792ea",
+    tag: "#80cbc4",
+    punctuation: "#89ddff",
+    definition: "#82aaff",
+    property: "#c792ea",
+    static: "#f78c6c",
+    string: "#c3e88d"
+  },
+  font: {
+    body: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    mono: '"Fira Code", "Fira Mono", Menlo, Consolas, monospace',
+    size: "13px",
+    lineHeight: "20px"
+  }
+}
 
-  // Generate the HTML document for the iframe
-  const generatePreviewHTML = useCallback((jsxCode: string) => {
-    // Escape the JSX code for safe embedding in HTML script tag
-    // We need to escape </script> to prevent breaking out of the script tag
-    // and handle special characters that could break the HTML
-    const escapedCode = jsxCode
-      .replace(/<\/script>/gi, '<\\/script>')  // Escape closing script tags
-      .replace(/<!--/g, '<\\!--')  // Escape HTML comments
+// Remove imports for components that are defined in the same file
+function removeDuplicateImports(code: string): string {
+  // Find all function/const component definitions
+  const functionDefs = code.match(/function\s+([A-Z][a-zA-Z0-9]*)\s*\(/g) || []
+  const constDefs = code.match(/const\s+([A-Z][a-zA-Z0-9]*)\s*[=:]/g) || []
+  
+  const definedComponents = new Set<string>()
+  
+  functionDefs.forEach(match => {
+    const name = match.match(/function\s+([A-Z][a-zA-Z0-9]*)/)?.[1]
+    if (name) definedComponents.add(name)
+  })
+  
+  constDefs.forEach(match => {
+    const name = match.match(/const\s+([A-Z][a-zA-Z0-9]*)/)?.[1]
+    if (name) definedComponents.add(name)
+  })
+  
+  let result = code
+  
+  // Remove import statements for components defined in the file
+  definedComponents.forEach(componentName => {
+    // Remove: import { ComponentName } from './ComponentName'
+    // Remove: import ComponentName from './ComponentName'
+    // Remove: import { ComponentName } from './path'
+    const importPatterns = [
+      new RegExp(`import\\s*\\{\\s*${componentName}\\s*\\}\\s*from\\s*['"][^'"]+['"];?\\s*\\n?`, 'g'),
+      new RegExp(`import\\s+${componentName}\\s+from\\s*['"][^'"]+['"];?\\s*\\n?`, 'g'),
+    ]
     
-    const htmlContent = `<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+    importPatterns.forEach(pattern => {
+      result = result.replace(pattern, '')
+    })
+  })
+  
+  return result
+}
+
+// Strip Next.js-specific imports and usage so Sandpack (no "next" dependency) can run the preview
+function stripNextJsForPreview(code: string): string {
+  let out = code
+  // Remove Next.js import lines (type, value, default)
+  out = out.replace(/import\s+type\s+\{[^}]*\}\s*from\s*["']next["']\s*;?\s*\n?/g, '')
+  out = out.replace(/import\s+type\s+\{[^}]*\}\s*from\s*["']next\/[^"']+["']\s*;?\s*\n?/g, '')
+  out = out.replace(/import\s+\{[^}]*\}\s*from\s*["']next\/[^"']+["']\s*;?\s*\n?/g, '')
+  out = out.replace(/import\s+\w+\s+from\s*["']next\/[^"']+["']\s*;?\s*\n?/g, '')
+  out = out.replace(/import\s+\w+\s+from\s*["']next["']\s*;?\s*\n?/g, '')
+  // Remove export const metadata = { ... }; (Next.js App Router) - one-line or multi-line
+  out = out.replace(/export\s+const\s+metadata\s*:\s*Metadata\s*=\s*\{[^}]*\}\s*;?\s*\n?/g, '')
+  out = out.replace(/export\s+const\s+metadata\s*=\s*\{[\s\S]*?\}\s*;?\s*\n?/g, '')
+  // Replace next/font usage: const X = Font({ ... }) and later X.className -> use a simple substitute
+  const fontVarMatch = out.match(/const\s+(\w+)\s*=\s*\w+\s*\(\s*\{[^}]*\}\s*\)\s*;?\s*\n?/)
+  if (fontVarMatch) {
+    const fontVar = fontVarMatch[1]
+    out = out.replace(fontVarMatch[0], '')
+    out = out.replace(new RegExp(`\\b${fontVar}\\.className\\b`, 'g'), '"font-sans"')
+    out = out.replace(new RegExp(`\\b${fontVar}\\.style\\.fontFamily\\b`, 'g'), '"inherit"')
+  }
+  // Remove <Head>...</Head> usage (next/head) - replace with fragment so children don't render in wrong place
+  out = out.replace(/<Head[^>]*>[\s\S]*?<\/Head>/gi, '<></>')
+  out = out.replace(/import\s+Head\s+from\s*["']next\/head["']\s*;?\s*\n?/g, '')
+  // Preview only has /styles.css; map globals.css so styles still load
+  out = out.replace(/import\s+["']\.\/globals\.css["']\s*;?\s*\n?/g, 'import "./styles.css";\n')
+  out = out.replace(/import\s+["']@\/app\/globals\.css["']\s*;?\s*\n?/g, 'import "./styles.css";\n')
+  return out
+}
+
+// Clean code for Sandpack - fix common issues
+function cleanCodeForSandpack(code: string): string {
+  let cleaned = stripNextJsForPreview(code)
+  cleaned = cleaned
+    // Fix Unicode arrows - comprehensive replacement
+    // First, replace any arrow-like Unicode characters
+    .replace(/[\u21D2\u21d2\u2192\u27F9\u2794\u279C\u279D\u279E\u27A1\u2B95]/g, "=>")
+    .replace(/⇒/g, "=>")
+    .replace(/→/g, "=>")
+    .replace(/➔/g, "=>")
+    .replace(/➜/g, "=>")
+    .replace(/➝/g, "=>")
+    .replace(/➞/g, "=>")
+    // Also catch cases where arrow appears in function context
+    .replace(/\)\s*[⇒→]\s*/g, ") => ")
+    .replace(/\}\s*[⇒→]\s*/g, "} => ")
+    // Fix arrow in map/filter contexts with parentheses
+    .replace(/\)\s*[\u21d2\u2192]\s*\(/g, ") => (")
+    .replace(/\)\s*[\u21d2\u2192]\s*\{/g, ") => {")
+    // Fix malformed className template literals with trailing quote
+    .replace(/(className=\{`[^`]*`\})"/g, '$1')
+    .replace(/(className=\{`[^`]*'\})"/g, '$1')
+    .replace(/className="\{`([^`]*)`\}"/g, 'className={`$1`}')
+    .replace(/className="\{`([^"]+)"\s+([^`]+)`\}/g, (_, p1, p2) => `className={\`${p1} ${p2}\`}`)
+    // Remove "use client" directives (not needed in Sandpack)
+    .replace(/"use client"\s*/g, "")
+    .replace(/'use client'\s*/g, "")
+    .trim()
+  
+  // Fix incorrect Lucide icon naming (IconXxx -> Xxx)
+  // Common pattern: AI generates IconCheck, IconInfo, etc. but lucide-react uses Check, Info
+  cleaned = cleaned.replace(/\bIconCheck\b/g, 'Check')
+  cleaned = cleaned.replace(/\bIconInfo\b/g, 'Info')
+  cleaned = cleaned.replace(/\bIconStar\b/g, 'Star')
+  cleaned = cleaned.replace(/\bIconHeart\b/g, 'Heart')
+  cleaned = cleaned.replace(/\bIconUser\b/g, 'User')
+  cleaned = cleaned.replace(/\bIconHome\b/g, 'Home')
+  cleaned = cleaned.replace(/\bIconSettings\b/g, 'Settings')
+  cleaned = cleaned.replace(/\bIconSearch\b/g, 'Search')
+  cleaned = cleaned.replace(/\bIconMenu\b/g, 'Menu')
+  cleaned = cleaned.replace(/\bIconClose\b/g, 'X')
+  cleaned = cleaned.replace(/\bIconArrowRight\b/g, 'ArrowRight')
+  cleaned = cleaned.replace(/\bIconArrowLeft\b/g, 'ArrowLeft')
+  // Generic pattern: Icon followed by capital letter -> remove Icon prefix
+  cleaned = cleaned.replace(/\bIcon([A-Z][a-zA-Z0-9]*)\b/g, '$1')
+  
+  // Remove duplicate imports for locally defined components
+  cleaned = removeDuplicateImports(cleaned)
+  
+  // Apply syntax error fixes as final step
+  cleaned = fixCommonSyntaxErrors(cleaned)
+  
+  return cleaned
+}
+
+// Move fixCommonSyntaxErrors BEFORE cleanCodeForSandpack calls it
+
+// Check if code is valid React/JSX code (not JSON or incomplete)
+function isValidReactCode(code: string): boolean {
+  if (!code || code.trim().length < 50) return false
+  
+  // Check for common invalid patterns (JSON, incomplete code)
+  const trimmed = code.trim()
+  // Reject JSON plan data
+  if (trimmed.startsWith('{') && trimmed.includes('"plan"')) return false
+  if (trimmed.startsWith('json')) return false
+  if (trimmed.includes('"plan":')) return false
+  if (trimmed.startsWith('[')) return false
+  if (trimmed.includes('```')) return false
+  // Reject if it looks like a JSON object without React code
+  if (trimmed.startsWith('{') && !trimmed.includes('function') && !trimmed.includes('const') && !trimmed.includes('<')) return false
+  
+  // Must contain JSX-like patterns or function/const declarations
+  const hasJSX = /<[A-Z][a-zA-Z]*|<div|<span|<button|<input/i.test(code)
+  const hasComponent = /function\s+\w+|const\s+\w+\s*=/.test(code)
+  
+  return hasJSX || hasComponent
+}
+
+// Fix common syntax errors in generated code
+function fixCommonSyntaxErrors(code: string): string {
+  let fixed = code
+  
+  // Remove stray backticks that appear after closing braces (very common AI error)
+  // Pattern: }` or };` at end of lines
+  fixed = fixed.replace(/\}\s*`\s*$/gm, '}')
+  fixed = fixed.replace(/\};\s*`\s*$/gm, '};')
+  fixed = fixed.replace(/\)\s*;\s*`\s*$/gm, ');')
+  
+  // Remove backticks that appear alone on a line or after })
+  fixed = fixed.replace(/^\s*`\s*$/gm, '')
+  fixed = fixed.replace(/\}\)\s*`/g, '})')
+  fixed = fixed.replace(/\}\s*`\s*\}/g, '}\n}')
+  
+  // Remove stray backticks after closing tags
+  fixed = fixed.replace(/<\/[a-zA-Z]+>\s*`/g, (match) => match.replace('`', ''))
+  
+  // Remove undefined variable references - common AI error
+  // If customStyles is referenced but not defined, remove the entire line or element
+  if (fixed.includes('customStyles') && !fixed.includes('const customStyles') && !fixed.includes('let customStyles')) {
+    // Remove <style>{customStyles}</style> entirely
+    fixed = fixed.replace(/<style>\{customStyles\}<\/style>/g, '')
+    fixed = fixed.replace(/<style>\s*\{customStyles\}\s*<\/style>/g, '')
+    // Replace style prop references
+    fixed = fixed.replace(/style=\{customStyles\}/g, '')
+    fixed = fixed.replace(/style=\{customStyles\.[^}]+\}/g, '')
+    fixed = fixed.replace(/\{\.\.\.customStyles\}/g, '')
+    fixed = fixed.replace(/className=\{customStyles\.[^}]+\}/g, 'className=""')
+  }
+  
+  // Fix unterminated template literals - find backticks and ensure they're paired
+  const backtickCount = (fixed.match(/`/g) || []).length
+  if (backtickCount % 2 !== 0) {
+    // Remove the last stray backtick if odd number
+    const lastBacktickIndex = fixed.lastIndexOf('`')
+    if (lastBacktickIndex > -1) {
+      // Check context - if it's after a } or ; it's likely stray
+      const beforeBacktick = fixed.substring(Math.max(0, lastBacktickIndex - 5), lastBacktickIndex)
+      if (/[};)\]]\s*$/.test(beforeBacktick)) {
+        // Remove the stray backtick
+        fixed = fixed.substring(0, lastBacktickIndex) + fixed.substring(lastBacktickIndex + 1)
+      }
+    }
+  }
+  
+  // Fix unmatched braces - count opening and closing
+  const openBraces = (fixed.match(/\{/g) || []).length
+  const closeBraces = (fixed.match(/\}/g) || []).length
+  if (openBraces > closeBraces) {
+    // Add missing closing braces at the end
+    fixed = fixed + '\n' + '}'.repeat(openBraces - closeBraces)
+  }
+  
+  // Fix unmatched parentheses
+  const openParens = (fixed.match(/\(/g) || []).length
+  const closeParens = (fixed.match(/\)/g) || []).length
+  if (openParens > closeParens) {
+    fixed = fixed + ')'.repeat(openParens - closeParens)
+  }
+  
+  // Fix className with mixed quotes and template literals
+  fixed = fixed.replace(/className="\{`([^`]+)`\}"/g, 'className={`$1`}')
+  fixed = fixed.replace(/className='\{`([^`]+)`\}'/g, 'className={`$1`}')
+  // CRITICAL FIX: Guard against unterminated template literals in className
+  // Example broken pattern:
+  // className={`base classes ${
+  //   condition ? "extra" : ""
+  // }
+  // We fall back to keeping only the stable prefix (`base classes`) and drop the dynamic part
+  fixed = fixed.replace(
+    /className=\{\`([^`]*?)\$\{[\s\S]*?\n\s*\}\s*/g,
+    'className="$1" '
+  )
+  
+  // CRITICAL FIX: Fix stray '>' characters after JSX opening tags
+  // Pattern: <main className="..."> > -> <main className="...">
+  fixed = fixed.replace(/(<[A-Za-z][^>]*>)\s*>/g, '$1')
+  
+  // CRITICAL FIX: Remove standalone JSX comments that can break parsing
+  // Pattern (line with only a JSX comment): {/* Hero Section */}
+  fixed = fixed.replace(/^\s*\{\s*\/\*[\s\S]*?\*\/\s*\}\s*$/gm, '')
+  
+  // Clean up any double newlines created by removals
+  fixed = fixed.replace(/\n\s*\n\s*\n/g, '\n\n')
+  
+  return fixed
+}
+
+// Strip html/body/head to a single-page React component so preview works (incl. multi-page/layout output).
+function stripHtmlBodyToPageContent(content: string): string {
+  let out = content
+  out = out.replace(/export\s+const\s+metadata\s*:\s*Metadata\s*=\s*\{[\s\S]*?\}\s*;?\s*\n?/g, '')
+  out = out.replace(/export\s+const\s+metadata\s*=\s*\{[\s\S]*?\}\s*;?\s*\n?/g, '')
+
+  let inner: string | null = null
+  const bodyMatch = out.match(/<body[^>]*>([\s\S]*?)<\/body\s*>/i)
+  if (bodyMatch) {
+    inner = bodyMatch[1].trim()
+  } else {
+    const htmlMatch = out.match(/<html[^>]*>([\s\S]*?)<\/html\s*>/i)
+    if (htmlMatch) inner = htmlMatch[1].trim()
+  }
+
+  if (inner) {
+    inner = inner.replace(/<head[^>]*>[\s\S]*?<\/head\s*>/gi, '').trim()
+    const pageJsx = `<>${inner}</>`
+    out = out.replace(/\bexport\s+default\s+[\s\S]*$/m, '').trimEnd()
+    out = `${out}\n\nexport default function Page() {\n  return (\n    ${pageJsx}\n  )\n}`
+  } else {
+    out = out.replace(/<\s*head[^>]*>[\s\S]*?<\/head\s*>/gi, '')
+    out = out.replace(/<\s*body[^>]*>/gi, '<>')
+    out = out.replace(/<\/body\s*>/gi, '</>')
+    out = out.replace(/<\s*html[^>]*>/gi, '')
+    out = out.replace(/<\/html\s*>/gi, '')
+    out = out.replace(/\bRootLayout\b/g, 'Page')
+  }
+  return out
+}
+
+// Fallback: aggressively remove document tags so we always get renderable JSX (supports multi-page/layout output).
+function aggressiveStripDocumentTags(content: string): string {
+  let out = content
+  out = out.replace(/export\s+const\s+metadata\s*:\s*Metadata\s*=\s*\{[\s\S]*?\}\s*;?\s*\n?/g, '')
+  out = out.replace(/export\s+const\s+metadata\s*=\s*\{[\s\S]*?\}\s*;?\s*\n?/g, '')
+  out = out.replace(/<head[^>]*>[\s\S]*?<\/head\s*>/gi, '')
+  out = out.replace(/<\s*body[^>]*>/gi, '<>')
+  out = out.replace(/<\/body\s*>/gi, '</>')
+  out = out.replace(/<\s*html[^>]*>/gi, '')
+  out = out.replace(/<\/html\s*>/gi, '')
+  out = out.replace(/\bRootLayout\b/g, 'Page')
+  return out
+}
+
+function hasDocumentTags(s: string): boolean {
+  return /<\s*html|<\s*head|<\s*body/i.test(s)
+}
+
+// Build Sandpack files from code
+function buildSandpackFiles(code: string): Record<string, string> {
+  // First fix common syntax errors, then clean for Sandpack
+  let cleanCode = fixCommonSyntaxErrors(code)
+  cleanCode = cleanCodeForSandpack(cleanCode)
+  
+  // If code contains html/body/head (e.g. multi-page layout), strip to a single React component so preview works.
+  if (hasDocumentTags(cleanCode)) {
+    let stripped = stripHtmlBodyToPageContent(cleanCode)
+    if (hasDocumentTags(stripped)) {
+      stripped = aggressiveStripDocumentTags(stripped)
+    }
+    if (hasDocumentTags(stripped)) {
+      stripped = aggressiveStripDocumentTags(cleanCode)
+    }
+    // Use stripped result if we have substantial content; only show error when nothing usable remains
+    if (stripped.trim().length > 50) {
+      cleanCode = stripped
+    } else {
+      cleanCode = `import React from "react"
+
+export default function App() {
+  return (
+    <main className="min-h-screen flex items-center justify-center p-8 text-sm text-red-600">
+      <p>
+        Preview not available: generated layout uses &lt;html&gt;/&lt;body&gt; structure.
+        Please regenerate or simplify your request so it produces a single-page React component instead.
+      </p>
+    </main>
+  )
+}
+`
+    }
+  }
+  
+  // Ensure React import exists (required for JSX)
+  if (!cleanCode.includes("import React") && !cleanCode.includes("from 'react'") && !cleanCode.includes('from "react"')) {
+    // Check if code uses hooks
+    const usesHooks = /\b(useState|useEffect|useCallback|useMemo|useRef|useContext|useReducer)\b/.test(cleanCode)
+    if (usesHooks) {
+      // Extract which hooks are used
+      const hooks: string[] = []
+      if (/\buseState\b/.test(cleanCode)) hooks.push('useState')
+      if (/\buseEffect\b/.test(cleanCode)) hooks.push('useEffect')
+      if (/\buseCallback\b/.test(cleanCode)) hooks.push('useCallback')
+      if (/\buseMemo\b/.test(cleanCode)) hooks.push('useMemo')
+      if (/\buseRef\b/.test(cleanCode)) hooks.push('useRef')
+      if (/\buseContext\b/.test(cleanCode)) hooks.push('useContext')
+      if (/\buseReducer\b/.test(cleanCode)) hooks.push('useReducer')
+      cleanCode = `import React, { ${hooks.join(', ')} } from "react"\n\n${cleanCode}`
+    } else {
+      cleanCode = `import React from "react"\n\n${cleanCode}`
+    }
+  }
+  
+  // Ensure export default exists
+  if (!cleanCode.includes("export default")) {
+    // Try to find the main component function
+    const functionMatch = cleanCode.match(/function\s+(\w+)\s*\(/)
+    const constMatch = cleanCode.match(/const\s+(\w+)\s*=\s*\(/)
+    const componentName = functionMatch?.[1] || constMatch?.[1]
+    
+    if (componentName) {
+      cleanCode += `\n\nexport default ${componentName}`
+    }
+  }
+
+  return {
+    "/App.tsx": cleanCode,
+    "/index.tsx": `import React from "react"
+import ReactDOM from "react-dom/client"
+import App from "./App"
+import "./styles.css"
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)`,
+    "/styles.css": `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Syne:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap');
+
+* { 
+  box-sizing: border-box; 
+  margin: 0;
+  padding: 0;
+}
+
+body { 
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Base keyframes for builder "wow" animations - use with Tailwind animate-[name_duration_easing] */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes blob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: scale(1); }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: scale(1.05); }
+}
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 20px currentColor; }
+  50% { opacity: 0.8; box-shadow: 0 0 40px currentColor; }
+}`
+  }
+}
+
+// Sandpack status listener component
+function SandpackStatusListener({ 
+  onReady, 
+  onError 
+}: { 
+  onReady: () => void
+  onError: (error: string) => void 
+}) {
+  const { sandpack } = useSandpack()
+  const hasCalledReady = React.useRef(false)
+  const lastErrorRef = React.useRef<string | null>(null)
+  
+  useEffect(() => {
+    // Reset refs when sandpack restarts
+    if (sandpack.status === "idle") {
+      hasCalledReady.current = false
+      lastErrorRef.current = null
+    }
+    
+    if (sandpack.status === "running" && !hasCalledReady.current) {
+      hasCalledReady.current = true
+      onReady()
+    }
+    if (sandpack.status === "timeout") {
+      onError("Preview timed out")
+    }
+  }, [sandpack.status]) // Remove onReady/onError from deps to prevent infinite loop
+
+  // Listen for errors in bundler
+  useEffect(() => {
+    const errors = sandpack.error
+    if (errors && errors.message !== lastErrorRef.current) {
+      lastErrorRef.current = errors.message || "Compilation error"
+      onError(lastErrorRef.current)
+    }
+  }, [sandpack.error]) // Remove onError from deps to prevent infinite loop
+
+  return null
+}
+
+// Inner preview component that uses Sandpack context
+function SandpackPreviewInner({
+  isFullscreen,
+  onReady,
+  onError
+}: {
+  isFullscreen?: boolean
+  onReady: () => void
+  onError: (error: string) => void
+}) {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+
+  // Set iframe title for screen readers (Sandpack does not expose this prop; iframe may mount async)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const setTitle = () => {
+      const iframe = el.querySelector("iframe")
+      if (iframe) iframe.setAttribute("title", "Live preview")
+    }
+    setTitle()
+    const t = setTimeout(setTitle, 500)
+    const observer = new MutationObserver(setTitle)
+    observer.observe(el, { childList: true, subtree: true })
+    return () => {
+      clearTimeout(t)
+      observer.disconnect()
+    }
+  }, [isFullscreen])
+
+  return (
+    <div ref={containerRef} className="h-full w-full">
+      <SandpackStatusListener onReady={onReady} onError={onError} />
+      <SandpackPreview
+        showNavigator={false}
+        showRefreshButton={false}
+        showOpenInCodeSandbox={false}
+        style={{
+          height: "100%",
+          minHeight: isFullscreen ? "100%" : 600,
+          width: "100%"
+        }}
+      />
+    </div>
+  )
+}
+
+const SAFE_STARTER_PAGE = `import React from "react"
+
+export default function App() {
+  return (
+    <main className="min-h-screen bg-slate-950 text-slate-50 flex items-center justify-center p-8">
+      <div className="max-w-2xl space-y-4">
+        <h1 className="text-3xl font-bold">Safe starter page</h1>
+        <p className="text-slate-300">
+          The previous code had errors. Use this starter or regenerate from the chat.
+        </p>
+      </div>
+    </main>
+  )
+}
+`
+
+export function LivePreview({ 
+  code, 
+  viewport, 
+  isFullscreen, 
+  files: additionalFiles,
+  reason,
+  previewError,
+  onFixError,
+  onErrorDetected,
+  onUseSafeStarter,
+  onMakeItPop,
+}: LivePreviewProps) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [key, setKey] = useState(0)
+  const [retryCount, setRetryCount] = useState(0)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const MAX_RETRIES = 3
+  const TIMEOUT_MS = 5000 // 5 seconds timeout
+
+  // Build Sandpack files
+  const sandpackFiles = useMemo(() => {
+    try {
+      const files = buildSandpackFiles(code)
+      // Merge additional files if provided (e.g. /components/ProjectCard.tsx) so multi-file projects resolve
+      if (additionalFiles) {
+        Object.entries(additionalFiles).forEach(([path, content]) => {
+          const isCode = /\.(tsx?|jsx?)$/i.test(path)
+          files[path] = isCode ? cleanCodeForSandpack(content) : content
+        })
+      }
+      return files
+    } catch (e) {
+      setError("Failed to process code")
+      return {}
+    }
+  }, [code, additionalFiles])
+
+  // Reset loading when code changes
+  useEffect(() => {
+    setIsLoading(true)
+    setError(null)
+    setRetryCount(0)
+  }, [code])
+
+  // Auto-refresh timeout - if preview doesn't load in 5 seconds, auto-retry
+  useEffect(() => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    // Only set timeout if we're loading and have valid code
+    if (isLoading && code && code.trim().length > 0) {
+      timeoutRef.current = setTimeout(() => {
+        if (isLoading && retryCount < MAX_RETRIES) {
+          // console.log(`[LivePreview] Auto-refresh attempt ${retryCount + 1}/${MAX_RETRIES}`)
+          setRetryCount(prev => prev + 1)
+          setKey(prev => prev + 1)
+          toast.info(`Preview loading slow, retrying... (${retryCount + 1}/${MAX_RETRIES})`)
+        } else if (retryCount >= MAX_RETRIES) {
+          setError("Preview failed to load after multiple attempts. Click refresh to try again.")
+          setIsLoading(false)
+        }
+      }, TIMEOUT_MS)
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [isLoading, key, retryCount, code])
+
+  const handleReady = useCallback(() => {
+    setIsLoading(false)
+    setError(null)
+  }, [])
+
+  const handleError = useCallback((errorMessage: string) => {
+    let displayMessage = errorMessage
+
+    // Sandpack/Babel sometimes throws a meta-error around a real SyntaxError.
+    // Make this readable by surfacing only the underlying syntax problem.
+    if (errorMessage.includes("Cannot assign to read only property 'message'")) {
+      const syntaxPart = errorMessage.match(/SyntaxError:[\s\S]*/)
+      displayMessage =
+        syntaxPart?.[0] ||
+        "Preview failed due to invalid JSX. Check for unclosed tags, stray '>' characters, or incomplete comments, then try again."
+    }
+
+    setError(displayMessage)
+    setIsLoading(false)
+    onErrorDetected?.(errorMessage)
+  }, [onErrorDetected])
+
+  const handleRefresh = useCallback(() => {
+    setKey(prev => prev + 1)
+    setIsLoading(true)
+    setError(null)
+    setRetryCount(0) // Reset retry count on manual refresh
+    toast.success("Preview refreshed")
+  }, [])
+
+  const handleOpenExternal = useCallback(() => {
+    // Create a blob URL with the preview HTML for external viewing
+    const cleanCode = cleanCodeForSandpack(code).replace(/export\s+default\s+/, 'const App = ')
+    const html = `<!DOCTYPE html>
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Preview</title>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body { 
-      font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    .error-display {
-      padding: 20px;
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-      border-radius: 8px;
-      margin: 20px;
-      font-family: ui-monospace, monospace;
-      white-space: pre-wrap;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-  </style>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
-          },
-          colors: {
-            border: "hsl(220 13% 91%)",
-            input: "hsl(220 13% 91%)",
-            ring: "hsl(262 83% 58%)",
-            background: "hsl(0 0% 100%)",
-            foreground: "hsl(224 71% 4%)",
-            primary: {
-              DEFAULT: "hsl(262 83% 58%)",
-              foreground: "hsl(0 0% 100%)",
-            },
-            secondary: {
-              DEFAULT: "hsl(220 14% 96%)",
-              foreground: "hsl(224 71% 4%)",
-            },
-            muted: {
-              DEFAULT: "hsl(220 14% 96%)",
-              foreground: "hsl(220 9% 46%)",
-            },
-            accent: {
-              DEFAULT: "hsl(220 14% 96%)",
-              foreground: "hsl(224 71% 4%)",
-            },
-            destructive: {
-              DEFAULT: "hsl(0 84% 60%)",
-              foreground: "hsl(0 0% 100%)",
-            },
-          },
-          animation: {
-            'fade-in': 'fadeIn 0.5s ease-out',
-            'slide-up': 'slideUp 0.5s ease-out',
-          },
-          keyframes: {
-            fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
-            },
-            slideUp: {
-              '0%': { opacity: '0', transform: 'translateY(20px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' },
-            },
-          },
-        }
-      }
-    }
-  </script>
+  <style>* { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: 'Inter', sans-serif; }</style>
 </head>
-<body class="bg-background text-foreground">
+<body>
   <div id="root"></div>
-  <script type="text/babel" data-presets="react">
-    const { useState, useEffect, useCallback, useMemo, useRef, useReducer, createContext, useContext, Fragment } = React;
-    
-    // Utility function for class names
-    const cn = (...classes) => classes.filter(Boolean).join(' ');
-    
-    // Comprehensive Lucide-style icon library for generated components
-    const Icon = ({ name, className = "w-4 h-4", ...props }) => {
-      const icons = {
-        'chevron-down': <path d="m6 9 6 6 6-6"/>,
-        'chevron-right': <path d="m9 18 6-6-6-6"/>,
-        'chevron-left': <path d="m15 18-6-6 6-6"/>,
-        'chevron-up': <path d="m18 15-6-6-6 6"/>,
-        'check': <polyline points="20 6 9 17 4 12"/>,
-        'x': <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
-        'menu': <><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></>,
-        'star': <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
-        'arrow-right': <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
-        'arrow-left': <><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>,
-        'plus': <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
-        'minus': <line x1="5" y1="12" x2="19" y2="12"/>,
-        'search': <><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></>,
-        'user': <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
-        'settings': <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
-        'home': <><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
-        'mail': <><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></>,
-        'phone': <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></>,
-        'calendar': <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
-        'clock': <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
-        'heart': <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>,
-        'trash': <><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>,
-        'edit': <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
-        'copy': <><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>,
-        'download': <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
-        'upload': <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></>,
-        'share': <><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></>,
-        'eye': <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>,
-        'eye-off': <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></>,
-        'lock': <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>,
-        'unlock': <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></>,
-        'bell': <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
-        'image': <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></>,
-        'video': <><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></>,
-        'music': <><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></>,
-        'file': <><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></>,
-        'folder': <><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></>,
-        'shopping-cart': <><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></>,
-        'credit-card': <><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></>,
-        'map-pin': <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></>,
-        'globe': <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
-        'sun': <><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></>,
-        'moon': <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>,
-        'zap': <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>,
-        'loader': <><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></>,
-        'play': <polygon points="5 3 19 12 5 21 5 3"/>,
-        'pause': <><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></>,
-        'volume': <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></>,
-        'send': <><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></>,
-        'message-circle': <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>,
-        'sparkles': <><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></>,
-        'rocket': <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></>,
-        'filter': <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>,
-        'refresh': <><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></>,
-        'external-link': <><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></>,
-        'info': <><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>,
-        'alert-circle': <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
-        'check-circle': <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
-        'x-circle': <><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></>,
-        'bar-chart': <><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></>,
-        'trending-up': <><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>,
-        'trending-down': <><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></>,
-      };
-      return (
-        <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-          {icons[name] || icons['x']}
-        </svg>
-      );
-    };
-    
-    // Backward-compatible individual icon components
-    const ChevronDown = ({ className = "w-4 h-4" }) => <Icon name="chevron-down" className={className} />;
-    const ChevronRight = ({ className = "w-4 h-4" }) => <Icon name="chevron-right" className={className} />;
-    const ChevronLeft = ({ className = "w-4 h-4" }) => <Icon name="chevron-left" className={className} />;
-    const ChevronUp = ({ className = "w-4 h-4" }) => <Icon name="chevron-up" className={className} />;
-    const Check = ({ className = "w-4 h-4" }) => <Icon name="check" className={className} />;
-    const X = ({ className = "w-4 h-4" }) => <Icon name="x" className={className} />;
-    const Menu = ({ className = "w-4 h-4" }) => <Icon name="menu" className={className} />;
-    const Star = ({ className = "w-4 h-4", filled = false }) => (
-      <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-      </svg>
-    );
-    const ArrowRight = ({ className = "w-4 h-4" }) => <Icon name="arrow-right" className={className} />;
-    const ArrowLeft = ({ className = "w-4 h-4" }) => <Icon name="arrow-left" className={className} />;
-    const Plus = ({ className = "w-4 h-4" }) => <Icon name="plus" className={className} />;
-    const Minus = ({ className = "w-4 h-4" }) => <Icon name="minus" className={className} />;
-    const Search = ({ className = "w-4 h-4" }) => <Icon name="search" className={className} />;
-    const User = ({ className = "w-4 h-4" }) => <Icon name="user" className={className} />;
-    const Settings = ({ className = "w-4 h-4" }) => <Icon name="settings" className={className} />;
-    const Home = ({ className = "w-4 h-4" }) => <Icon name="home" className={className} />;
-    const Mail = ({ className = "w-4 h-4" }) => <Icon name="mail" className={className} />;
-    const Phone = ({ className = "w-4 h-4" }) => <Icon name="phone" className={className} />;
-    const Calendar = ({ className = "w-4 h-4" }) => <Icon name="calendar" className={className} />;
-    const Clock = ({ className = "w-4 h-4" }) => <Icon name="clock" className={className} />;
-    const Heart = ({ className = "w-4 h-4" }) => <Icon name="heart" className={className} />;
-    const Trash = ({ className = "w-4 h-4" }) => <Icon name="trash" className={className} />;
-    const Edit = ({ className = "w-4 h-4" }) => <Icon name="edit" className={className} />;
-    const Copy = ({ className = "w-4 h-4" }) => <Icon name="copy" className={className} />;
-    const Download = ({ className = "w-4 h-4" }) => <Icon name="download" className={className} />;
-    const Upload = ({ className = "w-4 h-4" }) => <Icon name="upload" className={className} />;
-    const Share = ({ className = "w-4 h-4" }) => <Icon name="share" className={className} />;
-    const Eye = ({ className = "w-4 h-4" }) => <Icon name="eye" className={className} />;
-    const EyeOff = ({ className = "w-4 h-4" }) => <Icon name="eye-off" className={className} />;
-    const Lock = ({ className = "w-4 h-4" }) => <Icon name="lock" className={className} />;
-    const Unlock = ({ className = "w-4 h-4" }) => <Icon name="unlock" className={className} />;
-    const Bell = ({ className = "w-4 h-4" }) => <Icon name="bell" className={className} />;
-    const Image = ({ className = "w-4 h-4" }) => <Icon name="image" className={className} />;
-    const Video = ({ className = "w-4 h-4" }) => <Icon name="video" className={className} />;
-    const Music = ({ className = "w-4 h-4" }) => <Icon name="music" className={className} />;
-    const File = ({ className = "w-4 h-4" }) => <Icon name="file" className={className} />;
-    const Folder = ({ className = "w-4 h-4" }) => <Icon name="folder" className={className} />;
-    const ShoppingCart = ({ className = "w-4 h-4" }) => <Icon name="shopping-cart" className={className} />;
-    const CreditCard = ({ className = "w-4 h-4" }) => <Icon name="credit-card" className={className} />;
-    const MapPin = ({ className = "w-4 h-4" }) => <Icon name="map-pin" className={className} />;
-    const Globe = ({ className = "w-4 h-4" }) => <Icon name="globe" className={className} />;
-    const Sun = ({ className = "w-4 h-4" }) => <Icon name="sun" className={className} />;
-    const Moon = ({ className = "w-4 h-4" }) => <Icon name="moon" className={className} />;
-    const Zap = ({ className = "w-4 h-4" }) => <Icon name="zap" className={className} />;
-    const Loader = ({ className = "w-4 h-4" }) => <Icon name="loader" className={className} />;
-    const Play = ({ className = "w-4 h-4" }) => <Icon name="play" className={className} />;
-    const Pause = ({ className = "w-4 h-4" }) => <Icon name="pause" className={className} />;
-    const Volume = ({ className = "w-4 h-4" }) => <Icon name="volume" className={className} />;
-    const Send = ({ className = "w-4 h-4" }) => <Icon name="send" className={className} />;
-    const MessageCircle = ({ className = "w-4 h-4" }) => <Icon name="message-circle" className={className} />;
-    const Sparkles = ({ className = "w-4 h-4" }) => <Icon name="sparkles" className={className} />;
-    const Rocket = ({ className = "w-4 h-4" }) => <Icon name="rocket" className={className} />;
-    const Filter = ({ className = "w-4 h-4" }) => <Icon name="filter" className={className} />;
-    const RefreshCw = ({ className = "w-4 h-4" }) => <Icon name="refresh" className={className} />;
-    const ExternalLink = ({ className = "w-4 h-4" }) => <Icon name="external-link" className={className} />;
-    const Info = ({ className = "w-4 h-4" }) => <Icon name="info" className={className} />;
-    const AlertCircle = ({ className = "w-4 h-4" }) => <Icon name="alert-circle" className={className} />;
-    const CheckCircle = ({ className = "w-4 h-4" }) => <Icon name="check-circle" className={className} />;
-    const XCircle = ({ className = "w-4 h-4" }) => <Icon name="x-circle" className={className} />;
-    const BarChart = ({ className = "w-4 h-4" }) => <Icon name="bar-chart" className={className} />;
-    const TrendingUp = ({ className = "w-4 h-4" }) => <Icon name="trending-up" className={className} />;
-    const TrendingDown = ({ className = "w-4 h-4" }) => <Icon name="trending-down" className={className} />;
-    
-    try {
-      // Execute the code and expose App to window
-      ${escapedCode}
-      
-      // Make App available globally
-      if (typeof App !== 'undefined') {
-        window.App = App;
-      }
-      
-      const rootElement = document.getElementById('root');
-      const root = ReactDOM.createRoot(rootElement);
-      
-      // The code cleaning renames all components to App and exposes it to window
-      // Check for App component and render
-      if (typeof window.App === 'function') {
-        root.render(React.createElement(window.App));
-        window.parent.postMessage({ type: 'preview-loaded' }, '*');
-      } else if (typeof App === 'function') {
-        root.render(React.createElement(App));
-        window.parent.postMessage({ type: 'preview-loaded' }, '*');
-      } else {
-        // Fallback: Try to find any function that looks like a component
-        const componentCandidates = [
-          'App', 'Component', 'Page', 'Main', 'LandingPage', 'Dashboard', 'Website', 'Home',
-          'Counter', 'Game', 'Calculator', 'TodoApp', 'Portfolio', 'Form'
-        ];
-        
-        let AppComponent = null;
-        for (const name of componentCandidates) {
-          try {
-            const comp = eval(name);
-            if (typeof comp === 'function') {
-              AppComponent = comp;
-              break;
-            }
-          } catch (e) {
-            // Component not found, continue
-          }
-        }
-        
-        if (AppComponent) {
-          root.render(React.createElement(AppComponent));
-          window.parent.postMessage({ type: 'preview-loaded' }, '*');
-        } else {
-          throw new Error('No component found. The code must export a function component named App.');
-        }
-      }
-    } catch (error) {
-      const errorHtml = '<div class="error-display"><strong>Preview Error:</strong>\\n\\n' + 
-        error.message.replace(/</g, '&lt;').replace(/>/g, '&gt;') + 
-        '</div>';
-      document.getElementById('root').innerHTML = errorHtml;
-      console.error('Preview Error:', error);
-      window.parent.postMessage({ type: 'preview-error', error: error.message }, '*');
-    }
-  </script>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo, useRef } = React;
+    ${cleanCode}
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  <\/script>
 </body>
 </html>`
-    return htmlContent
-  }, [])
-
-  // Update iframe when code changes
-  useEffect(() => {
-    if (!code || !iframeRef.current) return
-    
-    setError(null)
-    setPreviewLoading(true)
-    
-    // Clear any existing timeout
-    if (loadTimeoutRef.current) {
-      clearTimeout(loadTimeoutRef.current)
-    }
-    
-    // Set timeout for preview loading (10 seconds)
-    loadTimeoutRef.current = setTimeout(() => {
-      setPreviewLoading(false)
-      setError("Preview timed out. Click Refresh to try again.")
-    }, 10000)
-    
-    try {
-      // CRITICAL FIX: Convert full HTML document to React component
-      let processedCode = code
-      
-      // Helper function to extract and convert body content
-      const extractBodyContent = (htmlCode: string): string | null => {
-        const bodyMatch = htmlCode.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
-        if (!bodyMatch) return null
-        
-        let bodyContent = bodyMatch[1].trim()
-        
-        // Convert HTML attributes to JSX (class -> className, for -> htmlFor, etc.)
-        bodyContent = bodyContent
-          .replace(/\bclass=/g, 'className=')
-          .replace(/\bfor=/g, 'htmlFor=')
-          .replace(/\bstroke-width=/g, 'strokeWidth=')
-          .replace(/\bstroke-linecap=/g, 'strokeLinecap=')
-          .replace(/\bstroke-linejoin=/g, 'strokeLinejoin=')
-          .replace(/\bfill-rule=/g, 'fillRule=')
-          .replace(/\bclip-rule=/g, 'clipRule=')
-          .replace(/\btabindex=/g, 'tabIndex=')
-          .replace(/\breadonly/g, 'readOnly')
-          .replace(/\bautocomplete=/g, 'autoComplete=')
-          .replace(/\bautofocus/g, 'autoFocus')
-          .replace(/\bmaxlength=/g, 'maxLength=')
-          .replace(/\bminlength=/g, 'minLength=')
-          .replace(/\bcellpadding=/g, 'cellPadding=')
-          .replace(/\bcellspacing=/g, 'cellSpacing=')
-          .replace(/\bcolspan=/g, 'colSpan=')
-          .replace(/\browspan=/g, 'rowSpan=')
-          .replace(/\bframeborder=/g, 'frameBorder=')
-          .replace(/\ballowfullscreen/g, 'allowFullScreen')
-          // Fix self-closing tags that need to be self-closed in JSX
-          .replace(/<(img|input|br|hr|meta|link)([^>]*?)(?<!\/)>/gi, '<$1$2 />')
-          // Fix inline styles (basic conversion)
-          .replace(/style="([^"]*)"/g, (match, styles) => {
-            const jsxStyles = styles.split(';').filter(Boolean).map((s: string) => {
-              const [prop, val] = s.split(':').map((x: string) => x.trim())
-              if (!prop || !val) return ''
-              // Convert kebab-case to camelCase
-              const camelProp = prop.replace(/-([a-z])/g, (g: string) => g[1].toUpperCase())
-              return `${camelProp}: "${val}"`
-            }).filter(Boolean).join(', ')
-            return `style={{${jsxStyles}}}`
-          })
-        
-        return bodyContent
-      }
-      
-      // Check if the code is a full HTML document (not inside a React component)
-      if ((processedCode.includes('<html') || processedCode.includes('<!DOCTYPE') || processedCode.includes('<!doctype')) 
-          && !processedCode.includes('function') && !processedCode.includes('=>')) {
-        // Pure HTML document - extract body and wrap in React component
-        const bodyContent = extractBodyContent(processedCode)
-        if (bodyContent) {
-          processedCode = `function App() {
-  return (
-    <div>
-      ${bodyContent}
-    </div>
-  );
-}`
-        }
-      }
-      
-      // CRITICAL FIX: Handle React component that returns <html> in JSX
-      // Pattern: return ( <html ... ) or return (<html ...)
-      if (processedCode.includes('return') && processedCode.match(/return\s*\(\s*<html/)) {
-        // Extract the body content from within the return statement
-        const bodyContent = extractBodyContent(processedCode)
-        if (bodyContent) {
-          // Extract any code before the return statement (useState, handlers, etc.)
-          const beforeReturn = processedCode.match(/([\s\S]*?)return\s*\(/)?.[1] || ''
-          
-          // Clean up the beforeReturn - remove any broken syntax
-          let cleanBeforeReturn = beforeReturn
-            // Fix double const: const const = -> const handleSubmit =
-            .replace(/const\s+const\s*=/g, 'const handleSubmit =')
-            // Remove any incomplete lines
-            .replace(/^\s*\n/gm, '')
-          
-          processedCode = `${cleanBeforeReturn}return (
-    <div>
-      ${bodyContent}
-    </div>
-  );
-}`
-        }
-      }
-      
-      // Clean the code - comprehensive cleaning for preview
-      let cleanCode = processedCode
-      
-      // CRITICAL FIX: Fix malformed className template literals
-      // AI sometimes generates: className="{`w-5" h-5 ${...}`} instead of className={`w-5 h-5 ${...}`}
-      // Step 1: Find all malformed className patterns with quote breaking the template
-      cleanCode = cleanCode.replace(/className="\{`([^"]+)"\s+([^`]+)`\}/g, (match: string, part1: string, part2: string) => {
-        return `className={\`${part1} ${part2}\`}`;
-      })
-      // Step 2: Handle simpler cases: className="{`class`}" -> className={`class`}
-      cleanCode = cleanCode.replace(/className="\{`([^`]*)`\}"/g, 'className={`$1`}')
-      // Step 3: Fix any remaining broken starts: className="{` -> className={`
-      cleanCode = cleanCode.replace(/className="\{`/g, 'className={`')
-      // Step 4: Fix any remaining broken ends: `}" -> `}
-      cleanCode = cleanCode.replace(/`\}"/g, '`}')
-      // Step 5: Fix cases where quote appears mid-className
-      cleanCode = cleanCode.replace(/className="\{`([^"]+)"/g, 'className={`$1')
-      
-      cleanCode = cleanCode
-        // CRITICAL FIX: Replace ALL Unicode arrow variants with ASCII arrow (=>)
-        .replace(/⇒/g, "=>")  // U+21D2 Rightwards Double Arrow
-        .replace(/→/g, "=>")  // U+2192 Rightwards Arrow
-        .replace(/➔/g, "=>")  // U+2794 Heavy Wide-Headed Rightwards Arrow
-        .replace(/➜/g, "=>")  // U+279C Heavy Round-Tipped Rightwards Arrow
-        .replace(/➝/g, "=>")  // U+279D Drafting Point Rightwards Arrow
-        .replace(/⟹/g, "=>")  // U+27F9 Long Rightwards Double Arrow
-        .replace(/\u21D2/g, "=>")  // Explicit Unicode escape for ⇒
-        .replace(/\u2192/g, "=>")  // Explicit Unicode escape for →
-        // Remove directives
-        .replace(/"use client"\s*/g, "")
-        .replace(/'use client'\s*/g, "")
-        .replace(/"use server"\s*/g, "")
-        .replace(/'use server'\s*/g, "")
-        // Remove all import statements
-        .replace(/import\s+.*?from\s+["'].*?["'];?\s*/g, "")
-        .replace(/import\s+{[^}]*}\s+from\s+["'].*?["'];?\s*/g, "")
-        .replace(/import\s+["'].*?["'];?\s*/g, "")
-        // Remove export type statements
-        .replace(/export\s+type\s+.*?;/g, "")
-        .trim()
-      
-      // Rename the component to App for consistency
-      // Handle: export default function ComponentName (with or without TypeScript types)
-      cleanCode = cleanCode.replace(
-        /export\s+default\s+function\s+(\w+)\s*\(/,
-        "function App("
-      )
-      // Also handle multi-line function signatures with TypeScript types
-      cleanCode = cleanCode.replace(
-        /export\s+default\s+function\s+(\w+)\s*\{/,
-        "function App {"
-      )
-      
-      // Handle: export default ComponentName (reference)
-      cleanCode = cleanCode.replace(
-        /export\s+default\s+(\w+)\s*;?\s*$/,
-        "const App = $1;"
-      )
-      
-      // Handle: const ComponentName = () => { ... } export default ComponentName
-      const arrowMatch = cleanCode.match(/const\s+(\w+)\s*=\s*\([^)]*\)\s*=>/);
-      if (arrowMatch && !cleanCode.includes("function App") && !cleanCode.includes("const App =")) {
-        const componentName = arrowMatch[1];
-        cleanCode = cleanCode.replace(
-          new RegExp(`const\\s+${componentName}\\s*=`),
-          "const App ="
-        );
-        // Remove any remaining export default for this component
-        cleanCode = cleanCode.replace(new RegExp(`export\\s+default\\s+${componentName}\\s*;?`), "");
-      }
-      
-      // If there's still no App, try to find and rename any function component
-      if (!cleanCode.includes("function App") && !cleanCode.includes("const App")) {
-        const functionMatch = cleanCode.match(/function\s+(\w+)\s*\(/)
-        if (functionMatch) {
-          cleanCode = cleanCode.replace(
-            new RegExp(`function\\s+${functionMatch[1]}\\s*\\(`),
-            "function App("
-          )
-        }
-      }
-      
-      // Fix common issues
-      // Remove any leftover export statements
-      cleanCode = cleanCode.replace(/export\s+{\s*\w+\s*(as\s+default)?\s*}\s*;?/g, "")
-      cleanCode = cleanCode.replace(/export\s+default\s*;?/g, "")
-      
-      // Strip TypeScript type annotations comprehensively
-      // Handle multi-line interface/type definitions first
-      cleanCode = cleanCode.replace(/interface\s+\w+\s*\{[\s\S]*?\}/g, '')
-      cleanCode = cleanCode.replace(/type\s+\w+\s*=\s*\{[\s\S]*?\}/g, '')
-      cleanCode = cleanCode.replace(/type\s+\w+\s*=\s*[^;\n]+;?/g, '')
-      
-      // Handle function parameter type annotations: ({ prop = 'value' }: { prop?: string }) -> ({ prop = 'value' })
-      cleanCode = cleanCode.replace(/\}\s*:\s*\{[\s\S]*?\}\s*\)/g, '})')
-      
-      // Handle inline type annotations on variables
-      cleanCode = cleanCode.replace(/:\s*(string|number|boolean|any|void|null|undefined|React\.\w+|[A-Z]\w*)(\[\])?\s*=/g, ' =')
-      
-      // Handle function return type annotations: function name(): Type { -> function name() {
-      cleanCode = cleanCode.replace(/\)\s*:\s*[A-Za-z][\w<>\[\]|&\s]*\s*\{/g, ') {')
-      cleanCode = cleanCode.replace(/\)\s*:\s*[A-Za-z][\w<>\[\]|&\s]*\s*=>/g, ') =>')
-      
-      // Handle arrow function parameter types: (param: Type) => -> (param) =>
-      cleanCode = cleanCode.replace(/\(([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*[^)]+\)/g, '($1)')
-      
-      // Handle generic type parameters: <T extends Something> -> remove
-      cleanCode = cleanCode.replace(/<[A-Z][\w\s,<>]*>/g, '')
-      
-      // Handle React.FC and similar type annotations
-      cleanCode = cleanCode.replace(/:\s*React\.(FC|FunctionComponent|ComponentType)[<>\w\s,]*/g, '')
-      
-      // Clean up any double spaces or empty lines created
-      cleanCode = cleanCode.replace(/\n\s*\n\s*\n/g, '\n\n')
-      
-      // Replace React.useState/useCallback/etc with just the hook name (already available)
-      cleanCode = cleanCode.replace(/React\.(useState|useEffect|useCallback|useMemo|useRef|useReducer|useContext|createContext)/g, '$1')
-      
-      // Fix broken useState declarations (missing useState keyword)
-      // Pattern: const [x, setX] =('value') -> const [x, setX] = useState('value')
-      cleanCode = cleanCode.replace(/const\s+\[([^\]]+)\]\s*=\s*\((['"][^'"]*['"])\)/g, 'const [$1] = useState($2)')
-      cleanCode = cleanCode.replace(/const\s+\[([^\]]+)\]\s*=\s*\(([^)]+)\)/g, 'const [$1] = useState($2)')
-      
-      // Fix missing variable name in destructuring: const [, setX] -> const [x, setX]
-      cleanCode = cleanCode.replace(/const\s+\[\s*,\s*(set[A-Z]\w*)\]/g, (match: string, setter: string) => {
-        const varName = setter.replace(/^set/, '').toLowerCase()
-        return `const [${varName}, ${setter}]`
-      })
-      
-      // CRITICAL FIX: Add missing 'const' before destructuring useState declarations
-      // Pattern: [gameState, setGameState] = useState('menu') -> const [gameState, setGameState] = useState('menu')
-      cleanCode = cleanCode.replace(
-        /^(\s*)\[([a-zA-Z][a-zA-Z0-9]*),\s*(set[A-Z][a-zA-Z0-9]*)\]\s*=\s*useState\(/gm,
-        '$1const [$2, $3] = useState('
-      )
-      cleanCode = cleanCode.replace(
-        /(\n\s+)\[([a-zA-Z][a-zA-Z0-9]*),\s*(set[A-Z][a-zA-Z0-9]*)\]\s*=\s*useState\(/g,
-        '$1const [$2, $3] = useState('
-      )
-      // Handle single variable useRef
-      cleanCode = cleanCode.replace(
-        /^(\s*)([a-zA-Z][a-zA-Z0-9]*)\s*=\s*useRef\(/gm,
-        '$1const $2 = useRef('
-      )
-      cleanCode = cleanCode.replace(
-        /(\n\s+)([a-zA-Z][a-zA-Z0-9]*)\s*=\s*useRef\(/g,
-        '$1const $2 = useRef('
-      )
-      
-      // Fix missing = in hook declarations
-      cleanCode = cleanCode.replace(/\]\s+useState\(/g, '] = useState(')
-      cleanCode = cleanCode.replace(/\]\s+useEffect\(/g, '] = useEffect(')
-      cleanCode = cleanCode.replace(/\]\s+useCallback\(/g, '] = useCallback(')
-      cleanCode = cleanCode.replace(/\]\s+useMemo\(/g, '] = useMemo(')
-      
-      // CRITICAL FIX: Fix missing brackets in useState destructuring
-      // Pattern: const selectedPlan, setSelectedPlan = useState('basic') -> const [selectedPlan, setSelectedPlan] = useState('basic')
-      cleanCode = cleanCode.replace(
-        /const\s+([a-zA-Z][a-zA-Z0-9]*),\s*(set[A-Z][a-zA-Z0-9]*)\s*=\s*useState\(/g,
-        'const [$1, $2] = useState('
-      )
-      
-      // CRITICAL FIX: Fix malformed useState with missing closing bracket and wrong variable name
-      // Pattern: const [Error, setPasswordError = useState(false); -> const [passwordError, setPasswordError] = useState(false);
-      // Pattern: const [Error, setXxx = useState -> const [xxx, setXxx] = useState
-      cleanCode = cleanCode.replace(
-        /const\s+\[Error,\s*(set([A-Z][a-zA-Z0-9]*))\s*=\s*useState\(/g,
-        (match, setter, varPart) => {
-          const varName = varPart.charAt(0).toLowerCase() + varPart.slice(1)
-          return `const [${varName}, ${setter}] = useState(`
-        }
-      )
-      
-      // CRITICAL FIX: Fix any useState with missing closing bracket
-      // Pattern: const [xxx, setXxx = useState( -> const [xxx, setXxx] = useState(
-      cleanCode = cleanCode.replace(
-        /const\s+\[([a-zA-Z][a-zA-Z0-9]*),\s*(set[A-Z][a-zA-Z0-9]*)\s*=\s*useState\(/g,
-        'const [$1, $2] = useState('
-      )
-      
-      // CRITICAL FIX: Fix merged lines - when two useState declarations are on the same line
-      cleanCode = cleanCode.replace(
-        /useState\((['"][^'"]*['"])\)\s*const\s+\[/g,
-        "useState($1);\n  const ["
-      )
-      cleanCode = cleanCode.replace(
-        /useState\(([^)]+)\)\s*const\s+\[/g,
-        "useState($1);\n  const ["
-      )
-      
-      // CRITICAL FIX: Handle missing opening brace after function declaration
-      // Pattern: function App()  const -> function App() { const
-      cleanCode = cleanCode.replace(
-        /function\s+(\w+)\s*\(\s*\)\s+(const|let|var|return|\/\/|\/\*)/g,
-        'function $1() {\n  $2'
-      )
-      cleanCode = cleanCode.replace(
-        /function\s+(\w+)\s*\(([^)]*)\)\s+(const|let|var|return|\/\/|\/\*)/g,
-        'function $1($2) {\n  $3'
-      )
-      
-      // CRITICAL FIX: Add missing 'const' keyword for arrow function declarations
-      // Pattern: handleClick = () => { -> const handleClick = () => {
-      cleanCode = cleanCode.replace(
-        /^(\s*)([a-z][a-zA-Z0-9]*)\s*=\s*\(\s*\)\s*=>/gm,
-        '$1const $2 = () =>'
-      )
-      cleanCode = cleanCode.replace(
-        /^(\s*)([a-z][a-zA-Z0-9]*)\s*=\s*\(([^)]+)\)\s*=>/gm,
-        '$1const $2 = ($3) =>'
-      )
-      cleanCode = cleanCode.replace(
-        /(\n\s+)([a-z][a-zA-Z0-9]*)\s*=\s*\(\s*\)\s*=>/g,
-        '$1const $2 = () =>'
-      )
-      cleanCode = cleanCode.replace(
-        /(\n\s+)([a-z][a-zA-Z0-9]*)\s*=\s*\(([^)]+)\)\s*=>/g,
-        '$1const $2 = ($3) =>'
-      )
-      
-      // CRITICAL FIX: Fix missing comma in useState destructuring
-      // Pattern: const [pricing setPricing] = useState -> const [pricing, setPricing] = useState
-      cleanCode = cleanCode.replace(
-        /const\s+\[([a-zA-Z][a-zA-Z0-9]*)\s+(set[A-Z][a-zA-Z0-9]*)\]\s*=\s*useState\(/g,
-        'const [$1, $2] = useState('
-      )
-      
-      // CRITICAL FIX: Fix missing object key before colon
-      // Pattern: {: "value" -> { title: "value"
-      cleanCode = cleanCode.replace(/\{:\s*"([^"]+)"/g, '{ title: "$1"')
-      cleanCode = cleanCode.replace(/\{:\s*'([^']+)'/g, "{ title: '$1'")
-      
-      // CRITICAL FIX: Fix incomplete arithmetic in function calls
-      // Pattern: count + ) -> count + 1)
-      // Pattern: count - ) -> count - 1)
-      cleanCode = cleanCode.replace(/(\w+)\s*\+\s*\)/g, '$1 + 1)')
-      cleanCode = cleanCode.replace(/(\w+)\s*-\s*\)/g, '$1 - 1)')
-      
-      // CRITICAL FIX: Fix wrong setter function names (capitalization issues)
-      // Pattern: Count(count + 1) -> setCount(count + 1) when there's a useState for count
-      // First, find all useState declarations and their setters
-      const useStateMatches = cleanCode.matchAll(/const\s+\[(\w+),\s*(set\w+)\]\s*=\s*useState/g)
-      for (const match of useStateMatches) {
-        const varName = match[1]
-        const setterName = match[2]
-        // Fix capitalized version without 'set' prefix: Count( -> setCount(
-        const wrongName = varName.charAt(0).toUpperCase() + varName.slice(1)
-        const wrongPattern = new RegExp(`(?<!set)${wrongName}\\(`, 'g')
-        cleanCode = cleanCode.replace(wrongPattern, `${setterName}(`)
-      }
-      
-      // CRITICAL FIX: Fix malformed arrow function syntax
-      // Pattern: =(() => { -> = () => {
-      cleanCode = cleanCode.replace(/=\s*\(\s*\(\s*\)\s*=>/g, '= () =>')
-      
-      // CRITICAL FIX: Fix useCallback with wrong syntax
-      // Pattern: const handleClick =(()  => { ... }, []); -> const handleClick = useCallback(() => { ... }, []);
-      cleanCode = cleanCode.replace(/const\s+(\w+)\s*=\s*\(\s*\(\s*\)\s*=>\s*\{([^}]*)\}\s*,\s*\[\s*\]\s*\)/g, 
-        'const $1 = useCallback(() => {$2}, [])')
-      
-      // CRITICAL FIX: Fix incomplete useState values
-      // Pattern: useState( ) -> useState(0) or useState('')
-      cleanCode = cleanCode.replace(/useState\(\s*\)/g, "useState('')")
-      
-      // CRITICAL FIX: Fix useState with missing opening parenthesis
-      // Pattern: useState); -> useState(false);
-      cleanCode = cleanCode.replace(/useState\s*\)\s*;/g, "useState(false);")
-      
-      // CRITICAL FIX: Fix useState with only closing parenthesis
-      // Pattern: = useState); -> = useState(false);
-      cleanCode = cleanCode.replace(/=\s*useState\s*\)/g, "= useState(false)")
-      
-      // CRITICAL FIX: Fix setter calls without 'set' prefix
-      // Pattern: CTAClicked(true) when there's setIsCTAClicked -> setIsCTAClicked(true)
-      // Find all useState with 'is' prefix and fix wrong setter calls
-      const isStateMatches = cleanCode.matchAll(/const\s+\[(is\w+),\s*(setIs\w+)\]\s*=\s*useState/g)
-      for (const match of isStateMatches) {
-        const varName = match[1] // e.g., isCTAClicked
-        const setterName = match[2] // e.g., setIsCTAClicked
-        // The wrong pattern would be just the part after 'is' capitalized: CTAClicked(
-        const wrongName = varName.slice(2) // Remove 'is' prefix -> CTAClicked
-        const wrongPattern = new RegExp(`(?<![a-zA-Z])${wrongName}\\(`, 'g')
-        cleanCode = cleanCode.replace(wrongPattern, `${setterName}(`)
-      }
-      
-      // CRITICAL FIX: Fix incomplete setter calls
-      // Pattern: setCount(count + ); -> setCount(count + 1);
-      cleanCode = cleanCode.replace(/(set\w+)\((\w+)\s*\+\s*\)/g, '$1($2 + 1)')
-      cleanCode = cleanCode.replace(/(set\w+)\((\w+)\s*-\s*\)/g, '$1($2 - 1)')
-      
-      // CRITICAL FIX: Fix missing semicolons after useState
-      cleanCode = cleanCode.replace(/useState\(([^)]+)\)\s*\n/g, "useState($1);\n")
-      
-      // CRITICAL FIX: Fix broken JSX self-closing tags
-      // Pattern: <Component / > -> <Component />
-      cleanCode = cleanCode.replace(/<(\w+)([^>]*)\s+\/\s+>/g, '<$1$2 />')
-      
-      // CRITICAL FIX: Expose App to window for Babel transpiled code
-      // Babel standalone wraps code in a function scope, so we need to explicitly expose App
-      if (cleanCode.includes('function App') || cleanCode.includes('const App')) {
-        cleanCode += '\n\n// Expose App to window for rendering\nwindow.App = App;'
-      }
-      
-      const html = generatePreviewHTML(cleanCode)
-      
-      // Use srcdoc for more reliable inline HTML rendering
-      // This avoids blob URL issues with sandbox restrictions
-      if (iframeRef.current) {
-        iframeRef.current.srcdoc = html
-      }
-      
-      return () => {
-        if (loadTimeoutRef.current) {
-          clearTimeout(loadTimeoutRef.current)
-        }
-      }
-    } catch (err) {
-      setPreviewLoading(false)
-      setError(err instanceof Error ? err.message : "Failed to render preview")
-      if (loadTimeoutRef.current) {
-        clearTimeout(loadTimeoutRef.current)
-      }
-    }
-  }, [code, generatePreviewHTML])
-
-  // Listen for preview loaded message from iframe
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'preview-loaded') {
-        if (loadTimeoutRef.current) {
-          clearTimeout(loadTimeoutRef.current)
-        }
-        setPreviewLoading(false)
-      } else if (event.data?.type === 'preview-error') {
-        if (loadTimeoutRef.current) {
-          clearTimeout(loadTimeoutRef.current)
-        }
-        setPreviewLoading(false)
-        setError(event.data.error || 'Preview error occurred')
-      }
-    }
-    
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [])
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(code)
-    setCopied(true)
-    toast.success("Code copied to clipboard!")
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const downloadCode = () => {
-    const blob = new Blob([code], { type: "text/typescript" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `component-${Date.now()}.tsx`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success("Code downloaded!")
-  }
-
-  const openInNewTab = () => {
-    if (!code) return
-    
-    let cleanCode = code
-      .replace(/"use client"\s*/g, "")
-      .replace(/import\s+.*?from\s+["'].*?["'];?\s*/g, "")
-      .trim()
-      .replace(/export\s+default\s+function\s+(\w+)/, "function App")
-    
-    if (!cleanCode.includes("export default")) {
-      cleanCode += "\n\nexport default App;"
-    }
-    
-    const html = generatePreviewHTML(cleanCode)
     const blob = new Blob([html], { type: "text/html" })
     const url = URL.createObjectURL(blob)
     window.open(url, "_blank")
-  }
+  }, [code])
 
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return
-    
-    if (!isFullscreen) {
-      containerRef.current.requestFullscreen?.()
-    } else {
-      document.exitFullscreen?.()
-    }
-    setIsFullscreen(!isFullscreen)
-  }
+  const hasValidCode = code && isValidReactCode(code)
+  // Don't treat HTML (e.g. error pages) as a displayable reason/error
+  const isHtml = (s: string) => s.trimStart().startsWith("<!") || s.trimStart().toLowerCase().startsWith("<html")
+  const safePreviewError = previewError && !isHtml(previewError) ? previewError : (previewError && isHtml(previewError) ? "The server returned an error page. Check the network tab or try again." : previewError)
+  const showApiError = safePreviewError != null && String(safePreviewError).trim() !== ""
 
-  const refreshPreview = () => {
-    if (iframeRef.current) {
-      setError(null)
-      setPreviewLoading(true)
-      // eslint-disable-next-line no-self-assign
-      iframeRef.current.src = iframeRef.current.src
-    }
-  }
-
-  // DEBUG: Check if component renders at all
-  console.log('LivePreview rendering, code length:', code?.length || 0, 'isLoading:', isLoading, 'showCode:', showCode);
-  console.log('Code first 100 chars:', code?.substring(0, 100));
-  
   return (
-    <div ref={containerRef} className={cn("flex flex-col h-full bg-slate-900", className)}>
-      {/* Toolbar */}
-      <div className="flex items-center justify-between p-2 border-b border-border bg-card/50">
-        <div className="flex items-center gap-1">
-          {/* View Toggle */}
-          <Button
-            variant={showCode ? "ghost" : "secondary"}
-            size="sm"
-            onClick={() => setShowCode(false)}
-            className={cn(!showCode && "bg-secondary")}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Preview
-          </Button>
-          <Button
-            variant={showCode ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setShowCode(true)}
-            className={cn(showCode && "bg-secondary")}
-          >
-            <Code className="h-4 w-4 mr-1" />
-            Code
-          </Button>
-        </div>
-
-        {/* Viewport Selector */}
-        {!showCode && (
-          <div className="flex items-center gap-1 px-2 border-x border-border">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("h-8 w-8", viewport === "mobile" && "bg-secondary")}
-              onClick={() => setViewport("mobile")}
-              title="Mobile"
-            >
-              <Smartphone className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("h-8 w-8", viewport === "tablet" && "bg-secondary")}
-              onClick={() => setViewport("tablet")}
-              title="Tablet"
-            >
-              <Tablet className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("h-8 w-8", viewport === "desktop" && "bg-secondary")}
-              onClick={() => setViewport("desktop")}
-              title="Desktop"
-            >
-              <Monitor className="h-4 w-4" />
-            </Button>
+    <div className="flex h-full flex-col bg-[#f5f5f5] dark:bg-[#1a1a1a]">
+      {/* AI/API error — show current reason as error instead of website */}
+      {showApiError ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-destructive shrink-0" aria-hidden />
+          <div>
+            <h3 className="font-semibold text-destructive mb-1">AI / API Error</h3>
+            <p id="preview-api-error-message" className="text-sm text-muted-foreground max-w-md whitespace-pre-wrap">
+              {safePreviewError.length > 600 ? safePreviewError.slice(0, 600) + "…" : safePreviewError}
+            </p>
           </div>
-        )}
-
-        {/* Actions */}
+          <p className="text-xs text-muted-foreground">Fix the issue (e.g. set NAIRI_AI_BASE_URL to your Colab URL, check rate limits) and try again.</p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {onUseSafeStarter && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={onUseSafeStarter}
+                aria-describedby={safePreviewError.length > 200 ? "preview-api-error-message" : undefined}
+              >
+                Use safe starter page
+              </Button>
+            )}
+            {onFixError && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => onFixError(safePreviewError)}
+                className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
+                aria-describedby={safePreviewError.length > 200 ? "preview-api-error-message" : undefined}
+              >
+                <Wrench className="h-4 w-4 mr-1" />
+                Fix Error
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+      {/* Reason banner — info only when no previewError; never show HTML */}
+      {reason && reason.trim() && !reason.trimStart().startsWith("<!") && !reason.trimStart().toLowerCase().startsWith("<html") && (
+        <div className="flex items-start gap-2 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-left">
+          <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+          <p className="text-xs text-amber-800 dark:text-amber-200 flex-1 min-w-0">
+            <span className="font-medium">Reason: </span>
+            {reason.length > 400 ? reason.slice(0, 400) + "…" : reason}
+          </p>
+        </div>
+      )}
+      {/* Toolbar */}
+      <div className="flex items-center justify-between border-b bg-background px-4 py-2">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-xs">
+            {viewport} - {VIEWPORT_WIDTHS[viewport]}px
+          </Badge>
+          {isLoading && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Loading...
+            </div>
+          )}
+          {!isLoading && !error && (
+            <div className="flex items-center gap-1 text-xs text-green-600">
+              <CheckCircle2 className="h-3 w-3" />
+              Ready
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" />
+              Error
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copyCode} title="Copy code">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {onMakeItPop && code.trim().length > 100 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1 text-xs text-violet-600 border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-500"
+              onClick={onMakeItPop}
+            >
+              <Sparkles className="h-3 w-3" />
+              Make it pop
+            </Button>
+          )}
+          <Button
+            variant={isEditMode ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 gap-1 text-xs"
+            onClick={() => setIsEditMode(!isEditMode)}
+          >
+            <MousePointer2 className="h-3 w-3" />
+            Edit Mode
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={downloadCode} title="Download">
-            <Download className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={openInNewTab} title="Open in new tab">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={handleOpenExternal}
+          >
             <ExternalLink className="h-4 w-4" />
           </Button>
-          {!showCode && (
-            <>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={refreshPreview} title="Refresh">
-                <RotateCcw className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleFullscreen} title="Fullscreen">
-                {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              </Button>
-            </>
+        </div>
+      </div>
+
+      {/* Preview Area */}
+      <div className="flex flex-1 items-center justify-center overflow-auto p-4">
+        <div
+          className={cn(
+            "relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all duration-300",
+            isFullscreen ? "w-full h-full" : ""
+          )}
+          style={{
+            width: isFullscreen ? "100%" : VIEWPORT_WIDTHS[viewport],
+            height: isFullscreen ? "100%" : "auto",
+            minHeight: isFullscreen ? "100%" : 600,
+            maxHeight: isFullscreen ? "100%" : "calc(100vh - 200px)"
+          }}
+        >
+          {/* Loading overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">Loading preview...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Error overlay */}
+          {error && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-destructive/10 p-8">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <AlertCircle className="h-8 w-8 text-destructive" />
+                <span className="font-medium text-destructive">Preview Error</span>
+                <span className="text-sm text-muted-foreground max-w-md">{error}</span>
+                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                  <Button variant="outline" size="sm" onClick={handleRefresh}>
+                    <RefreshCw className="h-4 w-4 mr-1" />
+                    Retry
+                  </Button>
+                  {onUseSafeStarter && (
+                    <Button variant="secondary" size="sm" onClick={onUseSafeStarter}>
+                      Use safe starter page
+                    </Button>
+                  )}
+                  {onFixError && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={() => onFixError(error)}
+                      className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
+                    >
+                      <Wrench className="h-4 w-4 mr-1" />
+                      Fix Error
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sandpack Preview */}
+          {hasValidCode ? (
+            <SandpackProvider
+              key={key}
+              template="react-ts"
+              theme={nairiTheme}
+              files={sandpackFiles}
+              customSetup={{
+                dependencies: {
+                  "lucide-react": "latest"
+                }
+              }}
+              options={{
+                externalResources: [
+                  "https://cdn.tailwindcss.com",
+                  "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Syne:wght@400;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+                ],
+                classes: {
+                  "sp-wrapper": "!h-full",
+                  "sp-layout": "!h-full !border-0",
+                  "sp-preview": "!h-full",
+                  "sp-preview-container": "!h-full"
+                }
+              }}
+            >
+              <SandpackLayout style={{ height: "100%", border: "none" }}>
+                <SandpackPreviewInner
+                  isFullscreen={isFullscreen}
+                  onReady={handleReady}
+                  onError={handleError}
+                />
+              </SandpackLayout>
+            </SandpackProvider>
+          ) : (
+            <div className="flex items-center justify-center h-full min-h-[600px] bg-gray-50">
+              <div className="text-center p-8">
+                <h2 className="text-xl font-semibold text-gray-700 mb-2">Nairi Builder</h2>
+                <p className="text-gray-500">Enter a prompt to generate your website</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden bg-muted/20">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-muted border-t-primary rounded-full animate-spin" />
-              <p className="text-muted-foreground">Generating your creation...</p>
-            </div>
-          </div>
-        ) : showCode ? (
-          <div className="h-full overflow-auto p-4">
-            <pre className="text-sm font-mono text-foreground whitespace-pre-wrap bg-background rounded-lg p-4 border border-border">
-              {code || "// Your generated code will appear here"}
-            </pre>
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-full p-4">
-            <Card className="p-6 max-w-md bg-destructive/10 border-destructive/20">
-              <h3 className="font-semibold text-destructive mb-2">Preview Error</h3>
-              <p className="text-sm text-muted-foreground">{error}</p>
-              <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="bg-transparent" onClick={refreshPreview}>
-                  <RotateCcw className="h-4 w-4 mr-1" />
-                  Retry
-                </Button>
-                <Button variant="outline" size="sm" className="bg-transparent" onClick={() => setShowCode(true)}>
-                  View Code
-                </Button>
-              </div>
-            </Card>
-          </div>
-        ) : code ? (
-          <div 
-            className="h-full flex items-start justify-center p-4 overflow-auto"
-            style={{ backgroundColor: "#1a1a1a" }}
-          >
-            <div 
-              className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300 relative"
-              style={{ 
-                width: VIEWPORT_SIZES[viewport].width,
-                height: viewport === "full" ? "100%" : "auto",
-                minHeight: viewport === "full" ? "100%" : "600px",
-                maxHeight: viewport === "full" ? "none" : "800px"
-              }}
-            >
-              {previewLoading && (
-                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 border-4 border-muted border-t-primary rounded-full animate-spin" />
-                    <p className="text-sm text-muted-foreground">Loading preview...</p>
-                  </div>
-                </div>
-              )}
-              <iframe
-                ref={iframeRef}
-                className="w-full h-full border-0"
-                style={{ minHeight: "600px" }}
-                sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups"
-                title="Preview"
-                onLoad={() => {
-                  if (loadTimeoutRef.current) {
-                    clearTimeout(loadTimeoutRef.current)
-                  }
-                  setPreviewLoading(false)
-                }}
-              />
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <Monitor className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-              <p className="text-muted-foreground">Enter a prompt to generate your creation</p>
-            </div>
-          </div>
-        )}
-      </div>
+    </>
+    )}
     </div>
   )
 }

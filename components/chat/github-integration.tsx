@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import {
   Github,
@@ -29,8 +29,6 @@ import {
   Check,
   X,
   Clock,
-  AlertCircle,
-  CheckCircle,
   Loader2,
   Settings,
   Link,
@@ -69,71 +67,17 @@ interface Commit {
   date: Date;
 }
 
-const SAMPLE_REPOS: Repository[] = [
-  {
-    id: '1',
-    name: 'nairi-ai',
-    fullName: 'user/nairi-ai',
-    description: 'Advanced AI Assistant Platform',
-    language: 'TypeScript',
-    stars: 245,
-    forks: 32,
-    isPrivate: false,
-    defaultBranch: 'main',
-    updatedAt: new Date(),
-    isConnected: true
-  },
-  {
-    id: '2',
-    name: 'react-components',
-    fullName: 'user/react-components',
-    description: 'Reusable React component library',
-    language: 'TypeScript',
-    stars: 128,
-    forks: 18,
-    isPrivate: false,
-    defaultBranch: 'main',
-    updatedAt: new Date(),
-    isConnected: false
-  },
-  {
-    id: '3',
-    name: 'api-server',
-    fullName: 'user/api-server',
-    description: 'Backend API server',
-    language: 'Python',
-    stars: 56,
-    forks: 8,
-    isPrivate: true,
-    defaultBranch: 'develop',
-    updatedAt: new Date(),
-    isConnected: true
-  }
-];
-
-const SAMPLE_PRS: PullRequest[] = [
-  { id: '1', number: 42, title: 'Add voice mode feature', state: 'open', author: 'developer1', createdAt: new Date(), labels: ['feature', 'enhancement'] },
-  { id: '2', number: 41, title: 'Fix authentication bug', state: 'merged', author: 'developer2', createdAt: new Date(), labels: ['bug', 'priority'] },
-  { id: '3', number: 40, title: 'Update dependencies', state: 'closed', author: 'dependabot', createdAt: new Date(), labels: ['dependencies'] },
-];
-
-const SAMPLE_COMMITS: Commit[] = [
-  { id: '1', sha: 'abc1234', message: 'feat: add new chat components', author: 'developer1', date: new Date() },
-  { id: '2', sha: 'def5678', message: 'fix: resolve memory leak in voice mode', author: 'developer2', date: new Date() },
-  { id: '3', sha: 'ghi9012', message: 'docs: update README', author: 'developer1', date: new Date() },
-  { id: '4', sha: 'jkl3456', message: 'refactor: improve code structure', author: 'developer3', date: new Date() },
-];
-
 export function GitHubIntegration() {
-  const [isConnected, setIsConnected] = useState(true);
-  const [repositories, setRepositories] = useState<Repository[]>(SAMPLE_REPOS);
-  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(SAMPLE_REPOS[0]);
-  const [pullRequests] = useState<PullRequest[]>(SAMPLE_PRS);
-  const [commits] = useState<Commit[]>(SAMPLE_COMMITS);
+  const [isConnected, setIsConnected] = useState(false);
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
+  const [pullRequests] = useState<PullRequest[]>([]);
+  const [commits] = useState<Commit[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [autoSync, setAutoSync] = useState(true);
   const [aiCodeReview, setAiCodeReview] = useState(true);
+  const [hasGitHubToken, setHasGitHubToken] = useState(false);
 
   const filteredRepos = repositories.filter(repo =>
     repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -144,12 +88,16 @@ export function GitHubIntegration() {
     setRepositories(repos => repos.map(r =>
       r.id === repoId ? { ...r, isConnected: true } : r
     ));
+    setIsConnected(true);
+    setHasGitHubToken(true);
   };
 
   const disconnectRepo = (repoId: string) => {
     setRepositories(repos => repos.map(r =>
       r.id === repoId ? { ...r, isConnected: false } : r
     ));
+    setIsConnected(false);
+    setHasGitHubToken(false);
   };
 
   const syncRepositories = async () => {
@@ -191,25 +139,26 @@ export function GitHubIntegration() {
       {/* Sidebar */}
       <div className="w-80 border-r flex flex-col">
         <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Github className="h-5 w-5" />
-              GitHub
-            </h2>
-            {isConnected ? (
-              <Badge variant="default" className="bg-green-500">
-                <Check className="h-3 w-3 mr-1" />
-                Connected
-              </Badge>
-            ) : (
-              <Badge variant="secondary">
-                Disconnected
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your repositories
-          </p>
+   <div className="flex items-center justify-between">
+             <h2 className="text-xl font-semibold flex items-center gap-2">
+               <Github className="h-5 w-5" />
+               GitHub
+             </h2>
+             {isConnected ? (
+               <Badge variant="default" className="bg-green-500">
+                 <Check className="h-3 w-3 mr-1" />
+                 Connected
+               </Badge>
+             ) : (
+               <Badge variant="secondary">
+                 <X className="h-3 w-3 mr-1" />
+                 Disconnected
+               </Badge>
+             )}
+           </div>
+           <p className="text-sm text-muted-foreground mt-1">
+             Manage your repositories
+           </p>
         </div>
 
         {!isConnected ? (

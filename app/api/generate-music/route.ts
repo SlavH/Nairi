@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[MUSIC] Attempting Replicate MusicGen...")
+        // console.log("[MUSIC] Attempting Replicate MusicGen...")
         const replicateResponse = await fetch(
           "https://api.replicate.com/v1/predictions",
           {
@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[MUSIC] Attempting HuggingFace MusicGen...")
+        // console.log("[MUSIC] Attempting HuggingFace MusicGen...")
         const hfResponse = await fetch(
           "https://api-inference.huggingface.co/models/facebook/musicgen-small",
           {
@@ -330,7 +330,7 @@ export async function POST(request: NextRequest) {
     const mubertKey = process.env.MUBERT_API_KEY
     if (mubertKey && isValidApiKey(mubertKey)) {
       try {
-        console.log("[MUSIC] Attempting Mubert...")
+        // console.log("[MUSIC] Attempting Mubert...")
         const mubertResponse = await fetch(
           "https://api-b2b.mubert.com/v2/RecordTrackTTM",
           {

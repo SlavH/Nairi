@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     const elevenLabsKey = process.env.ELEVENLABS_API_KEY
     if (elevenLabsKey && isValidApiKey(elevenLabsKey)) {
       try {
-        console.log("[SFX] Attempting ElevenLabs Sound Effects...")
+        // console.log("[SFX] Attempting ElevenLabs Sound Effects...")
         
         const response = await fetch("https://api.elevenlabs.io/v1/sound-generation", {
           method: "POST",
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[SFX] Attempting Replicate AudioLDM...")
+        // console.log("[SFX] Attempting Replicate AudioLDM...")
         
         const sfxResults: string[] = []
         
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[SFX] Attempting HuggingFace AudioLDM...")
+        // console.log("[SFX] Attempting HuggingFace AudioLDM...")
         
         const response = await fetch(
           "https://api-inference.huggingface.co/models/cvssp/audioldm-s-full-v2",

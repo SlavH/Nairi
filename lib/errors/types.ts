@@ -82,7 +82,9 @@ export class AppErrorClass extends Error implements AppError {
     this.timestamp = new Date().toISOString();
     this.requestId = requestId;
     
-    Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 
   toJSON(): AppError {
@@ -99,7 +101,7 @@ export class AppErrorClass extends Error implements AppError {
 }
 
 // Error factory functions
-export function createError(
+function createError(
   code: ErrorCode,
   message: string,
   statusCode: number,
@@ -121,18 +123,6 @@ export function forbiddenError(message = "Forbidden", details?: Record<string, u
   return createError(ErrorCode.FORBIDDEN, message, 403, details, requestId);
 }
 
-export function notFoundError(message = "Resource not found", requestId?: string) {
-  return createError(ErrorCode.NOT_FOUND, message, 404, undefined, requestId);
-}
-
-export function rateLimitError(message = "Rate limit exceeded", details?: Record<string, unknown>, requestId?: string) {
-  return createError(ErrorCode.RATE_LIMIT_EXCEEDED, message, 429, details, requestId);
-}
-
 export function internalError(message = "Internal server error", details?: Record<string, unknown>, requestId?: string) {
   return createError(ErrorCode.INTERNAL_ERROR, message, 500, details, requestId);
-}
-
-export function serviceUnavailableError(message = "Service unavailable", requestId?: string) {
-  return createError(ErrorCode.SERVICE_UNAVAILABLE, message, 503, undefined, requestId);
 }

@@ -18,12 +18,11 @@ const createFolderSchema = z.object({
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const { data: folders, error } = await supabase
       .from("workspace_folders")
       .select("*")
@@ -40,12 +39,11 @@ export const GET = withLogging(async (req: NextRequest) => {
 
 export const POST = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const body = await req.json();
     const { name, parentId, color, icon } = createFolderSchema.parse(body);
 

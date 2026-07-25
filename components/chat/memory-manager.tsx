@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,23 +41,13 @@ import {
   Star,
   Tag,
   Clock,
-  RefreshCw,
   Download,
-  Upload,
   Shield,
-  Eye,
   EyeOff,
   Sparkles,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Zap,
-  Settings,
-  History,
   Lightbulb
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 // Memory types

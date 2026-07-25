@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[VIDEOEXTEND] Attempting Replicate SVD...")
+        // console.log("[VIDEOEXTEND] Attempting Replicate SVD...")
         
         // Use image-to-video with start/end frame
         const inputImage = startFrame || endFrame
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
     // TIER 2: Frame interpolation approach
     if (startFrame && endFrame) {
       try {
-        console.log("[VIDEOEXTEND] Attempting frame interpolation...")
+        // console.log("[VIDEOEXTEND] Attempting frame interpolation...")
         
         // Generate intermediate frames between start and end
         const numFrames = validDuration * fps

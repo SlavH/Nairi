@@ -116,7 +116,7 @@ async function handleVoiceClone(
   const elevenLabsKey = process.env.ELEVENLABS_API_KEY
   if (elevenLabsKey && isValidApiKey(elevenLabsKey)) {
     try {
-      console.log("[VOICE] Attempting ElevenLabs voice cloning...")
+      // console.log("[VOICE] Attempting ElevenLabs voice cloning...")
       
       // Convert base64 to blob for upload
       const audioBuffer = Buffer.from(audioSample.replace(/^data:audio\/\w+;base64,/, ''), 'base64')
@@ -153,7 +153,7 @@ async function handleVoiceClone(
   const coquiKey = process.env.COQUI_API_KEY
   if (coquiKey && isValidApiKey(coquiKey)) {
     try {
-      console.log("[VOICE] Attempting Coqui TTS voice cloning...")
+      // console.log("[VOICE] Attempting Coqui TTS voice cloning...")
       // Coqui API implementation would go here
       // Note: Coqui Studio was discontinued, but XTTS can be self-hosted
     } catch (error) {
@@ -195,7 +195,7 @@ async function handleSynthesize(
   const elevenLabsKey = process.env.ELEVENLABS_API_KEY
   if (elevenLabsKey && isValidApiKey(elevenLabsKey)) {
     try {
-      console.log("[VOICE] Attempting ElevenLabs synthesis...")
+      // console.log("[VOICE] Attempting ElevenLabs synthesis...")
       
       const voice = voiceId || "21m00Tcm4TlvDq8ikWAM" // Default: Rachel
       
@@ -243,7 +243,7 @@ async function handleSynthesize(
   const playhtUser = process.env.PLAYHT_USER_ID
   if (playhtKey && playhtUser && isValidApiKey(playhtKey)) {
     try {
-      console.log("[VOICE] Attempting PlayHT synthesis...")
+      // console.log("[VOICE] Attempting PlayHT synthesis...")
       
       const response = await fetch('https://api.play.ht/api/v2/tts', {
         method: 'POST',
@@ -285,7 +285,7 @@ async function handleSynthesize(
   const hfKey = process.env.HUGGINGFACE_API_KEY
   if (hfKey && isValidApiKey(hfKey)) {
     try {
-      console.log("[VOICE] Attempting HuggingFace TTS...")
+      // console.log("[VOICE] Attempting HuggingFace TTS...")
       
       const response = await fetch(
         "https://api-inference.huggingface.co/models/facebook/mms-tts-eng",

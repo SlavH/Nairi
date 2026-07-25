@@ -25,3 +25,8 @@ PROJECT_MASTER_SUMMARY.md
 manifest.md
 report_*.md
 structure.json
+
+# Playwright e2e.auth/
+playwright-report/
+playwright/.cache/
+test-results/

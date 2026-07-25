@@ -9,16 +9,17 @@ import Link from "next/link"
 
 const plans = [
   {
-    name: "Free",
-    price: "0",
+    name: "Starter",
+    price: "9.99",
     description: "Get started with Nairi basics",
-    credits: "1,000 credits/day",
+    credits: "500 tokens/month",
     features: [
       "Basic AI chat capabilities",
       "Access to free marketplace agents",
       "Community support",
       "Standard response times",
       "Basic document generation",
+      "3 premium agents",
     ],
     cta: "Start Free",
     href: "/auth/sign-up",
@@ -26,17 +27,18 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "19",
+    price: "29.99",
     description: "For creators and professionals",
-    credits: "10,000 credits/day",
+    credits: "2,000 tokens/month",
     features: [
-      "Everything in Free",
+      "Everything in Starter",
       "Priority response times",
       "Advanced AI models",
       "Marketplace selling enabled",
       "Extended context memory",
       "API access",
-      "Email support",
+      "All premium agents",
+      "Priority support",
     ],
     cta: "Start Pro Trial",
     href: "/checkout/plan/pro",
@@ -44,9 +46,9 @@ const plans = [
   },
   {
     name: "Enterprise",
-    price: "Custom",
+    price: "99.99",
     description: "For teams and organizations",
-    credits: "Unlimited credits",
+    credits: "Unlimited tokens",
     features: [
       "Everything in Pro",
       "Dedicated infrastructure",

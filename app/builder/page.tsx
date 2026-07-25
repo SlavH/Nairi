@@ -1,19 +1,17 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
-import { BuilderChat } from "@/components/builder-v2/builder-chat"
-import { FileExplorer } from "@/components/builder-v2/file-explorer"
-import { TaskPanel } from "@/components/builder-v2/task-panel"
-import { VersionHistory } from "@/components/builder-v2/version-history"
-import { TemplateGallery } from "@/components/builder-v2/template-gallery"
-import { ExportOptions } from "@/components/builder-v2/export-options"
-import { PreviewErrorBoundary } from "@/components/builder-v2/preview-error-boundary"
+import { BuilderChat } from "@/components/builder/builder-chat"
+import { FileExplorer } from "@/components/builder/file-explorer"
+import { TaskPanel } from "@/components/builder/task-panel"
+import { VersionHistory } from "@/components/builder/version-history"
+import { PreviewErrorBoundary } from "@/components/builder/preview-error-boundary"
 
 // Lazy load heavy components to improve initial page load
-// CodeEditor and LivePreviewV2 use Sandpack which is ~500KB
+// CodeEditor and LivePreview use Sandpack which is ~500KB
 const CodeEditor = dynamic(
-  () => import("@/components/builder-v2/code-editor").then(mod => ({ default: mod.CodeEditor })),
+  () => import("@/components/builder/code-editor").then(mod => ({ default: mod.CodeEditor })),
   {
     loading: () => (
       <div className="flex items-center justify-center h-full bg-muted/50">
@@ -27,8 +25,8 @@ const CodeEditor = dynamic(
   }
 )
 
-const LivePreviewV2 = dynamic(
-  () => import("@/components/builder-v2/live-preview-v2").then(mod => ({ default: mod.LivePreviewV2 })),
+const LivePreview = dynamic(
+  () => import("@/components/builder/live-preview").then(mod => ({ default: mod.LivePreview })),
   {
     loading: () => (
       <div className="flex items-center justify-center h-full bg-muted/50">
@@ -53,8 +51,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import {
   Code,
   Eye,
@@ -71,11 +67,6 @@ import {
   MessageSquare,
   ListTodo,
   Loader2,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  LayoutTemplate,
-  Download,
   Save,
   FolderOpen,
   Menu,
@@ -89,10 +80,13 @@ import { LiveRegion } from "@/components/ui/live-region"
 import { toast } from "sonner"
 import Link from "next/link"
 import Image from "next/image"
-import type { ProjectFile, BuildPlan, Task, ProjectVersion, ChatMessage, ViewportSize, LeftPanelTab, RightPanelTab, RightSidePanelTab } from "@/lib/builder-v2/types"
-import { INITIAL_FILES, VIEWPORT_SIZES } from "@/lib/builder-v2/constants"
+import type { ProjectFile, BuildPlan, Task, ProjectVersion, ChatMessage, ViewportSize, LeftPanelTab, RightPanelTab, RightSidePanelTab } from "@/lib/builder/types"
+import { INITIAL_FILES, VIEWPORT_SIZES } from "@/lib/builder/constants"
+import { useOpenCode } from "@/hooks/use-opencode"
+import { BUILDER_OPENCODE_INSTRUCTION } from "@/lib/builder/opencode-prompt"
 
-export default function BuilderV2Page() {
+export default function BuilderPage() {
+  const opencode = useOpenCode()
   // Project state
   const [files, setFiles] = useState<ProjectFile[]>(INITIAL_FILES)
   const [selectedFile, setSelectedFile] = useState<ProjectFile | null>(INITIAL_FILES[0])
@@ -116,8 +110,6 @@ export default function BuilderV2Page() {
   /** Announced to screen readers when generation completes successfully */
   const [generationCompleteAnnouncement, setGenerationCompleteAnnouncement] = useState<string | null>(null)
   
-  // Refs
-  const previewRef = useRef<HTMLIFrameElement>(null)
   // Persisted project (optional)
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
   const [currentProjectName, setCurrentProjectName] = useState<string>("")
@@ -317,7 +309,7 @@ export default function App() {
     setPreviewError(null)
 
     try {
-      // Create build plan with placeholder - will be replaced by dynamic tasks from AI
+      // Build initial plan from user request
       const plan: BuildPlan = {
         id: Date.now().toString(),
         title: `Building: ${content.slice(0, 50)}...`,
@@ -330,39 +322,34 @@ export default function App() {
       setCurrentPlan(plan)
       setLeftPanelTab("tasks")
 
-      // Call the generation API
-      const response = await fetch("/api/builder/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: content,
-          currentFiles: files,
-          conversationHistory: messages
-        })
-      })
+      // Generate via the OpenCode free-model backend (WebContainer or Zen API fallback)
+      const contextBlock = [
+        "CURRENT PROJECT FILES:",
+        ...files.map((f) => `--- ${f.path} ---\n${f.content}`),
+        "",
+        "CONVERSATION HISTORY:",
+        ...messages.slice(-6).map((m) => `${m.role}: ${m.content}`),
+      ].join("\n")
 
-      if (!response.ok) {
-        const text = await response.text()
-        let serverMessage = `Generation failed (${response.status})`
-        if (response.status === 429) {
-          serverMessage = "Too many requests; try again in a minute."
-        } else if (response.status >= 500) {
-          serverMessage = "Server error. Check your connection and try again."
-        } else try {
-          const body = JSON.parse(text)
-          if (body?.error) serverMessage = body.error
-          else if (body?.message) serverMessage = body.message
-        } catch {
-          // Don't use HTML error pages as the message (e.g. Next.js 404/500)
-          const isHtml = text && (text.trimStart().startsWith("<!") || text.trimStart().toLowerCase().startsWith("<html"))
-          if (text && !isHtml) serverMessage = text.slice(0, 200)
-          else if (isHtml) serverMessage = `Generation failed (${response.status}). The server returned an error page — check the network tab or server logs.`
+      const fullPrompt = `${BUILDER_OPENCODE_INSTRUCTION}\n\n${contextBlock}\n\nUSER REQUEST:\n${content}`
+
+      let generationText: string
+      try {
+        const result = await opencode.executeTask({
+          id: `builder-${Date.now()}`,
+          type: "generate-code",
+          prompt: fullPrompt,
+          context: { currentFiles: files, conversationHistory: messages },
+        })
+        generationText = result.explanation ?? ""
+        if (!result.success || !generationText.trim()) {
+          throw new Error(result.error || "Empty response from AI backend")
         }
-        throw new Error(serverMessage)
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : String(err)
+        throw new Error(`Generation failed: ${reason}`)
       }
 
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
       let assistantContent = ""
       let updatedFiles: ProjectFile[] = [...files]
       let buffer = "" // Buffer for incomplete JSON lines
@@ -370,117 +357,91 @@ export default function App() {
       let streamErrorMessage: string | null = null
 
       // Process streaming response
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+      // Parse the full OpenCode response as newline-delimited JSON events.
+      // The existing UI parser handles each event shape (plan / task-update /
+      // file-update / message / complete / error / preview-error).
+      const applyLine = (line: string) => {
+        if (!line.trim()) return
+        try {
+          const data = JSON.parse(line)
 
-          const chunk = decoder.decode(value, { stream: true })
-          buffer += chunk
-          
-          // Split by newlines but keep incomplete lines in buffer
-          const lines = buffer.split("\n")
-          buffer = lines.pop() || "" // Keep the last incomplete line in buffer
+          if (data.type === "plan") {
+            setCurrentPlan(prev => prev ? {
+              ...prev,
+              tasks: data.tasks.map((t: { id: string; title: string; status: string }) => ({
+                id: t.id,
+                title: t.title,
+                status: t.status as Task["status"]
+              }))
+            } : null)
+          } else if (data.type === "task-update") {
+            setCurrentPlan(prev => prev ? {
+              ...prev,
+              tasks: prev.tasks.map(t =>
+                t.id === data.taskId ? { ...t, status: data.status } : t
+              )
+            } : null)
+          } else if (data.type === "file-update") {
+            const existingIndex = updatedFiles.findIndex(f => f.path === data.file.path)
+            if (existingIndex >= 0) {
+              updatedFiles[existingIndex] = {
+                ...data.file,
+                isModified: true,
+                language: data.file.language || "typescript"
+              }
+            } else {
+              updatedFiles.push({
+                ...data.file,
+                isModified: true,
+                language: data.file.language || "typescript"
+              })
+            }
+            setFiles([...updatedFiles])
+            if (selectedFile && selectedFile.path === data.file.path) {
+              setSelectedFile({ ...data.file, isModified: true })
+            }
+          } else if (data.type === "message") {
+            assistantContent += data.content
+            const contentStr = String(data.content)
+            if (contentStr && (
+              contentStr.startsWith("Error:") ||
+              contentStr.startsWith("❌") ||
+              (contentStr.toLowerCase().includes("failed") && !contentStr.toLowerCase().includes("may have minor"))
+            )) {
+              toast.error(contentStr.slice(0, 150))
+            }
+          } else if (data.type === "preview-error") {
+            setPreviewError(typeof data.content === "string" ? data.content : "AI generation failed.")
+          } else if (data.type === "error") {
+            receivedComplete = false
+            streamErrorMessage = typeof data.content === "string" ? data.content : "Generation failed."
+          } else if (data.type === "complete") {
+            receivedComplete = true
+            setCurrentPlan(prev => prev ? {
+              ...prev,
+              status: "completed",
+              tasks: prev.tasks.map(t => ({ ...t, status: "completed" as const }))
+            } : null)
+          }
+        } catch {
+          // Non-JSON prose line — append to assistant content as a note.
+          assistantContent += (assistantContent ? "\n" : "") + line.trim()
+        }
+      }
 
-          for (const line of lines) {
-            if (!line.trim()) continue
-            
-            try {
-              const data = JSON.parse(line)
-              
-              if (data.type === "plan") {
-                // Received dynamic task plan from AI
-                setCurrentPlan(prev => prev ? {
-                  ...prev,
-                  tasks: data.tasks.map((t: { id: string; title: string; status: string }) => ({
-                    id: t.id,
-                    title: t.title,
-                    status: t.status as Task["status"]
-                  }))
-                } : null)
-              } else if (data.type === "task-update") {
-                setCurrentPlan(prev => prev ? {
-                  ...prev,
-                  tasks: prev.tasks.map(t => 
-                    t.id === data.taskId ? { ...t, status: data.status } : t
-                  )
-                } : null)
-              } else if (data.type === "file-update") {
-                console.log("File update received:", data.file.path)
-                const existingIndex = updatedFiles.findIndex(f => f.path === data.file.path)
-                if (existingIndex >= 0) {
-                  updatedFiles[existingIndex] = { 
-                    ...data.file, 
-                    isModified: true,
-                    language: data.file.language || "typescript"
-                  }
-                } else {
-                  updatedFiles.push({ 
-                    ...data.file, 
-                    isModified: true,
-                    language: data.file.language || "typescript"
-                  })
-                }
-                // Force state update with new array reference
-                setFiles([...updatedFiles])
-                
-                // Also update selected file if it matches
-                if (selectedFile && selectedFile.path === data.file.path) {
-                  setSelectedFile({ ...data.file, isModified: true })
-                }
-              } else if (data.type === "message") {
-                assistantContent += data.content
-                // Only show error toast for actual errors, not warnings or info messages
-                const contentStr = String(data.content)
-                if (contentStr && (
-                  contentStr.startsWith("Error:") || 
-                  contentStr.startsWith("❌") ||
-                  (contentStr.toLowerCase().includes("failed") && !contentStr.toLowerCase().includes("may have minor"))
-                )) {
-                  toast.error(contentStr.slice(0, 150))
-                }
-              } else if (data.type === "preview-error") {
-                setPreviewError(typeof data.content === "string" ? data.content : "AI generation failed.")
-              } else if (data.type === "error") {
-                receivedComplete = false
-                streamErrorMessage = typeof data.content === "string" ? data.content : "Generation failed."
-              } else if (data.type === "complete") {
-                receivedComplete = true
-                // Mark all tasks as completed when generation is done
-                setCurrentPlan(prev => prev ? { 
-                  ...prev, 
-                  status: "completed",
-                  tasks: prev.tasks.map(t => ({ ...t, status: "completed" as const }))
-                } : null)
-              }
-            } catch (e) {
-              // Not valid JSON, might be partial - will be handled in next iteration
-              console.log("Parse error for line:", line.substring(0, 100))
-            }
-          }
-        }
-        
-        // Process any remaining buffer content
-        if (buffer.trim()) {
-          try {
-            const data = JSON.parse(buffer)
-            if (data.type === "complete") receivedComplete = true
-            if (data.type === "error") { receivedComplete = false; streamErrorMessage = typeof data.content === "string" ? data.content : "Generation failed." }
-            if (data.type === "preview-error") setPreviewError(typeof data.content === "string" ? data.content : "AI generation failed.")
-            if (data.type === "file-update") {
-              console.log("Final file update:", data.file.path)
-              const existingIndex = updatedFiles.findIndex(f => f.path === data.file.path)
-              if (existingIndex >= 0) {
-                updatedFiles[existingIndex] = { ...data.file, isModified: true }
-              } else {
-                updatedFiles.push({ ...data.file, isModified: true })
-              }
-              setFiles([...updatedFiles])
-            }
-          } catch (e) {
-            // Ignore final parse errors
-          }
-        }
+      for (const line of generationText.split("\n")) {
+        applyLine(line)
+      }
+
+      // Safeguard: if the model produced file updates but omitted the final
+      // "complete" event, treat the generation as successful.
+      if (!receivedComplete && updatedFiles.some(f => f.isModified)) {
+        receivedComplete = true
+        setCurrentPlan(prev => prev ? {
+          ...prev,
+          status: "completed",
+          tasks: prev.tasks.map(t => ({ ...t, status: "completed" as const }))
+        } : null)
       }
 
       // Add assistant message; only show success/completed when stream sent "complete"
@@ -618,6 +579,24 @@ Please regenerate the entire page.tsx file with the fix applied.`
           {generationCompleteAnnouncement}
         </LiveRegion>
       )}
+
+      {/* Booting overlay — shown while WebContainer initializes */}
+      {opencode.initializing && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 text-center max-w-sm px-6">
+            <div className="relative h-16 w-16">
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#e052a0] border-r-[#00c9c8] animate-spin" />
+              <div className="absolute inset-2 rounded-full border-2 border-transparent border-b-[#e052a0] border-l-[#00c9c8] animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium text-foreground">Starting AI engine…</p>
+              <p className="text-xs text-muted-foreground">
+                First boot downloads dependencies in your browser. This may take 30–60 seconds.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Main Content */}
       <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         {/* Mobile: stacked layout (left panel then preview/code) - each takes full device height */}
@@ -695,6 +674,9 @@ Please regenerate the entire page.tsx file with the fix applied.`
                   onRetry={handleRetry}
                   currentCode={getPreviewCode()}
                   currentPlan={currentPlan}
+                  currentModel={opencode.config.model}
+                  onModelChange={(id) => opencode.updateConfig({ model: id })}
+                  isBooting={opencode.initializing}
                 />
               )}
               {leftPanelTab === "files" && (
@@ -777,7 +759,7 @@ Please regenerate the entire page.tsx file with the fix applied.`
             <div className="flex-1 min-h-[300px] overflow-hidden">
               {rightPanelTab === "preview" && (
                 <PreviewErrorBoundary onError={handleAutoFixError}>
-                  <LivePreviewV2
+                  <LivePreview
                     code={getPreviewCode()}
                     viewport={viewport}
                     isFullscreen={isFullscreen}
@@ -935,6 +917,9 @@ Please regenerate the entire page.tsx file with the fix applied.`
                       onRetry={handleRetry}
                       currentCode={getPreviewCode()}
                       currentPlan={currentPlan}
+                      currentModel={opencode.config.model}
+                      onModelChange={(id) => opencode.updateConfig({ model: id })}
+                      isBooting={opencode.initializing}
                     />
                   )}
                   {leftPanelTab === "tasks" && (
@@ -1101,7 +1086,7 @@ Please regenerate the entire page.tsx file with the fix applied.`
               <div className="flex-1 overflow-hidden">
                 {rightPanelTab === "preview" && (
                   <PreviewErrorBoundary onError={handleAutoFixError}>
-                    <LivePreviewV2
+                    <LivePreview
                       code={getPreviewCode()}
                       viewport={viewport}
                       isFullscreen={isFullscreen}

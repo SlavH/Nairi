@@ -97,21 +97,6 @@ export function FatigueDetector({ onTakeBreak, onSlowDown }: FatigueDetectorProp
 
   const BatteryIcon = getBatteryIcon()
 
-  // Track interactions from outside
-  const trackInteraction = () => {
-    setFatigueState((prev) => ({
-      ...prev,
-      interactions: prev.interactions + 1,
-    }))
-  }
-
-  const trackNewConcept = () => {
-    setFatigueState((prev) => ({
-      ...prev,
-      conceptsIntroduced: prev.conceptsIntroduced + 1,
-    }))
-  }
-
   const handleTakeBreak = () => {
     setFatigueState((prev) => ({
       ...prev,

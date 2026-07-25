@@ -154,7 +154,7 @@ export function DebateInterface({ sessions: initialSessions, userId }: DebateInt
     setNewArgument("")
 
     // Save user argument to database
-    const { data: userArg } = await supabase.from("debate_arguments").insert({
+    await supabase.from("debate_arguments").insert({
       session_id: activeSession.id,
       role: "user",
       content: newArgument,

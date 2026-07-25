@@ -21,12 +21,11 @@ export const POST = withLogging(async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check ownership
     const { data: creation } = await supabase

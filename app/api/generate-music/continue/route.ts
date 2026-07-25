@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[MUSICCONTINUE] Attempting Replicate MusicGen...")
+        // console.log("[MUSICCONTINUE] Attempting Replicate MusicGen...")
         
         const response = await fetch("https://api.replicate.com/v1/predictions", {
           method: "POST",
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[MUSICCONTINUE] Attempting HuggingFace MusicGen...")
+        // console.log("[MUSICCONTINUE] Attempting HuggingFace MusicGen...")
         
         // Note: HuggingFace inference API may not support audio conditioning
         // This is a simplified version

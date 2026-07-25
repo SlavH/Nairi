@@ -17,7 +17,7 @@ Nairi is an advanced AI assistant platform built with Next.js 16, React 19, and 
 │  └──────────────┘  └──────────────┘  └──────────────┘        │
 │                                                                  │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │  Dashboard   │  │  Builder V2  │  │Presentations │        │
+│  │  Dashboard   │  │   Builder    │  │Presentations │        │
 │  └──────────────┘  └──────────────┘  └──────────────┘        │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -106,7 +106,7 @@ nairi_v34/
 │   │   └── webhooks/       # Webhook handlers
 │   ├── chat/               # Chat interface
 │   ├── marketplace/        # Agent marketplace
-│   ├── builder-v2/         # Agent builder
+│   ├── builder/         # Agent builder
 │   ├── presentations/      # Presentation creator
 │   └── layout.tsx          # Root layout
 │
@@ -191,13 +191,13 @@ interface Agent {
 }
 ```
 
-### 3. Agent Builder V2
+### 3. Builder
 
-**Location**: `app/builder/page.tsx`, `app/api/builder/`, `components/builder-v2/`, `lib/builder-v2/`
+**Location**: `app/builder/page.tsx`, `app/api/builder/`, `components/builder/`, `lib/builder/`
 
 **Features**:
 - Visual agent builder (chat, file explorer, tasks, version history, preview/code panels).
-- **Generate**: POST /api/builder/generate — streaming NDJSON (plan, task-update, file-update, message, complete, optional error). Request body validated with Zod (`lib/builder-v2/schemas/request-schema.ts`). Prompt/plan phase uses `lib/builder-v2/generate/initial-plan.ts` and design guidance from `lib/builder-v2/utils/design-intelligence.ts`; execution and streaming live in the route. Generation can perform one optional retry on validation failure and one optional retry for a missing "wow" element when enabled via `BUILDER_RETRY_ON_VALIDATION_FAILURE` and `BUILDER_RETRY_FOR_WOW`.
+- **Generate**: POST /api/builder/generate — streaming NDJSON (plan, task-update, file-update, message, complete, optional error). Request body validated with Zod (`lib/builder/schemas/request-schema.ts`). Prompt/plan phase uses `lib/builder/generate/initial-plan.ts` and design guidance from `lib/builder/utils/design-intelligence.ts`; execution and streaming live in the route. Generation can perform one optional retry on validation failure and one optional retry for a missing "wow" element when enabled via `BUILDER_RETRY_ON_VALIDATION_FAILURE` and `BUILDER_RETRY_FOR_WOW`.
 - **Projects**: GET/POST /api/builder/projects, GET/PATCH/DELETE /api/builder/projects/[id] — persist projects and version snapshots; RLS and auth required.
 - **Deploy**: POST /api/builder/deploy — deploy a project (e.g. to Vercel); request/response are implementation-specific.
 

@@ -1,15 +1,22 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Zap, Gift, Trophy, Star, Clock, TrendingUp, ChevronRight, Sparkles } from 'lucide-react'
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { Zap, Gift, Trophy, Star, Clock, TrendingUp, ChevronRight, Sparkles } from "lucide-react"
 
-interface CreditTransaction {
+interface CreditData {
+  balance: number
+  earned: number
+  spent: number
+  bonus: number
+}
+
+interface Transaction {
   id: string
-  type: 'earned' | 'spent' | 'bonus' | 'purchased'
+  type: "earned" | "spent" | "bonus" | "purchased"
   amount: number
   description: string
-  timestamp: string
+  created_at: string
 }
 
 interface Reward {
@@ -21,49 +28,68 @@ interface Reward {
   available: boolean
 }
 
+const formatTime = (ts: string) => {
+  const d = new Date(ts)
+  const now = new Date()
+  const diff = now.getTime() - d.getTime()
+  if (diff < 60000) return "now"
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  return d.toLocaleDateString()
+}
+
 export default function CreditsPage() {
-  const [credits] = useState({
-    balance: 100,
-    earned: 250,
-    spent: 150,
-    bonus: 50
-  })
+  const [data, setData] = useState<CreditData | null>(null)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const [transactions] = useState<CreditTransaction[]>([
-    { id: '1', type: 'bonus', amount: 10, description: 'Daily login bonus', timestamp: 'Today' },
-    { id: '2', type: 'spent', amount: -5, description: 'Image generation', timestamp: '2 hours ago' },
-    { id: '3', type: 'earned', amount: 15, description: 'Completed learning module', timestamp: 'Yesterday' },
-    { id: '4', type: 'spent', amount: -10, description: 'Video generation (4s)', timestamp: 'Yesterday' },
-    { id: '5', type: 'bonus', amount: 25, description: 'Weekly streak bonus', timestamp: '3 days ago' },
-    { id: '6', type: 'earned', amount: 20, description: 'Shared creation on Flow', timestamp: '4 days ago' },
-    { id: '7', type: 'purchased', amount: 100, description: 'Credit pack purchase', timestamp: '1 week ago' }
-  ])
+  useEffect(() => {
+    fetch("/api/credits")
+      .then((r) => (r.ok ? r.json() : Promise.reject("Failed")))
+      .then((json: CreditData & { transactions?: Transaction[] }) => {
+        setData({ balance: json.balance, earned: json.earned, spent: json.spent, bonus: json.bonus })
+        if (json.transactions) setTransactions(json.transactions)
+      })
+      .catch(() => setError("Could not load credits"))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const [rewards] = useState<Reward[]>([
-    { id: '1', name: 'Extra Image Generation', description: '10 bonus image generations', cost: 50, icon: '🎨', available: true },
-    { id: '2', name: 'Video Credits', description: '5 video generation credits', cost: 100, icon: '🎬', available: true },
-    { id: '3', name: 'Premium Model Access', description: '24-hour access to premium models', cost: 200, icon: '⚡', available: false },
-    { id: '4', name: 'Custom Agent', description: 'Create a custom AI agent', cost: 500, icon: '🤖', available: false },
-    { id: '5', name: 'Pro Trial', description: '7-day Pro plan trial', cost: 1000, icon: '👑', available: false }
-  ])
-
-  const getTransactionColor = (type: CreditTransaction['type']) => {
+  const getTransactionColor = (type: Transaction["type"]) => {
     switch (type) {
-      case 'earned': return 'text-green-400'
-      case 'spent': return 'text-red-400'
-      case 'bonus': return 'text-yellow-400'
-      case 'purchased': return 'text-cyan-400'
+      case "earned": return "text-green-400"
+      case "spent": return "text-red-400"
+      case "bonus": return "text-yellow-400"
+      case "purchased": return "text-cyan-400"
     }
   }
 
-  const getTransactionIcon = (type: CreditTransaction['type']) => {
+  const getTransactionIcon = (type: Transaction["type"]) => {
     switch (type) {
-      case 'earned': return <TrendingUp className="w-4 h-4" />
-      case 'spent': return <Zap className="w-4 h-4" />
-      case 'bonus': return <Gift className="w-4 h-4" />
-      case 'purchased': return <Star className="w-4 h-4" />
+      case "earned": return <TrendingUp className="w-4 h-4" />
+      case "spent": return <Zap className="w-4 h-4" />
+      case "bonus": return <Gift className="w-4 h-4" />
+      case "purchased": return <Star className="w-4 h-4" />
     }
   }
+
+  const rewards: Reward[] = [
+    { id: "1", name: "Extra Image Generation", description: "10 bonus image generations", cost: 50, icon: "🎨", available: true },
+    { id: "2", name: "Video Credits", description: "5 video generation credits", cost: 100, icon: "🎬", available: true },
+    { id: "3", name: "Premium Model Access", description: "24-hour access to premium models", cost: 200, icon: "⚡", available: true },
+    { id: "4", name: "Custom Agent", description: "Create a custom AI agent", cost: 500, icon: "🤖", available: true },
+    { id: "5", name: "Pro Trial", description: "7-day Pro plan trial", cost: 1000, icon: "👑", available: true },
+  ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse text-white/60">Loading...</div>
+      </div>
+    )
+  }
+
+  const credits = data || { balance: 0, earned: 0, spent: 0, bonus: 0 }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -88,9 +114,12 @@ export default function CreditsPage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Credit Balance */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-sm text-red-300">{error}</div>
+        )}
+
         <div className="bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-500/30 mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="text-white/60 text-sm mb-1">Current Balance</div>
               <div className="flex items-center gap-3">
@@ -117,37 +146,35 @@ export default function CreditsPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Transaction History */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <Clock className="w-5 h-5" />
                 Transaction History
               </h2>
-              <button className="text-sm text-cyan-400 hover:text-cyan-300">View All</button>
             </div>
-            <div className="space-y-3">
-              {transactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center gap-4 bg-white/5 rounded-xl p-4 border border-white/10"
-                >
-                  <div className={`w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center ${getTransactionColor(tx.type)}`}>
-                    {getTransactionIcon(tx.type)}
+            {transactions.length === 0 ? (
+              <p className="text-white/40 text-sm">No transactions yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {transactions.slice(0, 20).map((tx) => (
+                  <div key={tx.id} className="flex items-center gap-4 bg-white/5 rounded-xl p-4 border border-white/10">
+                    <div className={`w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center ${getTransactionColor(tx.type)}`}>
+                      {getTransactionIcon(tx.type)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">{tx.description}</div>
+                      <div className="text-xs text-white/40">{formatTime(tx.created_at)}</div>
+                    </div>
+                    <div className={`font-bold ${getTransactionColor(tx.type)}`}>
+                      {tx.amount > 0 ? "+" : ""}{tx.amount}
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium">{tx.description}</div>
-                    <div className="text-xs text-white/40">{tx.timestamp}</div>
-                  </div>
-                  <div className={`font-bold ${getTransactionColor(tx.type)}`}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount}
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Rewards */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -161,8 +188,8 @@ export default function CreditsPage() {
                   key={reward.id}
                   className={`flex items-center gap-4 bg-white/5 rounded-xl p-4 border transition-all ${
                     reward.available && credits.balance >= reward.cost
-                      ? 'border-cyan-500/50 hover:border-cyan-500 cursor-pointer'
-                      : 'border-white/10 opacity-60'
+                      ? "border-cyan-500/50 hover:border-cyan-500 cursor-pointer"
+                      : "border-white/10 opacity-60"
                   }`}
                 >
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-2xl">
@@ -181,7 +208,6 @@ export default function CreditsPage() {
               ))}
             </div>
 
-            {/* Ways to Earn */}
             <div className="mt-8">
               <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <Sparkles className="w-5 h-5 text-cyan-400" />

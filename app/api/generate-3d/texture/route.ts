@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[3DTEXTURE] Attempting Replicate...")
+        // console.log("[3DTEXTURE] Attempting Replicate...")
         
         for (const mapType of maps) {
           const mapPrompt = texturePrompts[mapType] || `${basePrompt}, ${mapType} map`
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     // TIER 2: Pollinations for basic textures
     try {
-      console.log("[3DTEXTURE] Attempting Pollinations...")
+      // console.log("[3DTEXTURE] Attempting Pollinations...")
       
       for (const mapType of maps) {
         const mapPrompt = texturePrompts[mapType] || `${basePrompt}, ${mapType} map`

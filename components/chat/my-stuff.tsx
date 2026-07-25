@@ -12,7 +12,6 @@ import {
   Bookmark,
   Search,
   Star,
-  Folder,
   FileText,
   Image,
   Code,
@@ -25,13 +24,11 @@ import {
   Share2,
   Download,
   Plus,
-  Filter,
   Grid,
   List,
   Clock,
   Tag,
   Heart,
-  ExternalLink,
   Sparkles
 } from "lucide-react";
 

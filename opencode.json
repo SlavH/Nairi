@@ -6,11 +6,29 @@
       "npm": "@ai-sdk/openai-compatible",
       "models": {
         "big-pickle": {
-          "name": "opencode/big-pickle"
+          "name": "opencode/big-pickle",
+          "description": "Default free model with reasoning"
+        },
+        "deepseek-v4-flash-free": {
+          "name": "opencode/deepseek-v4-flash-free",
+          "description": "Fast free model"
+        },
+        "mimo-v2.5-free": {
+          "name": "opencode/mimo-v2.5-free",
+          "description": "Free coding model"
+        },
+        "nemotron-3-ultra-free": {
+          "name": "opencode/nemotron-3-ultra-free",
+          "description": "Free general model"
+        },
+        "north-mini-code-free": {
+          "name": "opencode/north-mini-code-free",
+          "description": "Free lightweight coding model"
         }
       }
     }
   },
+  "model": "opencode/big-pickle",
   "server": {
     "port": 4096,
     "hostname": "0.0.0.0"
@@ -24,5 +42,6 @@
     "grep": "allow",
     "webfetch": "allow",
     "websearch": "allow"
-  }
+  },
+  "mcp": {}
 }

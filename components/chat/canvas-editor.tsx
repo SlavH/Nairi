@@ -35,8 +35,6 @@ import {
   Share2,
   Sparkles,
   Wand2,
-  Copy,
-  Scissors,
   Grid,
   AlignLeft,
   AlignCenter,

@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[3DANIMATE] Attempting Replicate...")
+        // console.log("[3DANIMATE] Attempting Replicate...")
         
         // If we have a character description but no model, generate one first
         let modelUrl = model

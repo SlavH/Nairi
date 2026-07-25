@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import Image from "next/image"
 // Web Speech API types (browser-native)
 interface SpeechRecognitionEvent extends Event {
   results: SpeechRecognitionResultList;
@@ -41,7 +40,6 @@ import {
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 
 import { cn } from "@/lib/utils"
@@ -438,7 +436,7 @@ export function ChatInterface({
       inputValueRef.current = messageContent
       
       // Send message using the AI SDK sendMessage function
-      console.log('[Chat] Sending message:', { content: messageContent, length: messageContent.length })
+      // console.log('[Chat] Sending message:', { content: messageContent, length: messageContent.length })
       if (typeof sendMessage === 'function') {
         // sendMessage expects an object with text property for @ai-sdk/react v3
         sendMessage({ text: messageContent })

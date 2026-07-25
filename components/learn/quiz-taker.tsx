@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import { Clock, CheckCircle2, XCircle, RotateCcw } from "lucide-react"
+import { Clock, CheckCircle2, XCircle, RotateCcw, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 type QuizQuestion = {
   id: string
@@ -96,7 +97,7 @@ export function QuizTaker({ quiz, questions, onComplete }: QuizTakerProps) {
         timeTakenSeconds,
       })
     } catch (e) {
-      console.error(e)
+      toast.error("Quiz submission failed: " + (e instanceof Error ? e.message : "Unknown error"))
       setResult({
         score: 0,
         passed: false,
@@ -112,7 +113,7 @@ export function QuizTaker({ quiz, questions, onComplete }: QuizTakerProps) {
 
   if (submitted && result) {
     return (
-      <Card className="bg-white/5 border-white/20">
+      <Card className="bg-card/50 border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {result.passed ? (
@@ -155,7 +156,7 @@ export function QuizTaker({ quiz, questions, onComplete }: QuizTakerProps) {
 
   if (!currentQuestion) {
     return (
-      <Card className="bg-white/5 border-white/20">
+      <Card className="bg-card/50 border-border">
         <CardContent className="py-8 text-center text-muted-foreground">
           No questions in this quiz.
         </CardContent>
@@ -164,7 +165,7 @@ export function QuizTaker({ quiz, questions, onComplete }: QuizTakerProps) {
   }
 
   return (
-    <Card className="bg-white/5 border-white/20">
+    <Card className="bg-card/50 border-border">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">{quiz.title}</CardTitle>
@@ -221,6 +222,7 @@ export function QuizTaker({ quiz, questions, onComplete }: QuizTakerProps) {
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {isSubmitting ? "Submitting…" : "Submit quiz"}
             </Button>
           )}

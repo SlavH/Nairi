@@ -2,22 +2,15 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { 
-  AtSign, 
-  Slash, 
   FileText, 
   Image, 
   Code, 
   Globe, 
   Calculator,
-  Calendar,
-  Mail,
   Search,
   Sparkles,
   Brain,
-  MessageSquare,
-  Zap
 } from "lucide-react"
 
 interface CommandMenuProps {

@@ -3,7 +3,7 @@
  * Handles TOTP, SMS, and Email MFA
  */
 import { createClient } from "@/lib/supabase/server";
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes, createHmac } from "crypto";
 
 export type MFAMethod = "totp" | "sms" | "email";
 
@@ -84,7 +84,7 @@ export class MFAManager {
     counterBytes.writeBigInt64BE(BigInt(counter), 0);
     const secretHex = base32ToHex(secret);
     const key = Buffer.from(secretHex, "hex");
-    const hmac = require("crypto").createHmac("sha1", key);
+    const hmac = createHmac("sha1", key);
     hmac.update(counterBytes);
     const hmacResult = hmac.digest();
     const offset = hmacResult[hmacResult.length - 1] & 0xf;

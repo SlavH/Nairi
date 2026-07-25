@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const stabilityKey = process.env.STABILITY_API_KEY
     if (stabilityKey && isValidApiKey(stabilityKey)) {
       try {
-        console.log(`[INPAINT] Attempting Stability AI ${mode}...`)
+        // console.log(`[INPAINT] Attempting Stability AI ${mode}...`)
         
         // Prepare form data for Stability API
         const formData = new FormData()
@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log(`[INPAINT] Attempting Replicate SDXL ${mode}...`)
+        // console.log(`[INPAINT] Attempting Replicate SDXL ${mode}...`)
         
         const replicateResponse = await fetch(
           "https://api.replicate.com/v1/predictions",
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[INPAINT] Attempting HuggingFace inpainting...")
+        // console.log("[INPAINT] Attempting HuggingFace inpainting...")
         
         const response = await fetch(
           "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-inpainting",

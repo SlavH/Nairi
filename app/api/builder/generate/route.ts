@@ -8,7 +8,7 @@ let _cachedSystemPrompt: string | null = null
 async function getSystemPrompt(): Promise<string> {
   if (_cachedSystemPrompt) return _cachedSystemPrompt
   try {
-    const mod = await import("@/lib/builder-v2/prompts/system-prompt")
+    const mod = await import("@/lib/builder/prompts/system-prompt")
     _cachedSystemPrompt = mod.V0_SYSTEM_PROMPT
     return _cachedSystemPrompt
   } catch (e) {
@@ -17,21 +17,21 @@ async function getSystemPrompt(): Promise<string> {
     return _cachedSystemPrompt
   }
 }
-import type { GenerateRequest, TaskUpdate, FileUpdate, MessageUpdate, CompleteUpdate, PlanUpdate } from "@/lib/builder-v2/types"
-import { safeParseGenerateRequest } from "@/lib/builder-v2/schemas/request-schema"
-import { searchWeb } from "@/lib/builder-v2/utils/web-search"
-import { analyzePrompt, type PromptAnalysis } from "@/lib/builder-v2/utils/prompt-analysis"
-import { enhanceToHighLevelWebsitePrompt } from "@/lib/builder-v2/utils/prompt-enhancer"
-import { getImagePromptsForWebsite, generateImageUrlForBuilder } from "@/lib/builder-v2/utils/builder-image"
-import { getDesignGuidance } from "@/lib/builder-v2/utils/design-intelligence"
-import { getInitialTaskPlan } from "@/lib/builder-v2/generate/initial-plan"
-import { extractColors as extractColorsFromCSS } from "@/lib/builder-v2/utils/website-analyzer"
-import { applyDynamicColorReplacement } from "@/lib/builder-v2/generators/component-generator"
+import type { GenerateRequest, TaskUpdate, FileUpdate, MessageUpdate, CompleteUpdate, PlanUpdate } from "@/lib/builder/types"
+import { safeParseGenerateRequest } from "@/lib/builder/schemas/request-schema"
+import { searchWeb } from "@/lib/builder/utils/web-search"
+import { analyzePrompt, type PromptAnalysis } from "@/lib/builder/utils/prompt-analysis"
+import { enhanceToHighLevelWebsitePrompt } from "@/lib/builder/utils/prompt-enhancer"
+import { getImagePromptsForWebsite, generateImageUrlForBuilder } from "@/lib/builder/utils/builder-image"
+import { getDesignGuidance } from "@/lib/builder/utils/design-intelligence"
+import { getInitialTaskPlan } from "@/lib/builder/generate/initial-plan"
+import { extractColors as extractColorsFromCSS } from "@/lib/builder/utils/website-analyzer"
+import { applyDynamicColorReplacement } from "@/lib/builder/generators/component-generator"
 import { 
   cleanGeneratedCode, 
   validateTypeScriptCode, 
   autoFixCommonErrors 
-} from "@/lib/builder-v2/generators/code-cleaner"
+} from "@/lib/builder/generators/code-cleaner"
 import {
   normalizeJsonBacktickStrings,
   escapeControlCharsInJsonStrings,
@@ -39,8 +39,8 @@ import {
   removeTrailingCommasInJson,
   extractJsonWithBalancedBraces,
   repairTruncatedJson,
-} from "@/lib/builder-v2/json-normalizers"
-import { validateBuilderResponse } from "@/lib/builder-v2/schemas/response-schema"
+} from "@/lib/builder/json-normalizers"
+import { validateBuilderResponse } from "@/lib/builder/schemas/response-schema"
 
 export const maxDuration = 120
 
@@ -55,10 +55,10 @@ export async function GET() {
 // In production, use: import { V0Client } from 'v0-sdk'
 // For now, we'll use Groq as the underlying LLM with v0-style prompting
 
-// Note: searchWeb is now imported from @/lib/builder-v2/utils/web-search
-// Note: analyzePrompt is now imported from @/lib/builder-v2/utils/prompt-analysis
-// Note: analyzeDesign is now imported from @/lib/builder-v2/utils/design-intelligence
-// Note: analyzeWebsite is now imported from @/lib/builder-v2/utils/website-analyzer
+// Note: searchWeb is now imported from @/lib/builder/utils/web-search
+// Note: analyzePrompt is now imported from @/lib/builder/utils/prompt-analysis
+// Note: analyzeDesign is now imported from @/lib/builder/utils/design-intelligence
+// Note: analyzeWebsite is now imported from @/lib/builder/utils/website-analyzer
 
 // ============================================================================
 // 🔍 SUPERPOWER #4: COMPLETE WEBSITE ANALYSIS (FREE APIs + Full Site Crawl)
@@ -286,7 +286,7 @@ async function callFreeLLM(prompt: string, _apiKey?: string): Promise<string> {
 
 // MAIN: Complete website analysis (crawls multiple pages)
 async function analyzeCompleteWebsite(url: string, groqKey: string): Promise<string> {
-  console.log(`🔍 Starting complete analysis of: ${url}`)
+  // console.log(`🔍 Starting complete analysis of: ${url}`)
   
   // Normalize URL
   if (!url.startsWith('http')) url = `https://${url}`
@@ -929,10 +929,10 @@ export async function POST(req: NextRequest) {
           // ============================================================================
           // 📝 STEP 0: Enhance raw user prompt → high-level website prompt (then system prompt & rest)
           // ============================================================================
-          console.log('📝 Enhancing user prompt to high-level website brief...')
+          // console.log('📝 Enhancing user prompt to high-level website brief...')
           const effectivePrompt = await enhanceToHighLevelWebsitePrompt(prompt)
           if (effectivePrompt !== prompt) {
-            console.log('📝 Enhanced prompt:', effectivePrompt.slice(0, 200) + (effectivePrompt.length > 200 ? '...' : ''))
+            // console.log('📝 Enhanced prompt:', effectivePrompt.slice(0, 200) + (effectivePrompt.length > 200 ? '...' : ''))
           }
 
           let dynamicTasks: string[] = []
@@ -950,23 +950,23 @@ export async function POST(req: NextRequest) {
           if (hasNairiAi) {
             try {
               // SUPERPOWER #2: Analyze the prompt for intent, features, complexity
-              console.log('🧠 Activating Enhanced Prompt Understanding...')
+              // console.log('🧠 Activating Enhanced Prompt Understanding...')
               promptAnalysis = await analyzePrompt(effectivePrompt)
-              console.log('📊 Prompt Analysis:', JSON.stringify(promptAnalysis, null, 2))
+              // console.log('📊 Prompt Analysis:', JSON.stringify(promptAnalysis, null, 2))
               
               // SUPERPOWER #3: Get design guidance based on website type
-              console.log('🎨 Activating Design Intelligence...')
+              // console.log('🎨 Activating Design Intelligence...')
               designGuidance = getDesignGuidance(promptAnalysis.websiteType, promptAnalysis.colorScheme)
               
               // SUPERPOWER #4: Analyze reference URL if provided
               if (promptAnalysis.referenceUrl || effectivePrompt.toLowerCase().includes('clone')) {
-                console.log('🔍 Activating Reference Analysis...')
+                // console.log('🔍 Activating Reference Analysis...')
                 const urlMatch = effectivePrompt.match(/https?:\/\/[^\s]+/)
                 const siteMatch = effectivePrompt.match(/(?:clone|like|similar to)\s+([a-zA-Z]+)/i)
                 const refUrl = urlMatch ? urlMatch[0] : (siteMatch ? `https://${siteMatch[1].toLowerCase()}.com` : '')
                 if (refUrl) {
                   referenceAnalysis = await analyzeReferenceUrl(refUrl, "")
-                  console.log('📝 Reference Analysis:', referenceAnalysis)
+                  // console.log('📝 Reference Analysis:', referenceAnalysis)
                 }
               }
               
@@ -975,29 +975,29 @@ export async function POST(req: NextRequest) {
               const websiteTypeForSearch = (promptAnalysis.websiteType || '').toLowerCase().replace(/\s+/g, ' ')
               const isResearchableType = researchableTypes.some(t => websiteTypeForSearch.includes(t) || websiteTypeForSearch === 'viral' || websiteTypeForSearch === 'viral-landing')
               if (isResearchableType && promptAnalysis.websiteType) {
-                console.log('🌐 Researching layout & page structure for website type:', promptAnalysis.websiteType)
+                // console.log('🌐 Researching layout & page structure for website type:', promptAnalysis.websiteType)
                 const layoutQuery = `${promptAnalysis.websiteType} website page structure layout sections UI best practices 2024`
                 layoutStructureResearch = await searchWeb(layoutQuery)
                 if (layoutStructureResearch.length > 0) {
-                  console.log('📐 Layout research results:', layoutStructureResearch.map(r => r.title).join(', '))
+                  // console.log('📐 Layout research results:', layoutStructureResearch.map(r => r.title).join(', '))
                 }
               }
               
               // SUPERPOWER #1b: Web search for design inspiration (for complex projects)
               if (promptAnalysis.complexity === 'complex' || promptAnalysis.complexity === 'enterprise') {
-                console.log('🌐 Activating Internet Access for design inspiration...')
+                // console.log('🌐 Activating Internet Access for design inspiration...')
                 const searchQuery = `${promptAnalysis.websiteType} website design inspiration UI UX 2024`
                 webSearchResults = await searchWeb(searchQuery)
                 if (webSearchResults.length > 0) {
-                  console.log('🔎 Found design inspiration:', webSearchResults.map(r => r.title).join(', '))
+                  // console.log('🔎 Found design inspiration:', webSearchResults.map(r => r.title).join(', '))
                 }
               }
               
               // SUPERPOWER #6: Generate smart plan with phases and dependencies
-              console.log('📋 Activating Smart Planning...')
+              // console.log('📋 Activating Smart Planning...')
               const smartPlan = await generateSmartPlan(effectivePrompt, promptAnalysis, "")
               dynamicTasks = smartPlan.map(t => `[${t.phase.toUpperCase()}] ${t.title}`)
-              console.log('📝 Smart Plan:', dynamicTasks)
+              // console.log('📝 Smart Plan:', dynamicTasks)
               
             } catch (e) {
               console.error("Superpower activation failed:", e)
@@ -1251,7 +1251,7 @@ export default function YouTubePage() {
                 )
                 .join('\n')
               generatedImagesBlock += `\nUse <img src={...} /> or Next.js Image with these URLs. Use the hero URL for the main hero/header image.\n\n`
-              console.log('🖼️ Builder generated', validUrls.length, 'image URL(s)')
+              // console.log('🖼️ Builder generated', validUrls.length, 'image URL(s)')
             }
           } catch (e) {
             console.warn('Builder image generation failed:', e)
@@ -1357,7 +1357,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
           let extractionPath: string | null = null
           try {
             // Log raw response for debugging
-            console.log("Raw LLM response (first 500 chars):", responseContent.substring(0, 500))
+            // console.log("Raw LLM response (first 500 chars):", responseContent.substring(0, 500))
             
             // Helper: get content from file object (content, code, or body)
             const getFileContentRaw = (f: { path: string; content?: string; code?: string; body?: unknown }) => {
@@ -1377,7 +1377,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                   const repaired = repairTruncatedJson(jsonStr)
                   rawParsed = JSON.parse(repaired)
                 }
-                console.log("Extracted JSON from ```json block")
+                // console.log("Extracted JSON from ```json block")
                 if (rawParsed.files && Array.isArray(rawParsed.files)) {
                   const validFiles = rawParsed.files
                     .map((f) => {
@@ -1437,7 +1437,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
               }
               
               if (extractedCode) {
-                console.log("Extracted code from markdown block")
+                // console.log("Extracted code from markdown block")
                 extractionPath = "code_block"
                 const pageContent = ensurePageContentNotLayout(extractedCode)
                 parsedResponse = {
@@ -1462,7 +1462,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                   } catch {
                     rawParsed = JSON.parse(repairTruncatedJson(normalized))
                   }
-                  console.log("Extracted JSON using brace balancing")
+                  // console.log("Extracted JSON using brace balancing")
                   if (rawParsed.files && Array.isArray(rawParsed.files)) {
                     const validFiles = rawParsed.files
                       .map((f) => {
@@ -1590,7 +1590,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
               }
             }
             if (parsedResponse.files && extractionPath) {
-              console.log("Builder extraction path:", extractionPath)
+              // console.log("Builder extraction path:", extractionPath)
             }
           } catch (parseError) {
             console.error("Parse error:", parseError)
@@ -1658,7 +1658,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                 const validationResult = validateTypeScriptCode(cleanedContent)
                 
                 if (!validationResult.isValid) {
-                  console.log(`⚠️ Validation failed (attempt ${validationAttempts}):`, validationResult.errors)
+                  // console.log(`⚠️ Validation failed (attempt ${validationAttempts}):`, validationResult.errors)
                   lastValidationErrors = validationResult.errors
                   
                   // Try to auto-fix common errors
@@ -1753,12 +1753,12 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                 const vr = validateTypeScriptCode(cleaned)
                 if (vr.isValid) {
                   parsedResponse = retryParsed
-                  console.log('Builder validation retry succeeded')
+                  // console.log('Builder validation retry succeeded')
                 } else {
-                  console.log('Builder validation retry failed: still invalid')
+                  // console.log('Builder validation retry failed: still invalid')
                 }
               } else {
-                console.log('Builder validation retry failed: no main file')
+                // console.log('Builder validation retry failed: no main file')
               }
             } catch (e) {
               console.warn('Builder validation retry error:', e)
@@ -1766,7 +1766,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
           }
 
           if (validationPassed) {
-            console.log("✅ Code validation passed or skipped")
+            // console.log("✅ Code validation passed or skipped")
             send({ type: "task-update", taskId: validationTaskId, status: "completed" })
           }
 
@@ -1829,12 +1829,12 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
                 if (vr.isValid && hasWowElement(cleaned)) {
                   parsedResponse = wowRetryParsed
                   pageContentForWowCheck = cleaned
-                  console.log('Builder wow retry succeeded')
+                  // console.log('Builder wow retry succeeded')
                 } else {
-                  console.log('Builder wow retry failed: invalid or still no wow element')
+                  // console.log('Builder wow retry failed: invalid or still no wow element')
                 }
               } else {
-                console.log('Builder wow retry failed: no main file')
+                // console.log('Builder wow retry failed: no main file')
               }
             } catch (e) {
               console.warn('Builder wow retry error:', e)
@@ -1859,7 +1859,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
               if (isCodeFile && isCloneRequest) {
                 const extractedColors = extractColorsFromAnalysis(referenceAnalysis || '', effectivePrompt)
                 if (extractedColors && extractedColors.isDark) {
-                  console.log('🎨 Applying dynamic color replacement for dark theme clone...')
+                  // console.log('🎨 Applying dynamic color replacement for dark theme clone...')
                   cleanedContent = applyDynamicColorReplacement(cleanedContent, extractedColors)
                 }
               }
@@ -2449,7 +2449,7 @@ function injectMissingComponents(code: string): string {
     return code;
   }
   
-  console.log("Injecting missing components:", missingComponents);
+  // console.log("Injecting missing components:", missingComponents);
   
   // Generate placeholder components
   const placeholders = missingComponents.map(comp => generatePlaceholderComponent(comp)).join('\n\n');
@@ -2510,7 +2510,7 @@ function autoAliasLucideIcons(code: string): string {
     }
     
     if (conflictingIcons.length > 0) {
-      console.log(`🔧 AUTO-FIX: Aliasing conflicting lucide icons: ${conflictingIcons.join(', ')}`)
+      // console.log(`🔧 AUTO-FIX: Aliasing conflicting lucide icons: ${conflictingIcons.join(', ')}`)
       
       // Replace the import statement with aliased version
       const newImport = `import { ${aliasedIcons.join(', ')} } from 'lucide-react'`
@@ -2565,17 +2565,17 @@ function extractColorsFromAnalysis(analysis: string, userPrompt?: string): Extra
   // FULLY DYNAMIC - No hardcoded websites!
   // Analyze the reference analysis text to extract colors
   if (!analysis || analysis.length < 10) {
-    console.log('🎨 No analysis provided, using default light theme')
+    // console.log('🎨 No analysis provided, using default light theme')
     return null
   }
   
-  console.log('🎨 Analyzing colors from reference (fully dynamic, no hardcode)...')
+  // console.log('🎨 Analyzing colors from reference (fully dynamic, no hardcode)...')
   
   // Extract ALL hex colors from analysis
   const hexMatches = analysis.match(/#[0-9a-fA-F]{6}/g) || []
   const uniqueColors = [...new Set(hexMatches.map(c => c.toLowerCase()))]
   
-  console.log('🎨 Found colors in analysis:', uniqueColors.slice(0, 10))
+  // console.log('🎨 Found colors in analysis:', uniqueColors.slice(0, 10))
   
   if (uniqueColors.length === 0) {
     // Check for color keywords in analysis
@@ -2584,7 +2584,7 @@ function extractColorsFromAnalysis(analysis: string, userPrompt?: string): Extra
         analysisLower.includes('dark mode') || 
         analysisLower.includes('dark background') ||
         analysisLower.includes('black background')) {
-      console.log('🎨 Detected dark theme from keywords')
+      // console.log('🎨 Detected dark theme from keywords')
       colors.isDark = true
       colors.background = '#0f0f0f'
       colors.backgroundAlt = '#1a1a1a'
@@ -2624,7 +2624,7 @@ function extractColorsFromAnalysis(analysis: string, userPrompt?: string): Extra
                           analysisLower.includes('#0d1117')
   
   if (veryDarkColors.length >= 2 || hasDarkKeywords) {
-    console.log('🎨 Detected DARK theme from color analysis')
+    // console.log('🎨 Detected DARK theme from color analysis')
     colors.isDark = true
     
     // Use the darkest color as background
@@ -2649,7 +2649,7 @@ function extractColorsFromAnalysis(analysis: string, userPrompt?: string): Extra
     const accentCandidates = colorData.filter(c => c.saturation > 0.4).sort((a, b) => b.saturation - a.saturation)
     colors.accent = accentCandidates[0]?.hex || '#3b82f6'
   } else if (veryLightColors.length >= 2) {
-    console.log('🎨 Detected LIGHT theme from color analysis')
+    // console.log('🎨 Detected LIGHT theme from color analysis')
     colors.isDark = false
     
     // Use the lightest color as background
@@ -2675,7 +2675,7 @@ function extractColorsFromAnalysis(analysis: string, userPrompt?: string): Extra
     colors.accent = accentCandidates[0]?.hex || '#3b82f6'
   }
   
-  console.log('🎨 Extracted colors (fully dynamic):', colors)
+  // console.log('🎨 Extracted colors (fully dynamic):', colors)
   
   // Also check for text mentions of "dark"
   const mentionsDark = analysis.toLowerCase().includes('dark theme') || 
@@ -2757,7 +2757,7 @@ function extractColorsFromAnalysis(analysis: string, userPrompt?: string): Extra
     }
   }
   
-  console.log('🎨 Extracted colors:', colors)
+  // console.log('🎨 Extracted colors:', colors)
   return colors
 }
 

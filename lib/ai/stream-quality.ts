@@ -39,7 +39,7 @@ export function wrapStreamWithQualityGates(
       } else if (firstTokenMs >= FIRST_TOKEN_WARN_MS) {
         console.warn("[stream-quality] First token latency high:", metrics)
       } else {
-        console.log("[stream-quality] First token ms:", firstTokenMs, streamLabel)
+        // console.log("[stream-quality] First token ms:", firstTokenMs, streamLabel)
       }
     }
   }

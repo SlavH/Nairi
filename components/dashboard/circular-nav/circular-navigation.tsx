@@ -102,7 +102,7 @@ function getUserSubCircles(t: { nav: { profile: string; settings: string; billin
 }
 function getAiGenerationsSubCircles(t: { nav: { website: string; slides: string; chat: string; simulate: string } }) {
   return [
-    { icon: Globe, label: t.nav.website, href: "/builder-v2" },
+    { icon: Globe, label: t.nav.website, href: "/builder" },
     { icon: Presentation, label: t.nav.slides, href: "/presentations" },
     { icon: MessageSquare, label: t.nav.chat, href: "/chat" },
     { icon: Atom, label: t.nav.simulate, href: "/simulations" },

@@ -92,16 +92,7 @@ export interface TranslationStrings {
     cta: string
     secondaryCta: string
     interfaceTitle: string
-    typingText: string
-    responseText: string
-    responseItems: {
-      item1: string
-      item2: string
-      item3: string
-      item4: string
-    }
-    downloadButton: string
-    editButton: string
+    interfacePlaceholder: string
   }
   // Chat Interface
   chat: {
@@ -301,9 +292,9 @@ export interface TranslationStrings {
   marketplaceSection: {
     title: string
     subtitle: string
-    trendingCreations: string
-    thisWeek: string
     exploreMarketplace: string
+    emptyStateTitle: string
+    emptyStateDescription: string
     features: {
       sellCreations: {
         title: string
@@ -327,12 +318,42 @@ export interface TranslationStrings {
   demoModal: {
     title: string
     description: string
-    demoVideoComingSoon: string
-    videos: {
+    tabs: {
+      examples: string
+      templates: string
+      tutorials: string
+    }
+    examplesIntro: string
+    examples: {
       presentations: string
       websites: string
-      reports: string
+      analysis: string
     }
+    templatesIntro: string
+    templates: {
+      startupPitch: string
+      startupPitchDesc: string
+      saasLanding: string
+      saasLandingDesc: string
+      brandIdentity: string
+      brandIdentityDesc: string
+      restApi: string
+      restApiDesc: string
+      marketAnalysis: string
+      marketAnalysisDesc: string
+    }
+    tutorialsIntro: string
+    tutorials: {
+      firstCreation: string
+      firstCreationDesc: string
+      marketplaceIntro: string
+      marketplaceIntroDesc: string
+      earnCredits: string
+      earnCreditsDesc: string
+    }
+    ctaTitle: string
+    ctaSubtitle: string
+    ctaButton: string
   }
   // Auth Modal
   auth: {
@@ -380,28 +401,7 @@ export interface TranslationStrings {
     dailyCredits: string
     creditsUsed: string
     resetsIn: string
-    methods: {
-      watchAndEarn: {
-        title: string
-        description: string
-        bonus: string
-      }
-      inviteFriends: {
-        title: string
-        description: string
-        bonus: string
-      }
-      stayActive: {
-        title: string
-        description: string
-        bonus: string
-      }
-      marketplaceActivity: {
-        title: string
-        description: string
-        bonus: string
-      }
-    }
+    methodsPlaceholder: string
   }
   // Future Section
   future: {
@@ -524,11 +524,6 @@ export interface TranslationStrings {
         examples: string[]
       }
       visuals: {
-        title: string
-        description: string
-        examples: string[]
-      }
-      games: {
         title: string
         description: string
         examples: string[]
@@ -690,16 +685,7 @@ export const translations: Record<Locale, TranslationStrings> = {
       cta: "Start Creating",
       secondaryCta: "Watch Demo",
       interfaceTitle: "Nairi Interface",
-      typingText: "Create a presentation about renewable energy for tomorrow's meeting",
-      responseText: "Your presentation is ready. 12 slides covering:",
-      responseItems: {
-        item1: "Current energy landscape",
-        item2: "Solar, wind, and hydro analysis",
-        item3: "Implementation roadmap",
-        item4: "ROI projections with data visualizations",
-      },
-      downloadButton: "Download",
-      editButton: "Edit",
+      interfacePlaceholder: "Your vision starts here. Describe what you want to create.",
     },
     chat: {
       title: "AI Chat",
@@ -879,11 +865,6 @@ export const translations: Record<Locale, TranslationStrings> = {
           description: "Images, illustrations, and design systems that match your vision.",
           examples: ["Brand identity", "Social graphics", "Product mockups"],
         },
-        games: {
-          title: "Games",
-          description: "Interactive experiences and game concepts.",
-          examples: ["Browser games", "Prototypes", "Game design"],
-        },
         ideas: {
           title: "Ideas & Strategies",
           description: "Business plans, marketing strategies, creative concepts — fully developed.",
@@ -926,9 +907,9 @@ export const translations: Record<Locale, TranslationStrings> = {
     marketplaceSection: {
       title: "The ecosystem of creation",
       subtitle: "Nairi Marketplace is where human creativity meets intelligent execution. Share what you've built, monetize your ideas, and leverage the collective intelligence of the community.",
-      trendingCreations: "Trending Creations",
-      thisWeek: "This week",
       exploreMarketplace: "Explore Marketplace",
+      emptyStateTitle: "Marketplace — Coming Soon",
+      emptyStateDescription: "The marketplace is under active development. Soon you'll be able to publish, sell, and discover creations built with the Nairi community.",
       features: {
         sellCreations: {
           title: "Sell your creations",
@@ -982,14 +963,44 @@ export const translations: Record<Locale, TranslationStrings> = {
       },
     },
     demoModal: {
-      title: "See Nairi in Action",
-      description: "Watch how Nairi transforms thoughts into complete creations",
-      demoVideoComingSoon: "Demo video coming soon",
-      videos: {
-        presentations: "Create Presentations",
-        websites: "Build Websites",
-        reports: "Generate Reports",
+      title: "See What Nairi Can Do",
+      description: "A preview of the kinds of creations Nairi produces — sign up to try it for real.",
+      tabs: {
+        examples: "Examples",
+        templates: "Templates",
+        tutorials: "Tutorials",
       },
+      examplesIntro: "Here's what Nairi creates from a single sentence. Each result is generated live — not pre-built.",
+      examples: {
+        presentations: "Presentations",
+        websites: "Websites & Interfaces",
+        analysis: "Data Analysis",
+      },
+      templatesIntro: "Inspiration for your first creation. Pick a starting point after you sign up.",
+      templates: {
+        startupPitch: "Startup Pitch Deck",
+        startupPitchDesc: "A compelling 10-slide investor presentation",
+        saasLanding: "SaaS Landing Page",
+        saasLandingDesc: "A conversion-optimized homepage with hero, features, and pricing",
+        brandIdentity: "Brand Identity Kit",
+        brandIdentityDesc: "Complete visual branding — palette, typography, and logo concepts",
+        restApi: "REST API Endpoint",
+        restApiDesc: "Production-ready TypeScript code with validation and auth",
+        marketAnalysis: "Market Analysis Report",
+        marketAnalysisDesc: "Industry research with data visualizations and trend projections",
+      },
+      tutorialsIntro: "Learn how to get the most out of Nairi:",
+      tutorials: {
+        firstCreation: "Create Your First Project",
+        firstCreationDesc: "Learn how to transform ideas into reality",
+        marketplaceIntro: "Explore the Marketplace",
+        marketplaceIntroDesc: "Discover AI agents for any task",
+        earnCredits: "Earn Free Credits",
+        earnCreditsDesc: "Learn ways to get more credits",
+      },
+      ctaTitle: "Ready to create with Nairi?",
+      ctaSubtitle: "Start with 100 free credits — no card required.",
+      ctaButton: "Get Started",
     },
     auth: {
       welcomeTitle: "Welcome to Nairi",
@@ -1032,30 +1043,9 @@ export const translations: Record<Locale, TranslationStrings> = {
       subtitle: "Nairi uses a transparent limit system. Start creating immediately — and expand your capacity through engagement, not just payment.",
       noPaywall: "No paywall for exploration. Experience Nairi's full capabilities before deciding how deep you want to go.",
       dailyCredits: "Your daily credits",
-      creditsUsed: "750 / 1000",
+      creditsUsed: "0 / 100",
       resetsIn: "Resets in 6 hours",
-      methods: {
-        watchAndEarn: {
-          title: "Watch & earn",
-          description: "View short content to expand your daily limits.",
-          bonus: "+50 credits/day",
-        },
-        inviteFriends: {
-          title: "Invite friends",
-          description: "Bring others to Nairi and receive permanent bonuses.",
-          bonus: "+500 credits/invite",
-        },
-        stayActive: {
-          title: "Stay active",
-          description: "Regular usage rewards consistency with increased capacity.",
-          bonus: "Up to 2x multiplier",
-        },
-        marketplaceActivity: {
-          title: "Marketplace activity",
-          description: "Selling and contributing earns additional resources.",
-          bonus: "10% of sales",
-        },
-      },
+      methodsPlaceholder: "Credit-earning features are in development. Stay tuned!",
     },
     security: {
       title: "Power with control",
@@ -1264,16 +1254,7 @@ export const translations: Record<Locale, TranslationStrings> = {
       cta: "Начать создавать",
       secondaryCta: "Смотреть демо",
       interfaceTitle: "Интерфейс Наири",
-      typingText: "Создать презентацию о возобновляемой энергии для завтрашней встречи",
-      responseText: "Ваша презентация готова. 12 слайдов, охватывающих:",
-      responseItems: {
-        item1: "Текущий энергетический ландшафт",
-        item2: "Анализ солнечной, ветровой и гидроэнергетики",
-        item3: "Дорожная карта реализации",
-        item4: "Прогнозы ROI с визуализацией данных",
-      },
-      downloadButton: "Скачать",
-      editButton: "Редактировать",
+      interfacePlaceholder: "Ваше видение начинается здесь. Опишите, что хотите создать.",
     },
     chat: {
       title: "ИИ Чат",
@@ -1453,11 +1434,6 @@ export const translations: Record<Locale, TranslationStrings> = {
           description: "Изображения, иллюстрации и системы дизайна, соответствующие вашему видению.",
           examples: ["Брендинг", "Социальные графики", "Макеты продуктов"],
         },
-        games: {
-          title: "Игры",
-          description: "Интерактивный опыт и игровые концепции.",
-          examples: ["Браузерные игры", "Прототипы", "Игровой дизайн"],
-        },
         ideas: {
           title: "Идеи и стратегии",
           description: "Бизнес-планы, маркетинговые стратегии, творческие концепции — полностью разработанные.",
@@ -1500,9 +1476,9 @@ export const translations: Record<Locale, TranslationStrings> = {
     marketplaceSection: {
       title: "Экосистема творчества",
       subtitle: "Nairi Marketplace — это место, где человеческое творчество встречается с интеллектуальным исполнением. Поделитесь тем, что вы создали, монетизируйте свои идеи и используйте коллективный интеллект сообщества.",
-      trendingCreations: "Популярные творения",
-      thisWeek: "На этой неделе",
       exploreMarketplace: "Исследовать Маркетплейс",
+      emptyStateTitle: "Маркетплейс — Скоро",
+      emptyStateDescription: "Маркетплейс находится в активной разработке. Скоро вы сможете публиковать, продавать и находить творения, созданные сообществом Nairi.",
       features: {
         sellCreations: {
           title: "Продавайте свои творения",
@@ -1556,14 +1532,44 @@ export const translations: Record<Locale, TranslationStrings> = {
       },
     },
     demoModal: {
-      title: "Посмотреть Nairi в действии",
-      description: "Посмотрите, как Nairi превращает мысли в полные творения",
-      demoVideoComingSoon: "Демо видео скоро",
-      videos: {
-        presentations: "Создавать презентации",
-        websites: "Создавать сайты",
-        reports: "Генерировать отчеты",
+      title: "Узнайте, что умеет Nairi",
+      description: "Превью того, что создаёт Nairi — зарегистрируйтесь, чтобы попробовать по-настоящему.",
+      tabs: {
+        examples: "Примеры",
+        templates: "Шаблоны",
+        tutorials: "Руководства",
       },
+      examplesIntro: "Вот что создаёт Nairi из одного предложения. Каждый результат генерируется в реальном времени — не заготовлен заранее.",
+      examples: {
+        presentations: "Презентации",
+        websites: "Веб-сайты и интерфейсы",
+        analysis: "Анализ данных",
+      },
+      templatesIntro: "Вдохновение для вашего первого творения. Выберите отправную точку после регистрации.",
+      templates: {
+        startupPitch: "Питч-дек для стартапа",
+        startupPitchDesc: "Убедительная 10-слайдная презентация для инвесторов",
+        saasLanding: "Лендинг SaaS-продукта",
+        saasLandingDesc: "Конверсионная целевая страница с.hero, фичами и ценами",
+        brandIdentity: "Кит бренда",
+        brandIdentityDesc: "Полный визуальный брендинг — палитра, типографика и концепции логотипа",
+        restApi: "REST API эндпоинт",
+        restApiDesc: "Production-ready TypeScript код с валидацией и авторизацией",
+        marketAnalysis: "Отчёт о рынке",
+        marketAnalysisDesc: "Исследование отрасли с визуализациями и прогнозами трендов",
+      },
+      tutorialsIntro: "Как извлечь максимум из Nairi:",
+      tutorials: {
+        firstCreation: "Создайте первый проект",
+        firstCreationDesc: "Как превратить идеи в реальность",
+        marketplaceIntro: "Исследуйте Маркетплейс",
+        marketplaceIntroDesc: "Найдите ИИ-агентов для любой задачи",
+        earnCredits: "Зарабатывайте кредиты",
+        earnCreditsDesc: "Способы получить больше кредитов",
+      },
+      ctaTitle: "Готовы создавать с Nairi?",
+      ctaSubtitle: "100 бесплатных кредитов — без карты.",
+      ctaButton: "Начать",
     },
     auth: {
       welcomeTitle: "Добро пожаловать в Nairi",
@@ -1606,30 +1612,9 @@ export const translations: Record<Locale, TranslationStrings> = {
       subtitle: "Nairi использует прозрачную систему лимитов. Начинайте создавать немедленно — и расширяйте свою емкость через взаимодействие, а не только через оплату.",
       noPaywall: "Нет платежного барьера для исследования. Опытите полные возможности Nairi перед тем, как решить, насколько глубоко вы хотите погрузиться.",
       dailyCredits: "Ваши ежедневные кредиты",
-      creditsUsed: "750 / 1000",
+      creditsUsed: "0 / 100",
       resetsIn: "Сброс через 6 часов",
-      methods: {
-        watchAndEarn: {
-          title: "Смотреть и зарабатывать",
-          description: "Просматривайте короткий контент, чтобы расширить свои ежедневные лимиты.",
-          bonus: "+50 кредитов/день",
-        },
-        inviteFriends: {
-          title: "Приглашать друзей",
-          description: "Приводите других в Nairi и получайте постоянные бонусы.",
-          bonus: "+500 кредитов/приглашение",
-        },
-        stayActive: {
-          title: "Быть активным",
-          description: "Регулярное использование вознаграждает последовательность увеличенной емкостью.",
-          bonus: "До 2x множителя",
-        },
-        marketplaceActivity: {
-          title: "Активность на маркетплейсе",
-          description: "Продажа и вклад зарабатывают дополнительные ресурсы.",
-          bonus: "10% от продаж",
-        },
-      },
+      methodsPlaceholder: "Функции заработка кредитов в разработке. Скоро появятся!",
     },
     security: {
       title: "Сила с контролем",
@@ -1838,16 +1823,7 @@ export const translations: Record<Locale, TranslationStrings> = {
       cta: "Սկսել ստեղծել",
       secondaryCta: "Դիտել տեսահոլովակ",
       interfaceTitle: "Նաիրի ինտերֆեյս",
-      typingText: "Ստեղծել ներկայացում վերականգնվող էներգիայի մասին վաղվա հանդիպման համար",
-      responseText: "Ձեր ներկայացումը պատրաստ է. 12 սլայդ՝ ընդգրկելով.",
-      responseItems: {
-        item1: "Ընթացիկ էներգետիկ լանդշաֆտ",
-        item2: "Արևային, քամու և հիդրոէներգիայի վերլուծություն",
-        item3: "Իրագործման ճանապարհային քարտեզ",
-        item4: "ROI կանխատեսումներ տվյալների վիզուալիզացիայով",
-      },
-      downloadButton: "Ներբեռնել",
-      editButton: "Խմբագրել",
+      interfacePlaceholder: "Ձեր տեսլականը սկսվում է այստեղ: Նկարագրեք, թե ինչ եք ցանկանում ստեղծել:",
     },
     chat: {
       title: "ԱI Զրույց",
@@ -2028,11 +2004,6 @@ export const translations: Record<Locale, TranslationStrings> = {
           description: "Պատկերներ, իլուստրացիաներ և դիզայնի համակարգեր, որոնք համապատասխանում են ձեր տեսլականին.",
           examples: ["Բրենդինգ", "Սոցիալական գրաֆիկա", "Արտադրանքի մակետներ"],
         },
-        games: {
-          title: "Խաղեր",
-          description: "Ինտերակտիվ փորձառություններ և խաղային կոնցեպտներ.",
-          examples: ["Բրաուզերային խաղեր", "Պրոտոտիպներ", "Խաղի դիզայն"],
-        },
         ideas: {
           title: "Գաղափարներ և ռազմավարություններ",
           description: "Բիզնես պլաններ, մարկետինգի ռազմավարություններ, ստեղծագործական կոնցեպտներ — լրիվ մշակված.",
@@ -2075,9 +2046,9 @@ export const translations: Record<Locale, TranslationStrings> = {
     marketplaceSection: {
       title: "Ստեղծագործության էկոհամակարգ",
       subtitle: "Նաիրի շուկան այն վայրն է, որտեղ մարդկային ստեղծագործականությունը հանդիպում է ինտելեկտուալ իրագործմանը. Կիսվեք ձեր ստեղծածով, մոնետիզացրեք ձեր գաղափարները և օգտագործեք համայնքի կոլեկտիվ ինտելեկտը.",
-      trendingCreations: "Հանրաճանաչ ստեղծագործություններ",
-      thisWeek: "Այս շաբաթ",
       exploreMarketplace: "Ուսումնասիրել շուկան",
+      emptyStateTitle: "Շուկա — Շուտով",
+      emptyStateDescription: "Շուկան գտնվում է ակտիվ մշակման փուլում: Շուտով դուք կկարողանաք հրապարակել, վաճառել և գտնել ստեղծագործություններ, որոնք ստեղծվել են Նաիրի համայնքի հետ:",
       features: {
         sellCreations: {
           title: "Վաճառեք ձեր ստեղծագործությունները",
@@ -2131,14 +2102,44 @@ export const translations: Record<Locale, TranslationStrings> = {
       },
     },
     demoModal: {
-      title: "Տեսնել Նաիրին գործողության մեջ",
-      description: "Տեսեք, թե ինչպես է Նաիրին միտքերը վերածում լրիվ ստեղծագործությունների",
-      demoVideoComingSoon: "Դեմո տեսահոլովակը շուտով",
-      videos: {
-        presentations: "Ստեղծել ներկայացումներ",
-        websites: "Ստեղծել կայլեր",
-        reports: "Գեներացնել զեկույցներ",
+      title: "Տեսեք, թե ինչ է կարող Nairi-ն",
+      description: "Նաիրիի կողմից ստեղծվածների նախադիտում — գրանցվեք՝ իրականորեն փորձելու համար:",
+      tabs: {
+        examples: "Օրինակներ",
+        templates: "Ձևանմուշներ",
+        tutorials: "Ուղեցույցներ",
       },
+      examplesIntro: "Ահա թե ինչ է ստեղծում Nairi-ն մեկ նախադասությունից: Յուրաքանչյուր արդյունք գեներացվում է ուղիղ եթերում՝ ոչ թե պատրաստված:",
+      examples: {
+        presentations: "Ներկայացումներ",
+        websites: "Վեբ կայքեր և ինտերֆեյսներ",
+        analysis: "Տվյալների վերլուծություն",
+      },
+      templatesIntro: "Ոգեշնչում ձեր առաջին ստեղծագործության համար: Ընտրեք սկզբնակետը գրանցվելուց հետո:",
+      templates: {
+        startupPitch: "Ստարտափ պիտչ դեկ",
+        startupPitchDesc: "Համոզիչ 10 սլայդանոց ներկայացում ներդրողների համար",
+        saasLanding: "SaaS լենդինգ",
+        saasLandingDesc: "Կոնվերսիա օպտիմիզացված գլխավոր էջ՝ hero, հնարավորություններ և գներ",
+        brandIdentity: "Բրենդի ինքնություն",
+        brandIdentityDesc: "Լրիվ վիզուալ բրենդինգ՝ պալիտրա, տիպոգրաֆիա և լոգո",
+        restApi: "REST API վերջույտ",
+        restApiDesc: "Production-ready TypeScript կոդ՝ վավերացմամբ և թույլտվությամբ",
+        marketAnalysis: "Շուկայի վերլուծություն",
+        marketAnalysisDesc: "Արդյունաբերության հետազոտություն՝ վիզուալիզացիաներով և կանխատեսումներով",
+      },
+      tutorialsIntro: "Ինչպե՞ս օգտագործել Nairi-ն առավելագույնս:",
+      tutorials: {
+        firstCreation: "Ստեղծեք առաջին նախագիծը",
+        firstCreationDesc: "Ինչպե՞ս վերածել գաղափարները իրականության",
+        marketplaceIntro: "Ուսումնասիրեք շուկան",
+        marketplaceIntroDesc: "Գտեք AI գործակալներ ցանկացած խնդրի համար",
+        earnCredits: "Վաստակեք կրեդիտներ",
+        earnCreditsDesc: "Ձեռք բերեք ավելի շատ կրեդիտներ",
+      },
+      ctaTitle: "Պատրա՞ստ եք ստեղծել Nairi-ով",
+      ctaSubtitle: "100 անվճար կրեդիտ՝ առանց քարտի:",
+      ctaButton: "Սկսել",
     },
     auth: {
       welcomeTitle: "Բարի գալուստ Նաիրի",
@@ -2181,30 +2182,9 @@ export const translations: Record<Locale, TranslationStrings> = {
       subtitle: "Նաիրին օգտագործում է թափանցիկ սահմանափակման համակարգ. Սկսեք ստեղծել անմիջապես — և ընդլայնեք ձեր հզորությունը փոխազդեցության միջոցով, ոչ միայն վճարման միջոցով.",
       noPaywall: "Ոչ վճարային արգելափակում հետազոտության համար. Փորձեք Նաիրիի լրիվ հնարավորությունները նախքան որոշելը, թե որքան խոր եք ուզում մուգնել.",
       dailyCredits: "Ձեր օրական կրեդիտները",
-      creditsUsed: "750 / 1000",
+      creditsUsed: "0 / 100",
       resetsIn: "Վերականգնվում է 6 ժամից",
-      methods: {
-        watchAndEarn: {
-          title: "Դիտել և վաստակել",
-          description: "Դիտեք կարճ բովանդակություն՝ ձեր օրական սահմանափակումները ընդլայնելու համար.",
-          bonus: "+50 կրեդիտ/օր",
-        },
-        inviteFriends: {
-          title: "Հրավիրել ընկերներին",
-          description: "Տանեք ուրիշներին Նաիրի և ստացեք մշտական բոնուսներ.",
-          bonus: "+500 կրեդիտ/հրավեր",
-        },
-        stayActive: {
-          title: "Եղեք ակտիվ",
-          description: "Ցանկացած օգտագործումը մրցանակավորում է հետևողականությունը՝ մեծացնելով հզորությունը.",
-          bonus: "Մինչև 2x բազմապատկիչ",
-        },
-        marketplaceActivity: {
-          title: "Շուկայի ակտիվություն",
-          description: "Վաճառքը և ներդրումը վաստակում են լրացուցիչ ռեսուրսներ.",
-          bonus: "Վաճառքի 10%-ը",
-        },
-      },
+      methodsPlaceholder: "Կրեդիտներ վաստակելու գործառույթները մշակման փուլում են: Շուտով!",
     },
     security: {
       title: "Ուժը կոնտրոլով",

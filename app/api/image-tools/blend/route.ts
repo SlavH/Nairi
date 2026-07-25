@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[BLEND] Attempting Replicate image blending...")
+        // console.log("[BLEND] Attempting Replicate image blending...")
         
         const response = await fetch("https://api.replicate.com/v1/predictions", {
           method: "POST",
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
 
     // TIER 2: Use prompt-based generation with image descriptions via Pollinations
     try {
-      console.log("[BLEND] Attempting prompt-based blending...")
+      // console.log("[BLEND] Attempting prompt-based blending...")
       
       // Generate a description that combines the images conceptually
       const combinedPrompt = `${blendPrompt}, combining elements from ${images.length} reference images`

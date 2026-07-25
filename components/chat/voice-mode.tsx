@@ -169,21 +169,30 @@ export function VoiceMode({ onMessage, onResponse, isOpen = true, onClose }: Voi
     if (onMessage) onMessage(message);
     setTranscript("");
 
-    // Simulate AI response (in real app, this would call the API)
     setAiResponse("Обрабатываю ваш запрос...");
-    
-    // Here you would call your AI API
-    // const response = await fetch('/api/chat', { ... });
-    
-    // For demo, simulate response
-    setTimeout(() => {
-      const demoResponse = `Я получил ваше сообщение: "${message}". Как я могу помочь?`;
-      setAiResponse(demoResponse);
-      if (onResponse) onResponse(demoResponse);
-      if (isSpeakerOn) {
-        speakResponse(demoResponse);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, mode: "voice" }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const reply = data.response || data.message || "Готово.";
+        setAiResponse(reply);
+        if (onResponse) onResponse(reply);
+        if (isSpeakerOn) speakResponse(reply);
+      } else {
+        const fallback = "Извините, произошла ошибка. Попробуйте снова.";
+        setAiResponse(fallback);
+        if (onResponse) onResponse(fallback);
       }
-    }, 1000);
+    } catch {
+      const fallback = "Извините, произошла ошибка соединения.";
+      setAiResponse(fallback);
+      if (onResponse) onResponse(fallback);
+    }
   };
 
   const speakResponse = (text: string) => {

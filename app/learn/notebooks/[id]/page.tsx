@@ -32,7 +32,7 @@ export default async function NotebookDetailPage({
     .order("created_at", { ascending: true })
 
   return (
-    <div className="flex h-full flex-col min-h-0 overflow-hidden">
+    <div id="main-content" className="flex h-full flex-col min-h-0 overflow-hidden">
       <header className="flex items-center gap-3 border-b border-white/20 bg-white/5 backdrop-blur-sm px-4 py-2 shrink-0">
         <Button variant="ghost" size="icon" className="shrink-0 text-foreground hover:bg-white/10" asChild>
           <Link href="/learn/notebooks">

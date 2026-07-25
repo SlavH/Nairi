@@ -162,13 +162,7 @@ export async function logTempmailUsage(email: string, action: 'signup' | 'login'
     const supabase = createClient();
     const domain = getEmailDomain(email);
 
-    console.log('[TEMPMAIL MONITOR]', {
-      email,
-      domain,
-      action,
-      timestamp: new Date().toISOString(),
-      metadata,
-    });
+    /* console.log('[TEMPMAIL MONITOR]', { email, domain, action, timestamp: new Date().toISOString(), metadata }) */
 
     const { error } = await supabase.from('tempmail_usage_log').insert({
       email_domain: domain,

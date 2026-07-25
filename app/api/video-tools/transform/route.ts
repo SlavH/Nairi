@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[VIDEOTRANSFORM] Attempting Replicate...")
+        // console.log("[VIDEOTRANSFORM] Attempting Replicate...")
         
         // Use a video stylization model
         const response = await fetch("https://api.replicate.com/v1/predictions", {
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
     // TIER 2: Frame-by-frame transformation using img2img
     // This is a fallback that processes each frame individually
     try {
-      console.log("[VIDEOTRANSFORM] Attempting frame-by-frame transformation...")
+      // console.log("[VIDEOTRANSFORM] Attempting frame-by-frame transformation...")
       
       // In a real implementation, this would:
       // 1. Extract frames from the video

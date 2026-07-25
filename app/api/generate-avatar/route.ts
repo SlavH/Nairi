@@ -160,7 +160,7 @@ async function handleTalkingHead(
   const didKey = process.env.DID_API_KEY
   if (didKey && isValidApiKey(didKey)) {
     try {
-      console.log("[AVATAR] Attempting D-ID talking head...")
+      // console.log("[AVATAR] Attempting D-ID talking head...")
       
       const response = await fetch('https://api.d-id.com/talks', {
         method: 'POST',
@@ -234,7 +234,7 @@ async function handleTalkingHead(
   const heygenKey = process.env.HEYGEN_API_KEY
   if (heygenKey && isValidApiKey(heygenKey)) {
     try {
-      console.log("[AVATAR] Attempting HeyGen talking head...")
+      // console.log("[AVATAR] Attempting HeyGen talking head...")
       
       const response = await fetch('https://api.heygen.com/v2/video/generate', {
         method: 'POST',
@@ -308,7 +308,7 @@ async function handleLipSync(
   const replicateKey = process.env.REPLICATE_API_TOKEN
   if (replicateKey && isValidApiKey(replicateKey)) {
     try {
-      console.log("[AVATAR] Attempting Replicate Wav2Lip...")
+      // console.log("[AVATAR] Attempting Replicate Wav2Lip...")
       
       const response = await fetch('https://api.replicate.com/v1/predictions', {
         method: 'POST',

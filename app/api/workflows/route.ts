@@ -1,146 +1,115 @@
-/**
- * Nairi AI Workflow Builder - Workflows API
- * CRUD operations for workflows
- */
+import { NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
+import { getUserIdForApi } from "@/lib/auth"
 
-import { NextRequest, NextResponse } from 'next/server'
-
-// In-memory storage (replace with database in production)
-const workflows = new Map<string, any>()
-
-// GET - List all workflows or get a specific workflow
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
+    const id = searchParams.get("id")
 
     if (id) {
-      const workflow = workflows.get(id)
-      if (!workflow) {
-        return NextResponse.json(
-          { error: 'Workflow not found' },
-          { status: 404 }
-        )
-      }
-      return NextResponse.json(workflow)
+      const { data, error } = await supabase
+        .from("workflows")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", userId)
+        .single()
+      if (error || !data) return NextResponse.json({ error: "Workflow not found" }, { status: 404 })
+      return NextResponse.json(data)
     }
 
-    // Return all workflows
-    const allWorkflows = Array.from(workflows.values())
-    return NextResponse.json(allWorkflows)
+    const { data, error } = await supabase
+      .from("workflows")
+      .select("id, name, description, status, version, created_at, updated_at")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data ?? [])
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
-// POST - Create a new workflow
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const body = await request.json()
-    
-    const workflow = {
-      id: `wf-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: body.name || 'Untitled Workflow',
-      description: body.description || '',
-      version: '1.0.0',
-      status: 'draft',
-      nodes: body.nodes || [],
-      edges: body.edges || [],
-      variables: body.variables || [],
-      settings: body.settings || {
-        timeout: 300000,
-        retryCount: 3,
-        retryDelay: 1000,
-        concurrencyLimit: 10,
-        errorHandling: 'stop',
-        logging: 'normal',
-        sandbox: true,
-      },
-      triggers: body.triggers || [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      ...body,
-    }
+    const { data, error } = await supabase
+      .from("workflows")
+      .insert({
+        user_id: userId,
+        name: body.name || "Untitled Workflow",
+        description: body.description || "",
+        nodes: body.nodes ?? [],
+        edges: body.edges ?? [],
+        variables: body.variables ?? [],
+        settings: body.settings ?? {},
+        triggers: body.triggers ?? [],
+      })
+      .select()
+      .single()
 
-    workflows.set(workflow.id, workflow)
-
-    return NextResponse.json(workflow, { status: 201 })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json(data, { status: 201 })
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
-// PUT - Update a workflow
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const body = await request.json()
     const { id, ...updates } = body
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Workflow ID is required' },
-        { status: 400 }
-      )
-    }
+    if (!id) return NextResponse.json({ error: "Workflow ID is required" }, { status: 400 })
 
-    const workflow = workflows.get(id)
-    if (!workflow) {
-      return NextResponse.json(
-        { error: 'Workflow not found' },
-        { status: 404 }
-      )
-    }
+    const { data, error } = await supabase
+      .from("workflows")
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("user_id", userId)
+      .select()
+      .single()
 
-    const updatedWorkflow = {
-      ...workflow,
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    }
-
-    workflows.set(id, updatedWorkflow)
-
-    return NextResponse.json(updatedWorkflow)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (!data) return NextResponse.json({ error: "Workflow not found" }, { status: 404 })
+    return NextResponse.json(data)
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
-// DELETE - Delete a workflow
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const userId = await getUserIdForApi(() => supabase.auth.getUser())
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const { searchParams } = new URL(request.url)
-    const id = searchParams.get('id')
+    const id = searchParams.get("id")
+    if (!id) return NextResponse.json({ error: "Workflow ID is required" }, { status: 400 })
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Workflow ID is required' },
-        { status: 400 }
-      )
-    }
+    const { error } = await supabase
+      .from("workflows")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId)
 
-    if (!workflows.has(id)) {
-      return NextResponse.json(
-        { error: 'Workflow not found' },
-        { status: 404 }
-      )
-    }
-
-    workflows.delete(id)
-
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

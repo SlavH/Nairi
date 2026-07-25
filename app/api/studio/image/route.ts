@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     // Try HuggingFace API
     const hfKey = process.env.HUGGINGFACE_API_KEY
-    console.log("HuggingFace API key present:", !!hfKey)
+    // console.log("HuggingFace API key present:", !!hfKey)
     
     if (hfKey) {
       try {
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
           }
         )
 
-        console.log("HuggingFace response status:", response.status)
+        // console.log("HuggingFace response status:", response.status)
         
         if (response.ok) {
           // HuggingFace returns image as blob

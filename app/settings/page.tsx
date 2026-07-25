@@ -28,6 +28,7 @@ import { AccessibleToggle } from '@/components/ui/accessible-toggle'
 import { AccessibleTextarea } from '@/components/ui/accessible-textarea'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
+import { getPollinationsKey, setPollinationsKey } from '@/lib/image-providers/pollinations-config'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -46,6 +47,8 @@ export default function SettingsPage() {
     analytics: true,
     personalization: true
   })
+  const [pollinationsKey, setPollinationsKeyState] = useState('')
+  const [byokKey, setByokKeyState] = useState('')
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -71,6 +74,20 @@ export default function SettingsPage() {
       } catch {
         // Profile table might not exist
       }
+
+      const stored = getPollinationsKey()
+      if (stored) setPollinationsKeyState(stored)
+
+      // Load BYOK key from localStorage
+      try {
+        const raw = localStorage.getItem("opencode-config")
+        if (raw) {
+          const cfg = JSON.parse(raw)
+          if (cfg?.apiKey) setByokKeyState(cfg.apiKey)
+        }
+      } catch {
+        /* ignore */
+      }
     }
     loadSettings()
   }, [router])
@@ -91,6 +108,7 @@ export default function SettingsPage() {
           id: user.id,
           settings: { notifications, privacy, darkMode },
         })
+      setPollinationsKey(pollinationsKey || null)
       toast.success("Settings saved successfully")
     } catch {
       toast.error("Failed to save settings")
@@ -483,34 +501,40 @@ export default function SettingsPage() {
                     <div className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div>
-                          <h3 className="font-medium">Production Key</h3>
-                          <p className="text-sm text-muted-foreground">For production use</p>
+                          <h3 className="font-medium">OpenCode Key</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Your personal OpenCode Zen API key for NairiBook. Keeps models authenticated and lets you use paid models.
+                          </p>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Regenerate
-                        </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-background px-3 py-2 rounded-lg text-sm font-mono border border-border overflow-x-auto">
-                          nairi_pk_••••••••••••••••
-                        </code>
+                        <input
+                          type="password"
+                          value={byokKey}
+                          onChange={(e) => setByokKeyState(e.target.value)}
+                          placeholder="sk-... or public"
+                          className="flex-1 bg-background px-3 py-2 rounded-lg text-sm font-mono border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
                       </div>
                     </div>
 
                     <div className="p-4 bg-muted/50 rounded-lg">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div>
-                          <h3 className="font-medium">Test Key</h3>
-                          <p className="text-sm text-muted-foreground">For development and testing</p>
+                          <h3 className="font-medium">Pollinations.ai Key</h3>
+                          <p className="text-sm text-muted-foreground">
+                            Publishable key (<code>pk_...</code>) for client-side image generation. Safe in the browser. Do not enter your secret key (<code>sk_...</code>).
+                          </p>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Regenerate
-                        </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-background px-3 py-2 rounded-lg text-sm font-mono border border-border overflow-x-auto">
-                          nairi_tk_••••••••••••••••
-                        </code>
+                        <input
+                          type="password"
+                          value={pollinationsKey}
+                          onChange={(e) => setPollinationsKeyState(e.target.value)}
+                          placeholder="pk_..."
+                          className="flex-1 bg-background px-3 py-2 rounded-lg text-sm font-mono border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
                       </div>
                     </div>
                   </div>

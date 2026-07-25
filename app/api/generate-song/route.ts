@@ -125,7 +125,7 @@ Keep it appropriate for all audiences.`,
         })
         generatedLyrics = text?.trim() || undefined
       } catch (error) {
-        console.log("[SONG] Lyrics generation failed")
+        // console.log("[SONG] Lyrics generation failed")
       }
     }
 
@@ -175,7 +175,7 @@ Keep it appropriate for all audiences.`,
     const sunoKey = process.env.SUNO_API_KEY
     if (sunoKey && isValidApiKey(sunoKey)) {
       try {
-        console.log("[SONG] Attempting Suno API...")
+        // console.log("[SONG] Attempting Suno API...")
         // Suno API implementation would go here
         // Note: Suno doesn't have a public API yet
       } catch (error) {
@@ -187,7 +187,7 @@ Keep it appropriate for all audiences.`,
     const udioKey = process.env.UDIO_API_KEY
     if (udioKey && isValidApiKey(udioKey)) {
       try {
-        console.log("[SONG] Attempting Udio API...")
+        // console.log("[SONG] Attempting Udio API...")
         // Udio API implementation would go here
       } catch (error) {
         console.error("[SONG] Udio failed:", error)
@@ -198,7 +198,7 @@ Keep it appropriate for all audiences.`,
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[SONG] Attempting Replicate MusicGen (extended)...")
+        // console.log("[SONG] Attempting Replicate MusicGen (extended)...")
         
         // Generate multiple segments and concatenate
         const segmentDuration = 30 // MusicGen max
@@ -259,7 +259,7 @@ Keep it appropriate for all audiences.`,
 
             if (audioUrl) {
               audioSegments.push(audioUrl)
-              console.log(`[SONG] Segment ${i + 1}/${numSegments} completed`)
+              // console.log(`[SONG] Segment ${i + 1}/${numSegments} completed`)
             }
           }
         }
@@ -308,7 +308,7 @@ Keep it appropriate for all audiences.`,
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[SONG] Attempting HuggingFace MusicGen...")
+        // console.log("[SONG] Attempting HuggingFace MusicGen...")
         
         const response = await fetch(
           "https://api-inference.huggingface.co/models/facebook/musicgen-large",

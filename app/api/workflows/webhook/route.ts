@@ -99,11 +99,7 @@ async function triggerWorkflow(request: NextRequest, webhook: any, method: strin
   }
 
   // Log webhook trigger
-  console.log('Webhook triggered:', {
-    path: url.pathname,
-    method,
-    workflowId: webhook.workflowId,
-  })
+  /* console.log('Webhook triggered:', { path: url.pathname, method, workflowId: webhook.workflowId }) */
 
   // In a real implementation, this would trigger the workflow execution
   // For now, return success with trigger data

@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   Send,
@@ -23,15 +22,11 @@ import {
   Clock,
   DollarSign,
   BarChart,
-  CheckCircle,
   XCircle,
   Maximize2,
   Minimize2,
   Download,
   Share2,
-  Bot,
-  Brain,
-  Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

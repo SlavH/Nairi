@@ -17,10 +17,10 @@ async function loadChatLayoutData(): Promise<{
   const supabase = await createClient()
   const user = await getSession(() => supabase.auth.getUser())
 
-  console.log("ChatLayout: user fetched", user?.id)
+  // console.log("ChatLayout: user fetched", user?.id)
 
   if (!user) {
-    console.log("ChatLayout: No user, redirecting")
+    // console.log("ChatLayout: No user, redirecting")
     redirect("/auth/login")
   }
 

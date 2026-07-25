@@ -11,12 +11,11 @@ import { getUserIdForApi } from "@/lib/auth";
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
     const { searchParams } = new URL(req.url);
     const conversationId = searchParams.get("conversationId");
     const format = searchParams.get("format") || "json"; // json, markdown, pdf
@@ -89,15 +88,22 @@ export const GET = withLogging(async (req: NextRequest) => {
       }
 
       case "pdf": {
-        // PDF generation would require a library like pdfkit or puppeteer
-        // For now, return JSON with a note
-        return NextResponse.json(
-          {
-            error: "PDF export not yet implemented",
-            message: "Please use JSON or Markdown format",
+        // PDF export requires a rendering library; fall back to markdown
+        let markdown = `# ${conversation.title || "Conversation"}\n\n`;
+        markdown += `Created: ${new Date(conversation.created_at).toLocaleString()}\n\n`;
+        markdown += "---\n\n";
+
+        for (const msg of messages || []) {
+          const role = msg.role === "user" ? "**You**" : "**Assistant**";
+          markdown += `${role}\n\n${msg.content}\n\n---\n\n`;
+        }
+
+        return new NextResponse(markdown, {
+          headers: {
+            "Content-Type": "text/markdown",
+            "Content-Disposition": `attachment; filename="${conversation.title || "conversation"}.md"`,
           },
-          { status: 501 }
-        );
+        });
       }
 
       default:

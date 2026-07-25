@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { listBooks } from "@/lib/nairibook/store"
+import { loadGamification } from "@/lib/nairibook/gamification"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -63,10 +65,38 @@ interface LearnDashboardProps {
 
 export function LearnDashboard({ courses, userSkills, learningPaths, completedLessons, userId }: LearnDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview")
+  const [localXP, setLocalXP] = useState(0)
+  const [localStreak, setLocalStreak] = useState(0)
+  const [loadingLocal, setLoadingLocal] = useState(true)
 
-  const totalXP = userSkills.reduce((sum, skill) => sum + (skill.current_xp || 0), 0)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const books = await listBooks()
+        let total = 0
+        let maxStreak = 0
+        for (const b of books) {
+          if (!b.processed) continue
+          const g = await loadGamification(b.book_id)
+          if (g) {
+            total += g.xp
+            if (g.daily_streak > maxStreak) maxStreak = g.daily_streak
+          }
+        }
+        if (!cancelled) {
+          setLocalXP(total)
+          setLocalStreak(maxStreak)
+        }
+      } catch { /* IndexedDB may not be available */ }
+      if (!cancelled) setLoadingLocal(false)
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  const totalXP = localXP || userSkills.reduce((sum, skill) => sum + (skill.current_xp || 0), 0)
   const completedCount = completedLessons.length
-  const streakDays = 7 // Would be calculated from actual data
+  const streakDays = localStreak || 0
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

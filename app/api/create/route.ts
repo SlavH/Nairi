@@ -143,9 +143,9 @@ export async function POST(req: Request) {
     // STEP 1: Generate design brief for presentations (V0-style workflow)
     let designBrief: DesignBrief | null = null
     if (type === 'presentation') {
-      console.log('🎨 Generating presentation design brief...')
+      // console.log('🎨 Generating presentation design brief...')
       designBrief = await generateDesignBrief('presentation', prompt, options)
-      console.log('✅ Presentation design brief generated:', designBrief)
+      // console.log('✅ Presentation design brief generated:', designBrief)
     }
 
     // STEP 2: Build the creation prompt

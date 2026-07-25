@@ -13,7 +13,6 @@ import {
   Download, 
   RefreshCw,
   Sparkles,
-  Settings2,
   X
 } from "lucide-react"
 
@@ -165,6 +164,12 @@ export function ImageGenerator({ isOpen, onClose, onImageGenerated }: ImageGener
               )}
             </Button>
           </div>
+          {isGenerating && (
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Generating image… this may take up to 60 seconds.
+            </p>
+          )}
         </div>
 
         {/* Settings */}

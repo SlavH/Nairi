@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
     const stabilityKey = process.env.STABILITY_API_KEY
     if (stabilityKey && isValidApiKey(stabilityKey)) {
       try {
-        console.log("[IMG2IMG] Attempting Stability AI...")
+        // console.log("[IMG2IMG] Attempting Stability AI...")
         
         const formData = new FormData()
         
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[IMG2IMG] Attempting Replicate SDXL...")
+        // console.log("[IMG2IMG] Attempting Replicate SDXL...")
         
         const response = await fetch("https://api.replicate.com/v1/predictions", {
           method: "POST",
@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[IMG2IMG] Attempting HuggingFace...")
+        // console.log("[IMG2IMG] Attempting HuggingFace...")
         
         const response = await fetch(
           "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-refiner-1.0",

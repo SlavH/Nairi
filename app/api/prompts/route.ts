@@ -243,7 +243,7 @@ export async function POST(request: NextRequest) {
           .insert(newTemplate)
 
         if (saveError) {
-          console.log("[PROMPTS] Save error (table may not exist):", saveError)
+          // console.log("[PROMPTS] Save error (table may not exist):", saveError)
           // Return success anyway with the template
           return NextResponse.json({
             success: true,

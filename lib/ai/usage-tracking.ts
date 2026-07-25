@@ -28,6 +28,6 @@ export function recordUsage(usage: TokenUsage): void {
   const cost = estimateCost(usage)
   const withCost = { ...usage, estimatedCostUsd: cost }
   if (process.env.NAIRI_LOG_USAGE !== "false") {
-    console.log("[usage]", JSON.stringify(withCost))
+    // console.log("[usage]", JSON.stringify(withCost))
   }
 }

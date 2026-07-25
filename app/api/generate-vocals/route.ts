@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     const sunoKey = process.env.SUNO_API_KEY
     if (sunoKey && isValidApiKey(sunoKey)) {
       try {
-        console.log("[VOCALS] Attempting Suno API...")
+        // console.log("[VOCALS] Attempting Suno API...")
         // Suno API would go here when available
         // Suno is the best for vocals with lyrics
       } catch (error) {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[VOCALS] Attempting Replicate Bark...")
+        // console.log("[VOCALS] Attempting Replicate Bark...")
         
         // Bark can do singing with special notation
         const barkPrompt = `♪ ${lyrics} ♪`
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
     const elevenLabsKey = process.env.ELEVENLABS_API_KEY
     if (elevenLabsKey && isValidApiKey(elevenLabsKey)) {
       try {
-        console.log("[VOCALS] Attempting ElevenLabs...")
+        // console.log("[VOCALS] Attempting ElevenLabs...")
         
         // ElevenLabs is primarily TTS but can approximate singing
         const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM", {

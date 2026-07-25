@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log(`[CONTROLNET] Attempting Replicate ControlNet (${controlType})...`)
+        // console.log(`[CONTROLNET] Attempting Replicate ControlNet (${controlType})...`)
         
         // Map control types to Replicate model versions
         const controlNetModels: Record<string, string> = {
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log(`[CONTROLNET] Attempting HuggingFace ControlNet (${controlType})...`)
+        // console.log(`[CONTROLNET] Attempting HuggingFace ControlNet (${controlType})...`)
         
         const hfModels: Record<string, string> = {
           canny: "lllyasviel/sd-controlnet-canny",

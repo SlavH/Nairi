@@ -973,7 +973,9 @@ Generate presentation slides from a topic prompt. Returns a JSON array of slides
 
 ## Builder
 
-The Builder provides AI-powered website/code generation. The main page is at `/builder` (or `/builder-v2`, which redirects to `/builder`).
+The Builder provides AI-powered website/code generation. The main page is at `/builder`.
+
+> **Generation now runs client-side.** The Builder UI (`app/builder/page.tsx`) calls `useOpenCode().executeTask()` which runs the OpenCode free-model backend — a WebContainer booted in the browser (or the Zen direct API fallback) — using one of the free Zen models selectable from the chat footer dropdown. The server route below is retained for compatibility but is no longer used by the Builder UI.
 
 ### POST /api/builder/generate
 
@@ -1008,23 +1010,23 @@ Generate or update project code from a natural-language prompt. Returns a stream
 
 **Response**: 200 OK (Streaming, NDJSON)
 
-Each line is a JSON object. **Stream types:** `plan` (tasks array), `task-update` (taskId, status), `file-update` (file object), `message` (content chunk), `complete`. On failure, the stream sends `error` (e.g. `{"type":"error","content":"..."}`) before closing so the client can set plan status to failed and show the message. Request body is validated with Zod (`lib/builder-v2/schemas/request-schema.ts`); invalid or missing fields return 400 with a clear message.
+Each line is a JSON object. **Stream types:** `plan` (tasks array), `task-update` (taskId, status), `file-update` (file object), `message` (content chunk), `complete`. On failure, the stream sends `error` (e.g. `{"type":"error","content":"..."}`) before closing so the client can set plan status to failed and show the message. Request body is validated with Zod (`lib/builder/schemas/request-schema.ts`); invalid or missing fields return 400 with a clear message.
 
 **Error Responses**: 400 (invalid or missing prompt/body; see request schema), 401 (unauthorized), 413 (payload too large; see middleware builder limit), 429 (rate limit — client should show e.g. "Too many requests; try again in a minute"), 500 (generation error).
 
 **Builder usage**: Auth (or BYPASS_AUTH in development) is required. Rate limit: 10 requests per minute per client (BUILDER_RATE_LIMIT). Typical flow: client sends POST with prompt and current state → stream returns plan, then task-update and file-update events, then message chunks, then `complete`; on failure the stream may send `error` before closing.
 
-**System prompt sources**: The builder system prompt (`V0_SYSTEM_PROMPT` in `lib/builder-v2/prompts/system-prompt.ts`; see Builder system prompt subsection below) incorporates rules derived from Claude Sonnet artifacts prompts (GitHub gists), Anthropic’s “Prompting for frontend aesthetics” cookbook, Claude Code “Doing tasks” and “Tone and style” prompts (Piebald-AI/claude-code-system-prompts), and forensic analysis of Claude 3.5 Sonnet (artifacts, complete code, consistent style). These are applied to improve code completeness, Tailwind usage, anti–AI-slop aesthetics, and task discipline.
+**System prompt sources**: The builder system prompt (`V0_SYSTEM_PROMPT` in `lib/builder/prompts/system-prompt.ts`; see Builder system prompt subsection below) incorporates rules derived from Claude Sonnet artifacts prompts (GitHub gists), Anthropic’s “Prompting for frontend aesthetics” cookbook, Claude Code “Doing tasks” and “Tone and style” prompts (Piebald-AI/claude-code-system-prompts), and forensic analysis of Claude 3.5 Sonnet (artifacts, complete code, consistent style). These are applied to improve code completeness, Tailwind usage, anti–AI-slop aesthetics, and task discipline.
 
-**Generation behavior**: The builder uses prompt analysis (`lib/builder-v2/utils/prompt-analysis.ts`) and design guidance (`lib/builder-v2/utils/design-intelligence.ts`) to tailor the model context. Response parsing supports multiple shapes (JSON block, code blocks, brace-balanced JSON, greedy JSON, single-file fallback) and truncated-JSON repair. Validation and auto-fix run on generated code; after max attempts the main page may be replaced with a safe starter. Optional retries (when enabled via env) can run once on validation failure and once for a missing "wow" element (gradient text, animation, hover:scale, glassmorphism). Env flags: `BUILDER_RETRY_ON_VALIDATION_FAILURE=true` to allow one retry when validation fails after auto-fix; `BUILDER_RETRY_FOR_WOW=true` to allow one retry when the page lacks a wow element.
+**Generation behavior**: The builder uses prompt analysis (`lib/builder/utils/prompt-analysis.ts`) and design guidance (`lib/builder/utils/design-intelligence.ts`) to tailor the model context. Response parsing supports multiple shapes (JSON block, code blocks, brace-balanced JSON, greedy JSON, single-file fallback) and truncated-JSON repair. Validation and auto-fix run on generated code; after max attempts the main page may be replaced with a safe starter. Optional retries (when enabled via env) can run once on validation failure and once for a missing "wow" element (gradient text, animation, hover:scale, glassmorphism). Env flags: `BUILDER_RETRY_ON_VALIDATION_FAILURE=true` to allow one retry when validation fails after auto-fix; `BUILDER_RETRY_FOR_WOW=true` to allow one retry when the page lacks a wow element.
 
 #### Builder system prompt
 
-The builder system prompt lives in **`lib/builder-v2/prompts/system-prompt.ts`**. The route imports `V0_SYSTEM_PROMPT` from that module; it is not defined inline in the route.
+The builder system prompt lives in **`lib/builder/prompts/system-prompt.ts`**. The route imports `V0_SYSTEM_PROMPT` from that module; it is not defined inline in the route.
 
 - **Purpose**: Define role, output format (JSON only; plan/files/message), preview constraints (no document tags, nav/main/section required), design quality (images, animations, real copy), and behavior (interpreting requests, Bolt-style rules, task discipline).
-- **Structure**: The prompt is composed in four tiers—(1) critical: output format and preview constraints; (2) behavior: role, goal, interpreting requests, Bolt rules; (3) design: design quality and website-type reference; (4) reference: multi-page, component patterns, common failures, quality checklist. Layout patterns and website types are **not** listed in the system prompt; they are defined in `lib/builder-v2/utils/design-intelligence.ts` and injected into the **user message** as DESIGN GUIDANCE (e.g. via `getDesignGuidance(websiteType, colorScheme)`). Output format and forbidden patterns (no `<html>`/`<body>`, no single-div, etc.) are in the system prompt.
-- **How to change it**: Edit the segments or composed string in `lib/builder-v2/prompts/system-prompt.ts`, then run the builder flow; the route uses the imported prompt. For A/B tests or variants, swap or extend segments in that module.
+- **Structure**: The prompt is composed in four tiers—(1) critical: output format and preview constraints; (2) behavior: role, goal, interpreting requests, Bolt rules; (3) design: design quality and website-type reference; (4) reference: multi-page, component patterns, common failures, quality checklist. Layout patterns and website types are **not** listed in the system prompt; they are defined in `lib/builder/utils/design-intelligence.ts` and injected into the **user message** as DESIGN GUIDANCE (e.g. via `getDesignGuidance(websiteType, colorScheme)`). Output format and forbidden patterns (no `<html>`/`<body>`, no single-div, etc.) are in the system prompt.
+- **How to change it**: Edit the segments or composed string in `lib/builder/prompts/system-prompt.ts`, then run the builder flow; the route uses the imported prompt. For A/B tests or variants, swap or extend segments in that module.
 
 ### GET /api/builder/projects
 

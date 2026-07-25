@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[EDIT] Attempting Replicate InstructPix2Pix...")
+        // console.log("[EDIT] Attempting Replicate InstructPix2Pix...")
         
         const replicateResponse = await fetch(
           "https://api.replicate.com/v1/predictions",
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[EDIT] Attempting HuggingFace InstructPix2Pix...")
+        // console.log("[EDIT] Attempting HuggingFace InstructPix2Pix...")
         
         const response = await fetch(
           "https://api-inference.huggingface.co/models/timbrooks/instruct-pix2pix",

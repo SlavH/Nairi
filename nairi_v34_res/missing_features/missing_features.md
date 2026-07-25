@@ -64,7 +64,7 @@ This document identifies features that are advertised, partially implemented, or
 |---------|--------|-------|
 | Any text format | ⚠️ Not Tested | Chat fixed; can be tested |
 | Presentations | ✅ Working | Verified |
-| Websites & Interfaces | ⚠️ Not Tested | Builder /builder-v2 exists |
+| Websites & Interfaces | ⚠️ Not Tested | Builder /builder exists |
 | Visual concepts | ✅ Working | Image generation |
 | Ideas & Strategies | ⚠️ Not Tested | Chat fixed; can be tested |
 | Simulations | 🔜 "Soon" | Advertised as coming; /simulations page exists |
@@ -77,7 +77,7 @@ Validation performed by codebase inspection (routes and sidebar links verified).
 
 | # | Feature | Route(s) | Sidebar / Nav | Status |
 |---|---------|----------|---------------|--------|
-| 1 | Website Generation | /builder, /builder-v2 | Builder link → /builder-v2 | ✅ Route exists; UI loads |
+| 1 | Website Generation | /builder, /builder | Builder link → /builder | ✅ Route exists; UI loads |
 | 2 | Multi-language Support | (i18n context) | Language selector in header | ✅ Present in code |
 | 3 | API Access | /settings (API tab), /docs/api | Settings → API tab | ✅ Route exists |
 | 4 | Billing/Payments | /dashboard/billing, /billing | Sidebar Billing | ✅ Route exists |

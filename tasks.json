@@ -1,0 +1,66 @@
+{
+  "project": "Nairi",
+  "run": {
+    "mode": "background-agent",
+    "stop_at": "10:00",
+    "timezone": "local",
+    "conflict_protocol": "On real cross-stream conflict: set task status=blocked, report streams/files, pause. Do not patch blindly, do not drop.",
+    "verification": ["tsc --noEmit", "vitest run"],
+    "skip_when": "task requires live Zen call blocked by rate-limit -> mark needs-human-key"
+  },
+  "streams": {
+    "A": "Честность лендинга/маркетинга",
+    "B": "NairiBook-целостность",
+    "C": "Ключи/BYOK/провайдеры",
+    "D": "Надёжность тяжёлых фич (WebContainer/OPFS/embeddings)",
+    "E": "Perceived performance + кнопки",
+    "F": "Accessibility",
+    "G": "Серверная монетизация (только решение, код вне прогона)",
+    "H": "Журнал решений (DECISIONS.md)",
+    "I": "Повторяющийся coherence-аудит"
+  },
+  "tasks": [
+    { "id": "H1", "stream": "H", "title": "Создать DECISIONS.md", "files": ["DECISIONS.md"], "deps": [], "status": "done" },
+
+    { "id": "A1", "stream": "A", "title": "Убрать фейковое превью чата в Hero (заменить на честный плейсхолдер)", "files": ["components/hero-section.tsx", "lib/i18n/translations.ts"], "deps": [], "status": "done" },
+    { "id": "A2", "stream": "A", "title": "DemoModal: убрать скриптовые фейковые ответы, сделать честным", "files": ["components/demo-modal.tsx", "lib/i18n/translations.ts"], "deps": [], "status": "done" },
+    { "id": "A3", "stream": "A", "title": "MarketplaceSection: заменить вымышленные листинги на данные БД или честный empty-state", "files": ["components/marketplace-section.tsx", "lib/i18n/translations.ts"], "deps": [], "status": "done" },
+    { "id": "A4", "stream": "A", "title": "Capabilities: привести copy (coming soon vs готово) к реальности", "files": ["app/capabilities/page.tsx"], "deps": [], "status": "done" },
+    { "id": "A5", "stream": "A", "title": "Унифицировать цифру кредитов (1000 лендинг vs 100 дашборд)", "files": ["lib/i18n/translations.ts"], "deps": [], "status": "done" },
+    { "id": "A6", "stream": "A", "title": "Убрать/реализовать '+50 credits/day'", "files": ["lib/i18n/translations.ts", "components/limits-section.tsx"], "deps": [], "status": "done" },
+    { "id": "A7", "stream": "A", "title": "W9: удалить мёртвый i18n-ключ games", "files": ["lib/i18n/translations.ts"], "deps": [], "status": "done" },
+    { "id": "A8", "stream": "A", "title": "W11: убрать demo-плейсхолдеры ('for demo purposes') в workspace/builder", "files": ["app/workspace/[id]/page.tsx", "app/builder/page.tsx"], "deps": [], "status": "done" },
+    { "id": "A9", "stream": "A", "title": "W12: убрать нефункциональные мок-кнопки в hero", "files": ["components/hero-section.tsx"], "deps": [], "status": "done" },
+
+    { "id": "B2", "stream": "B", "title": "C10: создать BookContext + проброс notebookId во все панели, показ текущей книги", "files": ["components/learn/book-context.tsx", "components/learn/notebook-view.tsx", "components/learn/rag-chat-panel.tsx", "components/learn/exercises-panel.tsx", "components/learn/problem-solver-panel.tsx", "components/learn/photo-check-panel.tsx", "components/learn/concept-map-panel.tsx"], "deps": [], "status": "done" },
+    { "id": "B1", "stream": "B", "title": "C3: CTA из пустых Exercises/Problem/Photo во вкладку Concept Map + пояснение локальной обработки PDF", "files": ["components/learn/book-context.tsx", "components/learn/notebook-view.tsx", "components/learn/exercises-panel.tsx", "components/learn/problem-solver-panel.tsx", "components/learn/photo-check-panel.tsx"], "deps": ["B2"], "status": "done" },
+    { "id": "B3", "stream": "B", "title": "I3: унифицировать/разделить две системы XP (сервер vs локаль)", "files": ["components/learn/learn-dashboard.tsx"], "deps": [], "status": "done" },
+    { "id": "B4", "stream": "B", "title": "I4: унифицировать язык (RU/EN) внутри NairiBook; пояснить Chat vs RAG", "files": ["components/learn/rag-chat-panel.tsx", "components/learn/notebook-view.tsx"], "deps": [], "status": "done" },
+    { "id": "B5", "stream": "B", "title": "I14: оверлей зрелости на графе концептов + сводная карточка прогресса", "files": ["components/learn/concept-graph-view.tsx"], "deps": ["B2"], "status": "done" },
+    { "id": "B6", "stream": "B", "title": "W6: PDF-no-text — предложить OCR/распознавание", "files": ["components/learn/concept-map-panel.tsx", "lib/nairibook/parsers/pdf-parser.ts"], "deps": [], "status": "done" },
+    { "id": "B7", "stream": "B", "title": "W7: персистить completed между ремонтами таба", "files": ["components/learn/exercises-panel.tsx"], "deps": [], "status": "done" },
+
+    { "id": "C1", "stream": "C", "title": "C2: реальное поле BYOK в Settings + убрать фейковые Production/Test Key", "files": ["app/settings/page.tsx", "lib/opencode-wasm-bridge.ts", "lib/nairibook/zen.ts"], "deps": [], "status": "done" },
+    { "id": "C2", "stream": "C", "title": "C5: GitHub — реализовать токен+expiry+reauth ИЛИ убрать фейковый 'Connected'", "files": ["components/chat/github-integration.tsx"], "deps": [], "status": "done" },
+    { "id": "C3", "stream": "C", "title": "C6: сервер generate-image — корректно обработать 429 Pollinations + Retry-After", "files": ["app/api/generate-image/route.ts"], "deps": [], "status": "done" },
+    { "id": "C4", "stream": "C", "title": "I2: единый компонент 'лимит/ошибка' для 5 сценариев", "files": ["components/learn/limit-card.tsx", "components/learn/photo-check-panel.tsx", "components/learn/exercises-panel.tsx", "components/learn/problem-solver-panel.tsx", "lib/nairibook/zen.ts"], "deps": [], "status": "done" },
+    { "id": "C5", "stream": "C", "title": "I13: удалить мёртвый isVisionError (после проверки использования)", "files": ["lib/nairibook/zen.ts"], "deps": [], "status": "done" },
+
+    { "id": "D1", "stream": "D", "title": "C7: WebContainer.isSupported() + таймаут npm install + честный статус boot", "files": ["lib/webcontainer-provider.ts", "lib/opencode-wasm-bridge.ts", "hooks/use-opencode.ts", "components/builder/builder-chat.tsx"], "deps": [], "status": "done" },
+    { "id": "D2", "stream": "D", "title": "C8: OPFS->IndexedDB fallback + ранняя проверка поддержки", "files": ["lib/nairibook/opfs.ts", "lib/nairibook/store.ts", "components/learn/concept-map-panel.tsx"], "deps": [], "status": "done" },
+    { "id": "D3", "stream": "D", "title": "I7: экран загрузки движка Builder + таймаут", "files": ["components/builder/builder-chat.tsx", "lib/webcontainer-provider.ts"], "deps": ["D1"], "status": "done" },
+    { "id": "D4", "stream": "D", "title": "I9: warning-баннер при WebGPU->WASM fallback", "files": ["lib/nairibook/embeddings.ts", "lib/nairibook/pipeline.ts", "components/learn/concept-map-panel.tsx"], "deps": [], "status": "done" },
+    { "id": "D5", "stream": "D", "title": "I10: device-guard для embeddings + честные баннеры на мобильном", "files": ["lib/nairibook/embeddings.ts", "components/learn/*-panel.tsx"], "deps": [], "status": "done" },
+
+    { "id": "E1", "stream": "E", "title": "I6: двигающийся progress-bar на этапе embedding (itemDone/itemTotal)", "files": ["components/learn/concept-map-panel.tsx", "lib/nairibook/pipeline.ts"], "deps": [], "status": "done" },
+    { "id": "E2", "stream": "E", "title": "I8: статус-текст + Cancel для генерации/vision/упражнений", "files": ["components/chat/image-generator.tsx", "components/learn/photo-check-panel.tsx", "components/learn/exercises-panel.tsx"], "deps": [], "status": "done" },
+    { "id": "E3", "stream": "E", "title": "C11: блокировать кнопки при async (upload файлов, grade ответа)", "files": ["components/chat/chat-interface.tsx", "components/learn/exercises-panel.tsx"], "deps": [], "status": "done" },
+
+    { "id": "F1", "stream": "F", "title": "I5: aria-label на иконочных кнопках; label на select; skip-target; RAG live-регион", "files": ["components/learn/notebook-view.tsx", "components/learn/rag-chat-panel.tsx", "components/demo-modal.tsx", "components/learn/*-panel.tsx", "app/layout.tsx"], "deps": [], "status": "done" },
+    { "id": "F2", "stream": "F", "title": "I12: контраст мелкого текста на стеклянных панелях", "files": ["app/globals.css", "components/learn/*-panel.tsx"], "deps": [], "status": "done" },
+
+    { "id": "G1", "stream": "G", "title": "Зафиксировать решение D7-D9 (серверная инфра маркетплейса/соцфида); код вне прогона", "files": ["DECISIONS.md"], "deps": ["H1"], "status": "done" },
+
+    { "id": "I1", "stream": "I", "title": "После каждого крупного блока: coherence-чеклист 'ощущается ли как один продукт', лог в DECISIONS.md", "files": ["DECISIONS.md"], "deps": [], "status": "done" }
+  ]
+}

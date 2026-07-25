@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log(`[FACERESTORE] Attempting Replicate ${model}...`)
+        // console.log(`[FACERESTORE] Attempting Replicate ${model}...`)
         
         // Select model version based on choice
         const modelVersions: Record<string, string> = {
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[FACERESTORE] Attempting HuggingFace GFPGAN...")
+        // console.log("[FACERESTORE] Attempting HuggingFace GFPGAN...")
         
         const response = await fetch(
           "https://api-inference.huggingface.co/models/Xenova/face-restoration",

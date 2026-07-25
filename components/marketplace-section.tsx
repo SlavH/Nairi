@@ -2,28 +2,11 @@
 
 import Link from "next/link"
 
-import { useState } from "react"
 import { Store, Download, Edit3, Users } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { MarketplaceItemModal } from "@/components/marketplace-item-modal"
 import { useTranslation } from "@/lib/i18n/context"
-
-const trendingItems = [
-  { name: "E-commerce Template", creator: "Alex M.", type: "Website", price: "$49" },
-  { name: "Financial Report Generator", creator: "Sarah K.", type: "Tool", price: "$29" },
-  { name: "Brand Identity Kit", creator: "Design Co.", type: "Visual", price: "$79" },
-  { name: "Learning Path Builder", creator: "EduTech", type: "Interactive", price: "$39" },
-]
 
 export function MarketplaceSection() {
   const { t } = useTranslation()
-  const [selectedItem, setSelectedItem] = useState<(typeof trendingItems)[0] | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-
-  const handleItemClick = (item: (typeof trendingItems)[0]) => {
-    setSelectedItem(item)
-    setModalOpen(true)
-  }
 
   const features = [
     {
@@ -86,38 +69,19 @@ export function MarketplaceSection() {
 
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-[#e879f9]/20 to-[#22d3ee]/20 rounded-3xl blur-2xl" />
-              <div className="relative rounded-2xl border border-border bg-card p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold">{t.marketplaceSection.trendingCreations}</h3>
-                  <span className="text-sm text-muted-foreground">{t.marketplaceSection.thisWeek}</span>
+              <div className="relative rounded-2xl border border-border bg-card p-8 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-[#e879f9]/20 to-[#22d3ee]/20 flex items-center justify-center mx-auto mb-5">
+                  <Store className="w-8 h-8 text-[#e879f9]" />
                 </div>
-                <div className="space-y-4">
-                  {trendingItems.map((item) => (
-                    <div
-                      key={item.name}
-                      className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors cursor-pointer group"
-                      onClick={() => handleItemClick(item)}
-                    >
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-[#e879f9]/30 to-[#22d3ee]/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <span className="text-lg">✦</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate group-hover:text-[#e879f9] transition-colors">{item.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.creator} • {item.type}
-                        </p>
-                      </div>
-                      <span className="font-semibold text-[#22d3ee]">{item.price}</span>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-xl font-semibold mb-3">{t.marketplaceSection.emptyStateTitle}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">
+                  {t.marketplaceSection.emptyStateDescription}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-      <MarketplaceItemModal isOpen={modalOpen} onClose={() => setModalOpen(false)} item={selectedItem} />
     </>
   )
 }

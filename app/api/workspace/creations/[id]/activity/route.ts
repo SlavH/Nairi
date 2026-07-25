@@ -13,12 +13,11 @@ export const GET = withLogging(async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
     }
-
-    const supabase = await createClient();
 
     // Check access
     const { data: creation } = await supabase

@@ -129,7 +129,7 @@ async function handleGenerate(
   const replicateKey = process.env.REPLICATE_API_TOKEN
   if (replicateKey && isValidApiKey(replicateKey)) {
     try {
-      console.log("[FULLBODYAVATAR] Attempting Replicate...")
+      // console.log("[FULLBODYAVATAR] Attempting Replicate...")
       
       const response = await fetch("https://api.replicate.com/v1/predictions", {
         method: "POST",
@@ -297,7 +297,7 @@ async function handlePose(
   const replicateKey = process.env.REPLICATE_API_TOKEN
   if (replicateKey && isValidApiKey(replicateKey)) {
     try {
-      console.log("[FULLBODYAVATAR] Attempting pose transfer...")
+      // console.log("[FULLBODYAVATAR] Attempting pose transfer...")
       
       const posePrompt = `Same character, ${pose} pose, full body, maintain character appearance`
       

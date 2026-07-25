@@ -42,6 +42,7 @@
     "e2e",
     "**/*.stories.ts",
     "**/*.stories.tsx",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "opencode-wasm/**"
   ]
 }

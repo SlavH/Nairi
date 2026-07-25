@@ -33,7 +33,7 @@
 
 | Capability | Route / entry | Status |
 |------------|----------------|--------|
-| **Website / App builder** | `/builder`, `/builder-v2`, `/workspace/create` (website) | Implemented (API: `/api/generate`, `/api/builder/generate`, etc.) |
+| **Website / App builder** | `/builder`, `/builder`, `/workspace/create` (website) | Implemented (API: `/api/generate`, `/api/builder/generate`, etc.) |
 | **Presentations** | `/presentations`, `/studio/presentation`, `/workspace/create` (presentation) | Implemented (API: presentation generation) |
 | **Documents** | `/documents`, `/studio/document`, `/workspace/create` (document) | Implemented |
 | **AI Chat** | `/chat`, `/chat/[id]` | Implemented (API: `/api/chat`) |
@@ -66,7 +66,7 @@
 ## Routes (public / app — from file tree)
 
 - `/` — Home  
-- `/builder`, `/builder-v2`, `/builder/visual`  
+- `/builder`, `/builder`, `/builder/visual`  
 - `/workspace`, `/workspace/create`, `/workspace/[id]`, `/workspace/all`  
 - `/presentations`, `/studio`, `/studio/presentation`, `/studio/document`  
 - `/chat`, `/chat/[id]`  

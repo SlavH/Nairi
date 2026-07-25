@@ -47,7 +47,7 @@ function useNavItems() {
     { href: "/chat", icon: MessageSquare, label: t.nav.chat },
     { href: "/presentations", icon: Presentation, label: "Presentations" },
     { href: "/workspace", icon: FolderOpen, label: t.dashboard.workspace },
-    { href: "/builder-v2", icon: Code, label: t.dashboard.builder },
+    { href: "/builder", icon: Code, label: t.dashboard.builder },
     { href: "/learn", icon: GraduationCap, label: t.nav.learn },
     { href: "/flow", icon: GitBranch, label: t.nav.flow },
     { href: "/knowledge", icon: Network, label: t.nav.knowledge },

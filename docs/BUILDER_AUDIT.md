@@ -7,15 +7,15 @@ This document summarizes how the Builder v2 flow works today, where it fails, an
 ### 1. Data flow – from prompt to preview
 
 - **Entry point**: `[app/builder/page.tsx](app/builder/page.tsx)`
-  - User types into the builder chat (`handleSendMessage`) or picks a template from `TemplateGallery`.
-  - Builder assembles a `GenerateRequest` with:
-    - `prompt`: user intent or template text
-    - `currentFiles`: current project files (e.g. `/app/page.tsx`, `/app/layout.tsx`, `globals.css`)
-    - `conversationHistory`: last messages for context
-  - Sends `POST /api/builder/generate` with this payload.
+  - User types into the builder chat (`handleSendMessage`), picks a template from `TemplateGallery`, or selects a free model from the footer dropdown (`useOpenCode().config.model`).
+  - `handleSendMessage` builds the full prompt (a JSON-contract instruction from `lib/builder/opencode-prompt.ts` + current project files + conversation history + the user request) and calls `useOpenCode().executeTask({ type: "generate-code", prompt })`.
+  - Generation runs **client-side** through the OpenCode free-model backend:
+    - Primary: a WebContainer booted in the browser (`lib/webcontainer-provider.ts`) running the OpenCode server on port 4096, using one of the free Zen models (`opencode/big-pickle`, `opencode/deepseek-v4-flash-free`, etc.).
+    - Fallback: the Zen direct API (`callZenAPI` in `lib/opencode-wasm-bridge.ts`) when the WebContainer is unavailable.
+  - The model's response is parsed as newline-delimited JSON events (`plan`, `task-update`, `file-update`, `message`, `complete`) by the existing UI parser — see section 3.
 
-- **Backend generation**: `[app/api/builder/generate/route.ts](app/api/builder/generate/route.ts)`
-  - Validates:
+- **(Legacy) Backend generation route**: `[app/api/builder/generate/route.ts](app/api/builder/generate/route.ts)`
+  - This server route is no longer called by the Builder UI but remains available. It validates:
     - Rate limit via `checkRateLimit`.
     - Auth via Supabase (`getUserIdOrBypassForApi`).
     - Body JSON and presence of `prompt`.
@@ -23,12 +23,12 @@ This document summarizes how the Builder v2 flow works today, where it fails, an
   - Builds a streaming `ReadableStream`:
     - Emits `plan` (dynamic tasks) and `task-update`s for UI.
     - Builds an **enhanced generation prompt** from:
-      - `V0_SYSTEM_PROMPT` (imported from `lib/builder-v2/prompts/system-prompt.ts`; output format, preview constraints, design quality, behavior).
+      - `V0_SYSTEM_PROMPT` (imported from `lib/builder/prompts/system-prompt.ts`; output format, preview constraints, design quality, behavior).
       - Prompt analysis (intent, websiteType, complexity, features).
-      - Design guidance from `lib/builder-v2/utils/design-intelligence.ts` (layout patterns by website type) injected into the user message as DESIGN GUIDANCE.
+      - Design guidance from `lib/builder/utils/design-intelligence.ts` (layout patterns by website type) injected into the user message as DESIGN GUIDANCE.
     - Calls `generateWithFallback` with this prompt to obtain raw code.
   - **Critical cleaning & validation pipeline (server-side)**:
-    - Uses `cleanGeneratedCode` (from `@/lib/builder-v2/generators/code-cleaner`) to normalize the AI output:
+    - Uses `cleanGeneratedCode` (from `@/lib/builder/generators/code-cleaner`) to normalize the AI output:
       - Removes markdown fences and explanations.
       - Ensures a single `export default` component.
       - Fixes many common hook/arrow-function/useState syntactic errors.
@@ -47,7 +47,7 @@ This document summarizes how the Builder v2 flow works today, where it fails, an
   - On successful completion, writes a new `ProjectVersion` with the updated `files`.
   - `getPreviewCode()` always reads the current `/app/page.tsx` from state for preview.
 
-- **Preview sandbox**: `[components/builder-v2/live-preview-v2.tsx](components/builder-v2/live-preview-v2.tsx)`
+- **Preview sandbox**: `[components/builder/live-preview.tsx](components/builder/live-preview.tsx)`
   - Uses `buildSandpackFiles` to construct:
     - `/App.tsx`: cleaned and JS/TS syntax-fixed code.
     - `/index.tsx`: standard React entry using `ReactDOM.createRoot`.
@@ -140,7 +140,7 @@ This document summarizes how the Builder v2 flow works today, where it fails, an
 ### 3. Summary of reliability-focused mitigations
 
 - **Generation phase**
-  - Clear constraints in the builder system prompt (in `lib/builder-v2/prompts/system-prompt.ts`: output format, no document tags, nav/main/section, Tailwind, etc.).
+  - Clear constraints in the builder system prompt (in `lib/builder/prompts/system-prompt.ts`: output format, no document tags, nav/main/section, Tailwind, etc.).
   - Pre-clean AI output with `cleanGeneratedCode`.
   - Validate via `validateTypeScriptCode` and, where safe, correct via `autoFixCommonErrors`.
 
@@ -155,11 +155,11 @@ This document summarizes how the Builder v2 flow works today, where it fails, an
 
 ### 4. Builder system prompt
 
-The builder system prompt lives in **`lib/builder-v2/prompts/system-prompt.ts`**. The route (`app/api/builder/generate/route.ts`) imports `V0_SYSTEM_PROMPT` from that module; the prompt is not defined inline in the route.
+The builder system prompt lives in **`lib/builder/prompts/system-prompt.ts`**. The route (`app/api/builder/generate/route.ts`) imports `V0_SYSTEM_PROMPT` from that module; the prompt is not defined inline in the route.
 
-- **Layout patterns and website types** are defined in `lib/builder-v2/utils/design-intelligence.ts` (e.g. `layoutPatterns`, `getDesignGuidance`). The route injects design guidance into the **user message** as DESIGN GUIDANCE so the model receives layout patterns by website type; the system prompt does not repeat the full website-type list.
+- **Layout patterns and website types** are defined in `lib/builder/utils/design-intelligence.ts` (e.g. `layoutPatterns`, `getDesignGuidance`). The route injects design guidance into the **user message** as DESIGN GUIDANCE so the model receives layout patterns by website type; the system prompt does not repeat the full website-type list.
 - **Output format and forbidden patterns** (JSON only, no `<html>`/`<body>`, no single-div, nav/main/section required, etc.) are in the system prompt. The prompt is structured in four tiers: critical (output format, preview constraints), behavior (role, interpreting requests, Bolt rules), design (design quality, website-type reference), reference (multi-page, patterns, common failures, quality checklist).
-- **How to change it**: Edit the segments or composed string in `lib/builder-v2/prompts/system-prompt.ts`, then run the builder flow. For variants or A/B tests, swap or extend segments in that module.
+- **How to change it**: Edit the segments or composed string in `lib/builder/prompts/system-prompt.ts`, then run the builder flow. For variants or A/B tests, swap or extend segments in that module.
 
 ---
 

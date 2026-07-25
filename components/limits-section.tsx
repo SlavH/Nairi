@@ -1,39 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { Play, UserPlus, Zap, ShoppingBag, Check } from "lucide-react"
+import { Clock } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/context"
 
 export function LimitsSection() {
   const { t } = useTranslation()
-  const [activeMethod, setActiveMethod] = useState<number | null>(null)
-
-  const methods = [
-    {
-      icon: Play,
-      title: t.limits.methods.watchAndEarn.title,
-      description: t.limits.methods.watchAndEarn.description,
-      bonus: t.limits.methods.watchAndEarn.bonus,
-    },
-    {
-      icon: UserPlus,
-      title: t.limits.methods.inviteFriends.title,
-      description: t.limits.methods.inviteFriends.description,
-      bonus: t.limits.methods.inviteFriends.bonus,
-    },
-    {
-      icon: Zap,
-      title: t.limits.methods.stayActive.title,
-      description: t.limits.methods.stayActive.description,
-      bonus: t.limits.methods.stayActive.bonus,
-    },
-    {
-      icon: ShoppingBag,
-      title: t.limits.methods.marketplaceActivity.title,
-      description: t.limits.methods.marketplaceActivity.description,
-      bonus: t.limits.methods.marketplaceActivity.bonus,
-    },
-  ]
 
   return (
     <section className="py-20 md:py-32 relative">
@@ -61,42 +32,18 @@ export function LimitsSection() {
                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-[#e879f9] to-[#22d3ee] rounded-full transition-all"
-                    style={{ width: "75%" }}
+                    style={{ width: "0%" }}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">{t.limits.resetsIn}</p>
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              {methods.map((method, index) => (
-                <div
-                  key={method.title}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                    activeMethod === index
-                      ? "bg-gradient-to-r from-[#e879f9]/20 to-[#22d3ee]/20 border-[#e879f9]/50"
-                      : "bg-muted/30 border-border hover:border-[#22d3ee]/50"
-                  }`}
-                  onMouseEnter={() => setActiveMethod(index)}
-                  onMouseLeave={() => setActiveMethod(null)}
-                >
-                  <method.icon
-                    className={`w-6 h-6 mb-2 transition-colors ${
-                      activeMethod === index ? "text-[#22d3ee]" : "text-[#e879f9]"
-                    }`}
-                  />
-                  <h3 className="font-medium mb-1">{method.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{method.description}</p>
-                  <div
-                    className={`flex items-center gap-1 text-xs font-medium transition-all ${
-                      activeMethod === index ? "text-[#22d3ee]" : "text-[#e879f9]"
-                    }`}
-                  >
-                    <Check className="w-3 h-3" />
-                    {method.bonus}
-                  </div>
-                </div>
-              ))}
+            <div className="p-6 rounded-xl border border-border bg-muted/30 text-center flex flex-col items-center justify-center min-h-[200px]">
+              <Clock className="w-10 h-10 text-muted-foreground mb-3" />
+              <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+                {t.limits.methodsPlaceholder}
+              </p>
             </div>
           </div>
         </div>

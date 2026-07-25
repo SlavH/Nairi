@@ -1,7 +1,6 @@
 "use client"
 
 import React from 'react'
-// import * as Sentry from '@sentry/nextjs' // Disabled - Sentry not compatible with Next.js 16
 import { Button } from '@/components/ui/button'
 import { reportError } from '@/lib/logging'
 

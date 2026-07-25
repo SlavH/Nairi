@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     const meshyKey = process.env.MESHY_API_KEY
     if (meshyKey && isValidApiKey(meshyKey)) {
       try {
-        console.log("[3D] Attempting Meshy API...")
+        // console.log("[3D] Attempting Meshy API...")
         
         const meshyEndpoint = mode === "image-to-3d" 
           ? "https://api.meshy.ai/v1/image-to-3d"
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
     const replicateKey = process.env.REPLICATE_API_TOKEN
     if (replicateKey && isValidApiKey(replicateKey)) {
       try {
-        console.log("[3D] Attempting Replicate Shap-E...")
+        // console.log("[3D] Attempting Replicate Shap-E...")
         
         const replicateResponse = await fetch(
           "https://api.replicate.com/v1/predictions",
@@ -295,7 +295,7 @@ export async function POST(request: NextRequest) {
     const hfKey = process.env.HUGGINGFACE_API_KEY
     if (hfKey && isValidApiKey(hfKey)) {
       try {
-        console.log("[3D] Attempting HuggingFace Shap-E...")
+        // console.log("[3D] Attempting HuggingFace Shap-E...")
         
         const hfResponse = await fetch(
           "https://api-inference.huggingface.co/models/openai/shap-e",
