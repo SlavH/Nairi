@@ -7,7 +7,7 @@
 // (Socratic problem-solving tutor). v4: photoCheck (handwritten photo grading).
 
 const DB_NAME = "nairibook"
-const DB_VERSION = 5
+const DB_VERSION = 6
 
 export const STORES = {
   books: "books",
@@ -44,8 +44,8 @@ export function openDB(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORES.chunks)) db.createObjectStore(STORES.chunks, { keyPath: "book_id" })
       if (!db.objectStoreNames.contains(STORES.concepts)) db.createObjectStore(STORES.concepts, { keyPath: "book_id" })
       if (!db.objectStoreNames.contains(STORES.graphs)) db.createObjectStore(STORES.graphs, { keyPath: "book_id" })
-      if (!db.objectStoreNames.contains(STORES.ragChat)) db.createObjectStore(STORES.ragChat, { keyPath: ["notebookId", "turnId"] })
-      if (!db.objectStoreNames.contains(STORES.ragFeedback)) db.createObjectStore(STORES.ragFeedback, { keyPath: ["notebookId", "turnId"] })
+      if (!db.objectStoreNames.contains(STORES.ragChat)) db.createObjectStore(STORES.ragChat, { keyPath: "notebookId" })
+      if (!db.objectStoreNames.contains(STORES.ragFeedback)) db.createObjectStore(STORES.ragFeedback, { keyPath: "notebookId" })
       // v2 stores
       if (!db.objectStoreNames.contains(STORES.exerciseCache)) db.createObjectStore(STORES.exerciseCache, { keyPath: ["book_id", "concept_id"] })
       if (!db.objectStoreNames.contains(STORES.srState)) db.createObjectStore(STORES.srState, { keyPath: ["book_id", "concept_id"] })

@@ -8,27 +8,33 @@
 -- 1. Fix subscriptions table - restrict writes to service_role only
 -- =====================================================
 
--- Drop vulnerable policy that allows users to UPDATE their own plan/status
-DROP POLICY IF EXISTS "Users can manage own subscriptions" ON subscriptions;
+-- Drop vulnerable policies that allow users to INSERT/UPDATE their own plan/status
+-- (006_create_subscriptions.sql created subscriptions_insert_own / subscriptions_update_own)
+DROP POLICY IF EXISTS subscriptions_insert_own ON subscriptions;
+DROP POLICY IF EXISTS subscriptions_update_own ON subscriptions;
 
 -- Users can only READ their own subscriptions
 CREATE POLICY "Users can view own subscriptions" ON subscriptions FOR SELECT USING (auth.uid() = user_id);
 
 -- Service role (Stripe webhook) handles all writes - regular users cannot INSERT/UPDATE/DELETE
 -- Using WITH CHECK (false) blocks all authenticated users; service_role bypasses RLS entirely
+CREATE POLICY "Service role can insert subscriptions" ON subscriptions FOR INSERT WITH CHECK (false);
+CREATE POLICY "Service role can update subscriptions" ON subscriptions FOR UPDATE USING (false) WITH CHECK (false);
 
 -- =====================================================
 -- 2. Fix product_purchases table - restrict INSERT to service_role only
 -- =====================================================
 
 -- Drop vulnerable policy that allows users to INSERT fake purchases
-DROP POLICY IF EXISTS "Users can create own purchases" ON product_purchases;
+-- (010_create_marketplace_extended.sql created purchases_own FOR ALL)
+DROP POLICY IF EXISTS purchases_own ON product_purchases;
 
 -- Users can only READ their own purchases
 CREATE POLICY "Users can view own purchases" ON product_purchases FOR SELECT USING (auth.uid() = user_id);
 
 -- Service role handles purchase creation via Stripe webhook
 -- Regular users cannot INSERT (WITH CHECK false blocks them)
+CREATE POLICY "Service role can insert purchases" ON product_purchases FOR INSERT WITH CHECK (false);
 
 -- =====================================================
 -- 3. Fix presentation_collaborators table - restrict to presentation owners only

@@ -695,7 +695,8 @@ export function LivePreview({
   }, [])
 
   const handleOpenExternal = useCallback(() => {
-    // Create a blob URL with the preview HTML for external viewing
+    // SECURITY: Use sandboxed iframe instead of same-origin blob URL to prevent XSS
+    // Blob URLs inherit the app origin, allowing generated code to access cookies/localStorage
     const cleanCode = cleanCodeForSandpack(code).replace(/export\s+default\s+/, 'const App = ')
     const html = `<!DOCTYPE html>
 <html>
@@ -721,7 +722,30 @@ export function LivePreview({
 </html>`
     const blob = new Blob([html], { type: "text/html" })
     const url = URL.createObjectURL(blob)
-    window.open(url, "_blank")
+    
+    // Open in a new window with a sandboxed iframe to prevent same-origin access
+    const newWindow = window.open("", "_blank", "noopener,noreferrer")
+    if (newWindow) {
+      newWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Nairi Builder Preview (Sandboxed)</title>
+          <style>body { margin: 0; padding: 0; } iframe { width: 100vw; height: 100vh; border: none; }</style>
+        </head>
+        <body>
+          <iframe 
+            sandbox="allow-scripts allow-forms allow-modals allow-popups"
+            src="${url}"
+            referrerpolicy="no-referrer"
+          ></iframe>
+        </body>
+        </html>
+      `)
+      newWindow.document.close()
+    }
   }, [code])
 
   const hasValidCode = code && isValidReactCode(code)

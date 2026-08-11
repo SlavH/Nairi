@@ -116,10 +116,23 @@ CREATE POLICY "products_own" ON public.marketplace_products FOR ALL USING (
   EXISTS (SELECT 1 FROM public.creator_profiles WHERE id = creator_id AND user_id = auth.uid())
 );
 CREATE POLICY "purchases_own" ON public.product_purchases FOR ALL USING (auth.uid() = user_id);
-CREATE POLICY "reviews_read" ON public.product_reviews FOR SELECT USING (TRUE);
+-- SECURITY: Only allow reading reviews for published products (prevents leakage of purchase history via reviews)
+CREATE POLICY "reviews_read" ON public.product_reviews FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.marketplace_products 
+    WHERE id = product_id AND is_published = TRUE
+  )
+);
 CREATE POLICY "reviews_own" ON public.product_reviews FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "badges_read" ON public.expert_badges FOR SELECT USING (TRUE);
-CREATE POLICY "user_badges_read" ON public.user_badges FOR SELECT USING (TRUE);
+-- SECURITY: Only allow reading badges for users with public creator profiles, or own badges
+CREATE POLICY "user_badges_read" ON public.user_badges FOR SELECT USING (
+  auth.uid() = user_id OR
+  EXISTS (
+    SELECT 1 FROM public.creator_profiles 
+    WHERE user_id = user_badges.user_id
+  )
+);
 CREATE POLICY "user_badges_own" ON public.user_badges FOR ALL USING (auth.uid() = user_id);
 
 -- Insert default expert badges (only if they don't exist)

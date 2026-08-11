@@ -1,7 +1,7 @@
 "use client"
 
 import { X, Copy, Download, Maximize2, Minimize2, Code, FileText, Table, Play, Check } from "lucide-react"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -65,21 +65,46 @@ export function Artifact({ type, title, content, language = "javascript", onClos
 
   const renderContent = () => {
     if (type === "html" && showPreview) {
+      // SECURITY: Use sandboxed iframe with blob URL instead of srcDoc
+      // srcDoc inherits parent origin, allowing XSS access to cookies/localStorage
+      // Blob URL with sandbox prevents same-origin access
+      const [blobUrl, setBlobUrl] = useState<string | null>(null)
+      
+      useEffect(() => {
+        const blob = new Blob([content], { type: "text/html" })
+        const url = URL.createObjectURL(blob)
+        setBlobUrl(url)
+        return () => URL.revokeObjectURL(url)
+      }, [content])
+      
+      if (!blobUrl) {
+        return <div className="w-full h-full min-h-[300px] bg-white rounded flex items-center justify-center">Loading preview...</div>
+      }
+      
       return (
         <iframe
-          srcDoc={content}
+          src={blobUrl}
           className="w-full h-full min-h-[300px] bg-white rounded"
-          sandbox="allow-scripts"
+          sandbox="allow-scripts allow-forms allow-modals allow-popups"
           title={title}
+          referrerPolicy="no-referrer"
         />
       )
     }
 
     if (type === "svg" && showPreview) {
+      // SECURITY: Sanitize SVG content before rendering
+      // Remove script tags, event handlers, and javascript: URLs
+      const sanitizedSvg = content
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+        .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers (onclick, onload, etc.)
+        .replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"') // Neutralize javascript: URLs
+        .replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src=""') // Neutralize javascript: in src
+      
       return (
         <div 
           className="w-full h-full min-h-[200px] flex items-center justify-center bg-white rounded p-4"
-          dangerouslySetInnerHTML={{ __html: content }}
+          dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
         />
       )
     }

@@ -543,6 +543,13 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient()
     const userId = await getUserIdForApi(() => supabase.auth.getUser())
 
+    // Require authentication
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
     const originGuard = assertSameOrigin(req)
     if (originGuard) return originGuard
 

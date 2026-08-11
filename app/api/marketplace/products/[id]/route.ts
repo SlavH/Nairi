@@ -6,6 +6,7 @@ const PRODUCT_TYPES = ["prompt", "template", "tool", "workflow", "course", "desi
 
 /**
  * GET - Fetch a single product. Public if published; owner can read own drafts.
+ * Paid content (full_content, file_url) only returned for purchasers or creator.
  */
 export async function GET(
   req: Request,
@@ -31,20 +32,45 @@ export async function GET(
     }
 
     const isPublished = product.is_published === true
-    if (!isPublished && user) {
+    let isOwner = false
+    let isPurchaser = false
+
+    if (user) {
       const { data: creator } = await supabase
         .from("creator_profiles")
         .select("id")
         .eq("user_id", user.id)
         .single()
-      if (creator?.id !== product.creator_id) {
-        return NextResponse.json({ error: "Product not found" }, { status: 404 })
+      
+      if (creator?.id === product.creator_id) {
+        isOwner = true
       }
-    } else if (!isPublished) {
+
+      // Check if user purchased this product
+      if (!isOwner && product.price_cents > 0) {
+        const { data: purchase } = await supabase
+          .from("product_purchases")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("product_id", id)
+          .single()
+        
+        isPurchaser = !!purchase
+      }
+    }
+
+    if (!isPublished && !isOwner) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ product })
+    // SECURITY: Strip paid content for non-purchasers
+    const responseProduct = { ...product }
+    if (product.price_cents > 0 && !isOwner && !isPurchaser) {
+      delete responseProduct.full_content
+      delete responseProduct.file_url
+    }
+
+    return NextResponse.json({ product: responseProduct })
   } catch (e) {
     console.error("Marketplace product GET error:", e)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

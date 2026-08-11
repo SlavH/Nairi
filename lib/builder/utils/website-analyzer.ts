@@ -11,27 +11,6 @@ export interface WebsiteAnalysis {
   pages: { url: string; purpose: string; elements: string[] }[]
   tailwindClasses: string
 }
-
-/**
- * Fetch website HTML with proper headers
- */
-export async function fetchPage(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5'
-      }
-    })
-    if (!response.ok) return null
-    return await response.text()
-  } catch (e) {
-    console.error(`Failed to fetch ${url}:`, e)
-    return null
-  }
-}
-
 /**
  * Extract all internal links from HTML
  */
@@ -54,6 +33,68 @@ export function extractLinks(html: string, baseUrl: string): string[] {
   
   return [...new Set(links)].slice(0, 10) // Max 10 pages
 }
+
+
+/**
+ * SSRF guard: validate that a URL is safe to fetch from the server.
+ * - Allows only https:// scheme
+ * - Rejects private/loopback/link-local/metadata hostnames
+ */
+async function validateFetchTarget(url: string): Promise<boolean> {
+  try {
+    const parsed = new URL(url)
+    
+    // Only allow https
+    if (parsed.protocol !== 'https:') {
+      return false
+    }
+    
+    // Block localhost and local network
+    const hostname = parsed.hostname
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      return false
+    }
+    
+    // Block private IP ranges and metadata hostnames
+    const blockedPatterns = [
+      /^10\./,                    // 10.0.0.0/8
+      /^192\.168\./,              // 192.168.0.0/16
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+      /^169\.254\./,              // link-local
+      /^127\./,                   // loopback
+      /^0\./,                     // this network
+      /^::1$/,                    // IPv6 loopback
+      /^fe80::/i,                 // IPv6 link-local
+      /^fc00::/i,                 // IPv6 unique local
+      /^fd00::/i,                 // IPv6 unique local
+    ]
+    
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        return false
+      }
+    }
+    
+    // Block known metadata service hostnames
+    const blockedHosts = [
+      'metadata.google.internal',
+      'metadata',
+      '169.254.169.254',
+      'instance-data',
+      'metadata.azure.com',
+      'metadata.aws.internal',
+    ]
+    
+    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
+      return false
+    }
+    
+    return true
+  } catch {
+    return false
+  }
+}
+
 
 /**
  * Extract CSS from HTML (inline styles, style tags, and linked stylesheets)
@@ -80,21 +121,89 @@ export async function extractAllCSS(html: string, baseUrl: string): Promise<stri
       cssUrl = `${base.origin}/${cssUrl}`
     }
     
-    try {
-      const cssResponse = await fetch(cssUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      })
-      if (cssResponse.ok) {
-        const css = await cssResponse.text()
-        cssContent.push(css.substring(0, 20000)) // Limit size
+    // SSRF guard for CSS fetch
+    if (!validateFetchTarget(cssUrl)) {
+      console.error(`[extractAllCSS] Blocked SSRF attempt: ${cssUrl}`)
+    } else {
+      try {
+        const cssResponse = await fetch(cssUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          signal: AbortSignal.timeout(5_000), // 5s timeout for CSS
+        })
+        if (cssResponse.ok) {
+          const css = await cssResponse.text()
+          cssContent.push(css.substring(0, 20000)) // Limit size
+        }
+      } catch (e) {
+        // Skip failed CSS fetches
       }
-    } catch (e) {
-      // Skip failed CSS fetches
     }
   }
   
   return cssContent.join('\n')
 }
+
+
+/**
+ * SSRF guard: validate that a URL is safe to fetch from the server.
+ * - Allows only https:// scheme
+ * - Rejects private/loopback/link-local/metadata hostnames
+ */
+async function validateFetchTarget(url: string): Promise<boolean> {
+  try {
+    const parsed = new URL(url)
+    
+    // Only allow https
+    if (parsed.protocol !== 'https:') {
+      return false
+    }
+    
+    // Block localhost and local network
+    const hostname = parsed.hostname
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      return false
+    }
+    
+    // Block private IP ranges and metadata hostnames
+    const blockedPatterns = [
+      /^10\./,                    // 10.0.0.0/8
+      /^192\.168\./,              // 192.168.0.0/16
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+      /^169\.254\./,              // link-local
+      /^127\./,                   // loopback
+      /^0\./,                     // this network
+      /^::1$/,                    // IPv6 loopback
+      /^fe80::/i,                 // IPv6 link-local
+      /^fc00::/i,                 // IPv6 unique local
+      /^fd00::/i,                 // IPv6 unique local
+    ]
+    
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        return false
+      }
+    }
+    
+    // Block known metadata service hostnames
+    const blockedHosts = [
+      'metadata.google.internal',
+      'metadata',
+      '169.254.169.254',
+      'instance-data',
+      'metadata.azure.com',
+      'metadata.aws.internal',
+    ]
+    
+    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
+      return false
+    }
+    
+    return true
+  } catch {
+    return false
+  }
+}
+
 
 /**
  * Extract colors from CSS
@@ -127,6 +236,68 @@ export function extractColors(css: string): { hex: string; count: number }[] {
     .sort((a, b) => b.count - a.count)
     .slice(0, 20)
 }
+
+
+/**
+ * SSRF guard: validate that a URL is safe to fetch from the server.
+ * - Allows only https:// scheme
+ * - Rejects private/loopback/link-local/metadata hostnames
+ */
+async function validateFetchTarget(url: string): Promise<boolean> {
+  try {
+    const parsed = new URL(url)
+    
+    // Only allow https
+    if (parsed.protocol !== 'https:') {
+      return false
+    }
+    
+    // Block localhost and local network
+    const hostname = parsed.hostname
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      return false
+    }
+    
+    // Block private IP ranges and metadata hostnames
+    const blockedPatterns = [
+      /^10\./,                    // 10.0.0.0/8
+      /^192\.168\./,              // 192.168.0.0/16
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+      /^169\.254\./,              // link-local
+      /^127\./,                   // loopback
+      /^0\./,                     // this network
+      /^::1$/,                    // IPv6 loopback
+      /^fe80::/i,                 // IPv6 link-local
+      /^fc00::/i,                 // IPv6 unique local
+      /^fd00::/i,                 // IPv6 unique local
+    ]
+    
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        return false
+      }
+    }
+    
+    // Block known metadata service hostnames
+    const blockedHosts = [
+      'metadata.google.internal',
+      'metadata',
+      '169.254.169.254',
+      'instance-data',
+      'metadata.azure.com',
+      'metadata.aws.internal',
+    ]
+    
+    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
+      return false
+    }
+    
+    return true
+  } catch {
+    return false
+  }
+}
+
 
 /**
  * Extract CSS variables (design tokens)

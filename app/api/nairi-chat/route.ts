@@ -1,12 +1,9 @@
-/**
- * POST /api/nairi-chat — simplified chat using OpenCode backend when available.
- * Falls back to generateWithFallback only if OPENCODE_API_URL is not set.
- */
 import { NextRequest, NextResponse } from "next/server"
 
+import { createClient } from "@/lib/supabase/server"
+import { getUserIdForApi } from "@/lib/auth"
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
-import { createClient } from "@/lib/supabase/server"
 
 const MAX_HISTORY = 20
 const RATE_LIMIT_REQUESTS = 10
@@ -24,6 +21,13 @@ function useOpenCodeBackend(): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  // Auth required for this endpoint
+  const supabase = await createClient()
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const ip = getClientIdentifier(req)
   const limit = checkRateLimit(ip, {
     maxRequests: RATE_LIMIT_REQUESTS,
@@ -110,7 +114,7 @@ export async function POST(req: NextRequest) {
   let response: string
   try {
     const historyText = messages
-      .filter((m) => m.role === "user" || m.role === "assitant")
+      .filter((m) => m.role === "user" || m.role === "assistant")
       .slice(-MAX_HISTORY)
       .map((m) => `${m.role}: ${m.content}`)
       .join("\n")

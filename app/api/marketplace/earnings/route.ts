@@ -60,7 +60,8 @@ export async function GET() {
     // Calculate stats
     const totalSales = recentSales?.length || 0
     const totalRevenue = recentSales?.reduce((sum, s) => sum + s.amount_cents, 0) || 0
-    const totalCommission = Math.floor(totalRevenue * 0.10) // 10% commission
+    const platformFee = Math.floor(totalRevenue * 0.10) // 10% platform commission
+    const totalCommission = totalRevenue - platformFee // 90% creator earnings
     
     // Get sales by day for the last 30 days
     const thirtyDaysAgo = new Date()
@@ -101,8 +102,8 @@ export async function GET() {
         publishedProducts: products?.filter(p => p.is_published).length || 0,
         totalSales,
         totalRevenue,
-        totalCommission, // What creator earns (10%)
-        platformFee: totalRevenue - totalCommission, // What platform takes (90%)
+        totalCommission, // What creator earns (90%)
+        platformFee, // What platform takes (10%)
         averageRating: products?.length 
           ? (products.reduce((sum, p) => sum + (p.rating || 0), 0) / products.length).toFixed(1)
           : 0,
@@ -118,7 +119,7 @@ export async function GET() {
         reviewCount: p.review_count,
         isPublished: p.is_published,
         createdAt: p.created_at,
-        earnings: Math.floor((p.purchase_count || 0) * (p.price_cents || 0) * 0.10) // 10% of sales
+        earnings: Math.floor((p.purchase_count || 0) * (p.price_cents || 0) * 0.90) // 90% of sales
       })) || [],
       recentSales: recentSales?.map(s => {
         const product = Array.isArray(s.product) ? s.product[0] : s.product;
@@ -126,7 +127,7 @@ export async function GET() {
           id: s.id,
           productTitle: (product as { title?: string } | null)?.title || "Unknown",
           amountCents: s.amount_cents,
-          commission: Math.floor(s.amount_cents * 0.10),
+          commission: Math.floor(s.amount_cents * 0.90), // Creator earns 90%
           purchasedAt: s.purchased_at
         };
       }) || [],

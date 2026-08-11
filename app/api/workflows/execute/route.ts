@@ -49,7 +49,7 @@ function serializeExecution(exec: WorkflowExecution): any {
 export async function POST(request: NextRequest) {
   try {
     // Auth enforcement: executing workflows can run arbitrary code nodes
-    // (new Function), so it must require an authenticated user.
+    // (vm sandbox), so it must require an authenticated user.
     const { createClient } = await import('@/lib/supabase/server')
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -58,14 +58,37 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { workflow, triggerData, options } = body
+    const { workflowId, triggerData, options } = body
 
-    if (!workflow) {
+    if (!workflowId) {
       return NextResponse.json(
-        { error: 'Workflow is required' },
+        { error: 'workflowId is required' },
         { status: 400 }
       )
     }
+
+    // Load workflow from DB with ownership check
+    const { data: workflow, error } = await supabase
+      .from('workflows')
+      .select('*')
+      .eq('id', workflowId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (error || !workflow) {
+      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 })
+    }
+
+    // Check if workflow execution is enabled
+    if (process.env.NAIRI_ENABLE_WORKFLOW_EXEC !== 'true') {
+      return NextResponse.json(
+        { error: 'Workflow execution is disabled' },
+        { status: 403 }
+      )
+    }
+
+    // Check credits/rate limit (placeholder - implement based on your credit system)
+    // TODO: Implement credit check and consumption
 
     const encoder = new TextEncoder()
     const stream = new ReadableStream({
@@ -183,6 +206,13 @@ export async function POST(request: NextRequest) {
 // GET - Get execution status
 export async function GET(request: NextRequest) {
   try {
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -194,11 +224,36 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         )
       }
+      // Verify ownership
+      if (execution.workflowId) {
+        const { data: workflow } = await supabase
+          .from('workflows')
+          .select('user_id')
+          .eq('id', execution.workflowId)
+          .single()
+        if (!workflow || workflow.user_id !== user.id) {
+          return NextResponse.json({ error: 'Execution not found' }, { status: 404 })
+        }
+      }
       return NextResponse.json(execution)
     }
 
+    // List executions for this user only
     const allExecutions = Array.from(executions.values())
-    return NextResponse.json(allExecutions)
+    const userExecutions = []
+    for (const exec of allExecutions) {
+      if (exec.workflowId) {
+        const { data: workflow } = await supabase
+          .from('workflows')
+          .select('user_id')
+          .eq('id', exec.workflowId)
+          .single()
+        if (workflow && workflow.user_id === user.id) {
+          userExecutions.push(exec)
+        }
+      }
+    }
+    return NextResponse.json(userExecutions)
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message ?? String(error) },
@@ -210,6 +265,13 @@ export async function GET(request: NextRequest) {
 // DELETE - Cancel execution
 export async function DELETE(request: NextRequest) {
   try {
+    const { createClient } = await import('@/lib/supabase/server')
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -226,6 +288,18 @@ export async function DELETE(request: NextRequest) {
         { error: 'Execution not found' },
         { status: 404 }
       )
+    }
+
+    // Verify ownership
+    if (execution.workflowId) {
+      const { data: workflow } = await supabase
+        .from('workflows')
+        .select('user_id')
+        .eq('id', execution.workflowId)
+        .single()
+      if (!workflow || workflow.user_id !== user.id) {
+        return NextResponse.json({ error: 'Execution not found' }, { status: 404 })
+      }
     }
 
     execution.status = 'cancelled'

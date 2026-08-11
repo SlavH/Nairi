@@ -368,6 +368,54 @@ export class WorkflowExecutor {
   private async executeHttpAction(config: NodeConfig, input: any): Promise<any> {
     const { method, url, headers, body, timeout } = config
 
+    // SECURITY: Validate URL to prevent SSRF
+    const parsedUrl = new URL(url)
+    const hostname = parsedUrl.hostname
+    
+    // Only allow https
+    if (parsedUrl.protocol !== 'https:') {
+      throw new Error('Only HTTPS URLs are allowed')
+    }
+    
+    // Block private IP ranges and metadata hostnames
+    const blockedPatterns = [
+      /^10\./,                    // 10.0.0.0/8
+      /^192\.168\./,              // 192.168.0.0/16
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+      /^169\.254\./,              // link-local
+      /^127\./,                   // loopback
+      /^0\./,                     // this network
+      /^::1$/,                    // IPv6 loopback
+      /^fe80::/i,                 // IPv6 link-local
+      /^fc00::/i,                 // IPv6 unique local
+      /^fd00::/i,                 // IPv6 unique local
+    ]
+    
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        throw new Error('Blocked: private/internal IP addresses not allowed')
+      }
+    }
+    
+    // Block known metadata service hostnames
+    const blockedHosts = [
+      'metadata.google.internal',
+      'metadata',
+      '169.254.169.254',
+      'instance-data',
+      'metadata.azure.com',
+      'metadata.aws.internal',
+    ]
+    
+    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
+      throw new Error('Blocked: metadata service hostnames not allowed')
+    }
+    
+    // Also block localhost variants
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      throw new Error('Blocked: localhost not allowed')
+    }
+
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout || 30000)
 
@@ -413,25 +461,62 @@ export class WorkflowExecutor {
     const { language, code } = config
 
     if (language === 'javascript') {
-      // Create a sandboxed function
-      const fn = new Function(
-        'input',
-        'variables',
-        'context',
-        'console',
-        `
-        const log = context.log;
-        ${code}
-        `
-      )
-
-      const safeConsole = {
-        log: (...args: any[]) => context.log('info', args.map(String).join(' ')),
-        warn: (...args: any[]) => context.log('warn', args.map(String).join(' ')),
-        error: (...args: any[]) => context.log('error', args.map(String).join(' ')),
+      // SECURITY: Use Node.js vm module for sandboxed execution
+      // new Function runs in global scope with access to process/require/fetch
+      const { createContext, runInContext } = await import('vm')
+      
+      // Create a limited sandbox context
+      const sandbox = {
+        input,
+        variables: this.variables,
+        context: {
+          ...context,
+          log: context.log,
+          emit: context.emit,
+        },
+        console: {
+          log: (...args: any[]) => context.log('info', args.map(String).join(' ')),
+          warn: (...args: any[]) => context.log('warn', args.map(String).join(' ')),
+          error: (...args: any[]) => context.log('error', args.map(String).join(' ')),
+        },
+        // Provide safe built-ins only
+        JSON,
+        Math,
+        Date,
+        Array,
+        Object,
+        String,
+        Number,
+        Boolean,
+        Map,
+        Set,
+        Promise,
+        setTimeout,
+        clearTimeout,
+        setInterval,
+        clearInterval,
       }
-
-      return await fn(input, this.variables, context, safeConsole)
+      
+      const vmContext = createContext(sandbox)
+      
+      // Wrap code in async function and execute with timeout
+      const wrappedCode = `
+        (async () => {
+          const log = context.log;
+          ${code}
+        })()
+      `
+      
+      try {
+        // Execute with 10-second timeout
+        const result = await Promise.race([
+          runInContext(wrappedCode, vmContext, { timeout: 10000 }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Code execution timeout')), 10000))
+        ])
+        return result
+      } catch (error: any) {
+        throw new Error(`Code execution failed: ${error.message}`)
+      }
     }
 
     throw new Error(`Unsupported language: ${language}`)

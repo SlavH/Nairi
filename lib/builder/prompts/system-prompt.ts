@@ -22,6 +22,16 @@ Respond with exactly one JSON object. No markdown, no code fence, no text before
 - **Structureless pages**: NEVER output only a single wrapper <div> with little or no content. Every page MUST have: at least one <nav> or header, one <main>, and multiple <section> elements appropriate to the website type (from DESIGN GUIDANCE). Use semantic tags so the page has real layout and scrollable sections. If the user asks for a style (e.g. glassmorphism), apply it (e.g. backdrop-blur-xl bg-white/10 border border-white/20) to cards and/or hero overlay.
 - **Imports**: Only 'react' and 'lucide-react' (plus page imports for multi-page). No external paths unless that file is in your "files" output.
 - **Copy**: Real content only—never Lorem ipsum.
+
+## SECURITY CONSTRAINTS (FORBIDDEN — XSS PREVENTION)
+
+- **dangerouslySetInnerHTML**: NEVER use \`dangerouslySetInnerHTML\`. This bypasses React's XSS protection. Use normal JSX children/props instead.
+- **eval / new Function / setTimeout(string)**: NEVER use \`eval()\`, \`new Function()\`, \`setTimeout(string)\`, or \`setInterval(string)\`. These execute arbitrary code.
+- **Inline event handlers as strings**: NEVER use \`onClick="..."\`, \`onLoad="..."\`, or similar string-based handlers in JSX. Use function references: \`onClick={handleClick}\`.
+- **Unsanitized user input in HTML**: NEVER interpolate untrusted/user input directly into HTML via template literals or string concatenation. Use React's automatic escaping via \`{userInput}\` in JSX text content.
+- **javascript: URLs**: NEVER use \`href="javascript:..."\` or \`src="javascript:..."\`. These execute code in the browser context.
+- **Unvalidated redirect URLs**: NEVER use user-controlled values for \`window.location.href\`, \`window.open()\`, or \`location.assign()\` without validation.
+- **Script tags**: NEVER inject \`<script>\` tags dynamically or via string concatenation. Use React components for dynamic behavior.
 `
 
 // ---------------------------------------------------------------------------

@@ -47,6 +47,67 @@ export const maxDuration = 120
 
 const BUILDER_RATE_LIMIT = { maxRequests: 10, windowMs: 60 * 1000 }
 
+/**
+ * SSRF guard: validate that a URL is safe to fetch from the server.
+ * - Allows only https:// scheme
+ * - Rejects private/loopback/link-local/metadata hostnames
+ */
+async function validateFetchTarget(url: string): Promise<boolean> {
+  try {
+    const parsed = new URL(url)
+    
+    // Only allow https
+    if (parsed.protocol !== 'https:') {
+      return false
+    }
+    
+    // Block localhost and local network
+    const hostname = parsed.hostname
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      return false
+    }
+    
+    // Block private IP ranges and metadata hostnames
+    const blockedPatterns = [
+      /^10\./,                    // 10.0.0.0/8
+      /^192\.168\./,              // 192.168.0.0/16
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
+      /^169\.254\./,              // link-local
+      /^127\./,                   // loopback
+      /^0\./,                     // this network
+      /^::1$/,                    // IPv6 loopback
+      /^fe80::/i,                 // IPv6 link-local
+      /^fc00::/i,                 // IPv6 unique local
+      /^fd00::/i,                 // IPv6 unique local
+    ]
+    
+    for (const pattern of blockedPatterns) {
+      if (pattern.test(hostname)) {
+        return false
+      }
+    }
+    
+    // Block known metadata service hostnames
+    const blockedHosts = [
+      'metadata.google.internal',
+      'metadata',
+      '169.254.169.254',
+      'instance-data',
+      'metadata.azure.com',
+      'metadata.aws.internal',
+    ]
+    
+    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
+      return false
+    }
+    
+    return true
+  } catch {
+    return false
+  }
+}
+
+
 /** GET: health check so you can verify the route is registered (avoids 404 confusion). */
 export async function GET() {
   return NextResponse.json({ ok: true, route: "builder/generate" })
@@ -76,15 +137,29 @@ interface WebsiteAnalysis {
 
 // Fetch website HTML with proper headers
 async function fetchPage(url: string): Promise<string | null> {
+  // SSRF guard: validate fetch target
+  if (!validateFetchTarget(url)) {
+    console.error(`[fetchPage] Blocked SSRF attempt: ${url}`)
+    return null
+  }
   try {
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5'
-      }
+      },
+      signal: AbortSignal.timeout(10_000), // 10s timeout
     })
     if (!response.ok) return null
+    
+    // Response size cap (1MB)
+    const contentLength = response.headers.get('content-length')
+    if (contentLength && parseInt(contentLength, 10) > 1_048_576) {
+      console.error(`[fetchPage] Response too large: ${contentLength} bytes`)
+      return null
+    }
+    
     return await response.text()
   } catch (e) {
     console.error(`Failed to fetch ${url}:`, e)

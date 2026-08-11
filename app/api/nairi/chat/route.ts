@@ -6,6 +6,8 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
+import { createClient } from "@/lib/supabase/server"
+import { getUserIdForApi } from "@/lib/auth"
 import {
   getNairiChatUrl,
   isNairiConfigured,
@@ -26,6 +28,17 @@ function toNairiMessages(messages: unknown): NairiMessage[] {
 }
 
 export async function POST(req: NextRequest) {
+  // Require authentication
+  const supabase = await createClient()
+  const userId = await getUserIdForApi(() => supabase.auth.getUser())
+  
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    )
+  }
+
   if (!isNairiConfigured()) {
     return NextResponse.json({ error: "Nairi backend not configured" }, { status: 503 })
   }
