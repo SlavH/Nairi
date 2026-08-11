@@ -3,6 +3,7 @@
  */
 
 import { Metadata } from 'next'
+
 import { WorkflowProvider } from '@/lib/workflows/store'
 
 export const metadata: Metadata = {

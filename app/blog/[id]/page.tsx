@@ -1,10 +1,11 @@
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 
 const blogPosts: Record<string, {
   title: string

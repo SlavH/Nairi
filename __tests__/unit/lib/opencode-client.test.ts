@@ -2,6 +2,7 @@
  * OpenCode Client Tests
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { OpenCodeClient, getOpenCodeClient, createOpenCodeClient } from "@/lib/opencode-client";
 
 describe("OpenCodeClient", () => {
@@ -41,6 +42,7 @@ describe("OpenCodeClient", () => {
     it("should return health status", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({ healthy: true, version: "1.0.0" }),
       });
 
@@ -60,6 +62,7 @@ describe("OpenCodeClient", () => {
     it("should create session", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           id: "session-1",
           title: "Test Session",
@@ -76,6 +79,7 @@ describe("OpenCodeClient", () => {
     it("should list sessions", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { id: "session-1", title: "Session 1" },
           { id: "session-2", title: "Session 2" },
@@ -89,6 +93,7 @@ describe("OpenCodeClient", () => {
     it("should get session by id", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({ id: "session-1", title: "Test Session" }),
       });
 
@@ -99,6 +104,8 @@ describe("OpenCodeClient", () => {
     it("should delete session", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({}),
       });
 
       await expect(client.deleteSession("session-1")).resolves.not.toThrow();
@@ -109,6 +116,7 @@ describe("OpenCodeClient", () => {
     it("should send message", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           id: "msg-1",
           sessionID: "session-1",
@@ -128,6 +136,7 @@ describe("OpenCodeClient", () => {
     it("should get messages", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { id: "msg-1", role: "user" },
           { id: "msg-2", role: "assistant" },
@@ -141,6 +150,8 @@ describe("OpenCodeClient", () => {
     it("should abort session", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({}),
       });
 
       await expect(client.abortSession("session-1")).resolves.not.toThrow();
@@ -151,6 +162,7 @@ describe("OpenCodeClient", () => {
     it("should list files", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { name: "src", type: "directory", path: "/src" },
           { name: "index.ts", type: "file", path: "/index.ts" },
@@ -164,6 +176,7 @@ describe("OpenCodeClient", () => {
     it("should read file", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           content: "console.log('hello')",
           path: "/index.ts",
@@ -177,6 +190,7 @@ describe("OpenCodeClient", () => {
     it("should search files", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ["/src/app.ts", "/src/utils.ts"],
       });
 
@@ -189,6 +203,7 @@ describe("OpenCodeClient", () => {
     it("should get VCS info", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           branch: "main",
           remote: "origin",
@@ -203,6 +218,7 @@ describe("OpenCodeClient", () => {
     it("should get VCS status", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { path: "/src/app.ts", status: "modified" },
           { path: "/src/new.ts", status: "added" },
@@ -218,6 +234,7 @@ describe("OpenCodeClient", () => {
     it("should list MCP servers", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { name: "server1", status: "connected", tools: ["tool1"] },
         ],
@@ -230,6 +247,7 @@ describe("OpenCodeClient", () => {
     it("should add MCP server", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           name: "new-server",
           status: "connected",
@@ -249,6 +267,7 @@ describe("OpenCodeClient", () => {
     it("should list agents", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { id: "agent1", name: "Code Agent", mode: "primary" },
         ],
@@ -261,6 +280,7 @@ describe("OpenCodeClient", () => {
     it("should list skills", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { name: "react", description: "React development", files: ["*.tsx"] },
         ],
@@ -275,6 +295,7 @@ describe("OpenCodeClient", () => {
     it("should list shells", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => [
           { name: "bash", path: "/bin/bash" },
           { name: "zsh", path: "/bin/zsh" },
@@ -288,6 +309,7 @@ describe("OpenCodeClient", () => {
     it("should create PTY", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           id: "pty-1",
           shell: "bash",
@@ -304,6 +326,7 @@ describe("OpenCodeClient", () => {
     it("should get config", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           model: "opencode/big-pickle",
           permission: { bash: "allow" },
@@ -317,6 +340,7 @@ describe("OpenCodeClient", () => {
     it("should update config", async () => {
       (global.fetch as any).mockResolvedValueOnce({
         ok: true,
+        headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({
           model: "opencode/mimo-v2.5-free",
         }),

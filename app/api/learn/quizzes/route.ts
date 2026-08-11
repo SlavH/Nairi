@@ -3,9 +3,10 @@
  * Returns quizzes for a lesson or course.
  */
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { getQuizzesForLesson, getQuizzesForCourse } from "@/lib/learn/quizzes"
+
 import { handleError } from "@/lib/errors/handler"
+import { getQuizzesForLesson, getQuizzesForCourse } from "@/lib/learn/quizzes"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(req: Request) {
   try {

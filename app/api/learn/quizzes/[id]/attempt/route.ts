@@ -3,9 +3,10 @@
  * Body: { answers: Record<string, string>, time_taken_seconds?: number, ai_feedback?: string }
  */
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { submitQuizAttempt, getQuizAttempts } from "@/lib/learn/quizzes"
+
 import { handleError } from "@/lib/errors/handler"
+import { submitQuizAttempt, getQuizAttempts } from "@/lib/learn/quizzes"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(
   req: Request,

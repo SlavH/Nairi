@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server"
+
 import {
   getNairiHealthUrl,
   isNairiConfigured,

@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
-import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
+import Link from "next/link"
+import { redirect, notFound } from "next/navigation"
+
+import { QuizTaker } from "@/components/learn/quiz-taker"
 import { getSession } from "@/lib/auth"
 import { getQuizWithQuestions } from "@/lib/learn/quizzes"
-import { QuizTaker } from "@/components/learn/quiz-taker"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function QuizPage({
   params,

@@ -5,12 +5,6 @@
 
 "use client"
 
-import React, { useState, useMemo } from 'react'
-import { cn } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import {
   Search,
   Zap,
@@ -24,13 +18,22 @@ import {
   ChevronRight,
   Star,
 } from 'lucide-react'
-import { NODE_DEFINITIONS, MiniNode, NODE_COLORS } from './nodes'
-import { NodeType } from '@/lib/workflows/types'
+import React, { useState, useMemo } from 'react'
+
+import { Badge } from '@/components/ui/badge'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import { NodeType } from '@/lib/workflows/types'
+
+import { NODE_DEFINITIONS, MiniNode, NODE_COLORS } from './nodes'
+
 
 // ============================================================================
 // Category Icons

@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { MessageSquare, Brain, Zap, CheckCircle2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+
 import { useTranslation } from "@/lib/i18n/context"
 
 const steps = [

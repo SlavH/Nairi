@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from 'react'
+
 import {
   translate,
   setLocale as setI18nLocale,

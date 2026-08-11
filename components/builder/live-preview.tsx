@@ -1,8 +1,11 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import {
+  SandpackProvider,
+  SandpackPreview,
+  useSandpack,
+  SandpackLayout
+} from "@codesandbox/sandpack-react"
 import {
   RefreshCw,
   ExternalLink,
@@ -14,14 +17,13 @@ import {
   Info,
   Sparkles
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { toast } from "sonner"
-import {
-  SandpackProvider,
-  SandpackPreview,
-  useSandpack,
-  SandpackLayout
-} from "@codesandbox/sandpack-react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
 
 interface LivePreviewProps {
   code: string

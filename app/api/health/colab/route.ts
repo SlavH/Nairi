@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from "next/server"
+
 import { checkColabHealth, isColabConfigured } from "@/lib/colab"
 
 export async function GET() {

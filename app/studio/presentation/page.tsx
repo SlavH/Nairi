@@ -1,17 +1,18 @@
 'use client'
 
+import { Loader2, Download, Eye, FileDown, Upload, X, Image, ImagePlus, Edit2, Check, Undo2, Redo2, Plus, Trash2, Users, GripVertical, LayoutTemplate, Palette } from 'lucide-react'
 import { useState, useRef, useCallback } from 'react'
+
+import { BrandKitManager } from '@/components/studio/brand-kit-manager'
+import { CollaborationPanel } from '@/components/studio/collaboration-panel'
+import { TemplateGallery } from '@/components/studio/template-gallery'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Download, Eye, FileDown, Upload, X, Image, ImagePlus, Edit2, Check, Undo2, Redo2, Plus, Trash2, Users, GripVertical, LayoutTemplate, Palette } from 'lucide-react'
-import { CollaborationPanel } from '@/components/studio/collaboration-panel'
-import { TemplateGallery } from '@/components/studio/template-gallery'
-import { BrandKitManager } from '@/components/studio/brand-kit-manager'
 import { Slider } from '@/components/ui/slider'
+import { Textarea } from '@/components/ui/textarea'
 
 interface Slide {
   title: string

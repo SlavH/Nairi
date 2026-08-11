@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
 import { Zap, Gift, Trophy, Star, Clock, TrendingUp, ChevronRight, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 
 interface CreditData {
   balance: number

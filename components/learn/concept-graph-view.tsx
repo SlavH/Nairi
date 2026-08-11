@@ -1,10 +1,11 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Badge } from "@/components/ui/badge"
-import type { Concept, DependencyEdge, CycleBreak } from "@/lib/nairibook/types"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { SM2State } from "@/lib/nairibook/srs"
+import type { Concept, DependencyEdge, CycleBreak } from "@/lib/nairibook/types"
 
 interface Props {
   concepts: Concept[]

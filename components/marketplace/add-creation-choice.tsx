@@ -1,10 +1,11 @@
 "use client"
 
+import { Bot, FileText } from "lucide-react"
 import { useState } from "react"
+
 import { CreateAgentForm } from "@/components/marketplace/create-agent-form"
 import { CreateCreationForm } from "@/components/marketplace/create-creation-form"
 import { Card, CardContent } from "@/components/ui/card"
-import { Bot, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type Choice = "agent" | "creation" | null

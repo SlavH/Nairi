@@ -2,6 +2,7 @@ import {
   MessageSquare, Image, Code, FileText, Mic, Globe, Brain, Zap,
   Video, Music, Database, GitBranch, Users, Palette, BookOpen, Shield
 } from 'lucide-react'
+
 import { Badge } from '@/components/ui/badge'
 
 export default function CapabilitiesPage() {

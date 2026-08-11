@@ -1,9 +1,11 @@
 "use client"
 
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { useTranslation } from "@/lib/i18n/context"
 import { Users, Target, Lightbulb, Globe } from "lucide-react"
+
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { useTranslation } from "@/lib/i18n/context"
+
 
 export default function AboutPage() {
   const { t } = useTranslation()

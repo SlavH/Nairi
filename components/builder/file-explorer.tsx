@@ -1,15 +1,5 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu"
 import {
   File,
   Folder,
@@ -25,8 +15,19 @@ import {
   Copy,
   Edit
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState, useCallback } from "react"
+
+import { Button } from "@/components/ui/button"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { ProjectFile } from "@/lib/builder/types"
+import { cn } from "@/lib/utils"
 
 interface FileExplorerProps {
   files: ProjectFile[]

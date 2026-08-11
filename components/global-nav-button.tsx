@@ -1,9 +1,10 @@
 "use client"
 
-import { usePathname } from "next/navigation"
 import { ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { usePathname } from "next/navigation"
+
 import { useNavOverlay } from "@/components/dashboard/nav-overlay-context"
+import { Button } from "@/components/ui/button"
 
 /**
  * Fixed-position button on every page (except /nav) that opens the circular nav overlay.

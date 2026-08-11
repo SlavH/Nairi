@@ -1,21 +1,5 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { LiveRegion } from "@/components/ui/live-region"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { PromptSuggestions } from "./prompt-suggestions"
-import { FREE_MODELS } from "@/hooks/use-opencode"
 import {
   Send,
   Paperclip,
@@ -34,8 +18,26 @@ import {
   Layout,
   RefreshCw
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState, useRef, useEffect, useCallback } from "react"
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { LiveRegion } from "@/components/ui/live-region"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { FREE_MODELS } from "@/hooks/use-opencode"
 import type { ChatMessage, BuildPlan, Task } from "@/lib/builder/types"
+import { cn } from "@/lib/utils"
+
+import { PromptSuggestions } from "./prompt-suggestions"
 
 interface BuilderChatProps {
   messages: ChatMessage[]

@@ -14,7 +14,7 @@ AI Dev Team in a Box — Three AI agents (Architect, Developer, Reviewer) collab
 
 ## Quick Start
 
-1. Set `BITNET_BASE_URL` to your AMD GPU endpoint (see docs)
+1. Set `NAIRI_AI_BASE_URL` to your AMD GPU endpoint (see docs)
 2. Set Supabase env vars for auth
 3. Run `npm install && npm run build && npm start`
 

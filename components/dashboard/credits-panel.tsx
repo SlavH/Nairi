@@ -1,10 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { 
   Zap, 
   Clock, 
@@ -18,8 +13,15 @@ import {
   Check,
   ChevronRight
 } from "lucide-react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import useSWR from "swr"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 

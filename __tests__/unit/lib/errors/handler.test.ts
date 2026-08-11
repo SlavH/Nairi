@@ -1,8 +1,9 @@
 /**
  * Error Handler Tests (Phase 11)
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextResponse } from "next/server";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { handleError, errorHandler, logError } from "@/lib/errors/handler";
 import { AppErrorClass, ErrorCode } from "@/lib/errors/types";
 

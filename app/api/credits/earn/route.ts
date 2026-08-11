@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse, type NextRequest } from "next/server"
+
 import { assertSameOrigin } from "@/lib/security/request-validator"
+import { createClient } from "@/lib/supabase/server"
 
 const REWARD_AMOUNTS: Record<string, number> = {
   watch: 50,      // +50 credits for watching educational content

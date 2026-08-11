@@ -1,9 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Image from "next/image"
 import { Sparkles } from "lucide-react"
-import { getSession } from "@/lib/auth"
+import Image from "next/image"
+import { redirect } from "next/navigation"
+
 import { ChatWelcomeCards } from "@/components/chat/chat-welcome-cards"
+import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function ChatPage() {
   const supabase = await createClient()

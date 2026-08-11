@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest"
+
 import { chunkDocument } from "@/lib/nairibook/chunking"
-import { parseText } from "@/lib/nairibook/parsers/text-parser"
 import { buildGraph } from "@/lib/nairibook/graph"
+import { parseText } from "@/lib/nairibook/parsers/text-parser"
 import type { Concept, Chunk } from "@/lib/nairibook/types"
 
 describe("NairiBook core — pure pipeline logic", () => {

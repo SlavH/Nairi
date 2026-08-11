@@ -1,6 +1,6 @@
-import type { BookCore, Chunk, Concept, ConceptGraph } from "./types"
 import { idbPut, idbGet, idbGetAll, idbDelete, STORES } from "./db"
 import { saveVectors, loadVectors, isOpfsAvailable } from "./opfs"
+import type { BookCore, Chunk, Concept, ConceptGraph } from "./types"
 
 interface BookMeta {
   book_id: string

@@ -2,10 +2,11 @@
  * GET /api/presentations — list presentations (creations with type 'presentation') for the current user.
  * POST /api/presentations — create a presentation (optional; for create-with-id or client-provided slides).
  */
-import { createClient } from '@/lib/supabase/server'
-import { getUserIdForApi } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+
+import { getUserIdForApi } from '@/lib/auth'
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit'
+import { createClient } from '@/lib/supabase/server'
 
 const MAX_PROMPT_LENGTH = 2000
 const MAX_CONTENT_LENGTH = 100000

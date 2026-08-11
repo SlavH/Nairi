@@ -3,6 +3,8 @@
  * Handles workflow execution with support for parallel branches, loops, and error handling
  */
 
+import { generateWithFallback } from '@/lib/ai/groq-direct'
+
 import {
   Workflow,
   WorkflowNode,
@@ -16,7 +18,6 @@ import {
   NodeType
 } from './types'
 import { getConnectedNodes, interpolateVariables, getNestedValue } from './utils'
-import { generateWithFallback } from '@/lib/ai/groq-direct'
 
 // ============================================================================
 // Execution Engine
@@ -42,7 +43,7 @@ export class WorkflowExecutor {
         workflow.variables.map(v => [v.name, v.defaultValue])
       ),
       trigger: triggerData || {},
-      env: process.env,
+      env: {},
     }
     this.dataStore = new Map()
     this.nodeResults = new Map()
@@ -72,6 +73,16 @@ export class WorkflowExecutor {
   // ============================================================================
 
   async execute(): Promise<WorkflowExecution> {
+    if (process.env.NAIRI_ENABLE_WORKFLOW_EXEC !== 'true') {
+      throw new Error('Workflow execution disabled. Set NAIRI_ENABLE_WORKFLOW_EXEC=true to enable.')
+    }
+
+    // Optional admin check - only allow execution if user has admin role
+    const triggerData = this.execution.triggerData
+    if (triggerData && triggerData.user && !triggerData.user.isAdmin && triggerData.user.role !== 'admin') {
+      throw new Error('Workflow execution requires admin privileges')
+    }
+
     this.execution.status = 'running'
     this.execution.startTime = new Date()
     this.emit('execution:start', { executionId: this.execution.id })
@@ -537,8 +548,8 @@ export class WorkflowExecutor {
     const { expression, cases } = config
     const value = getNestedValue({ input, ...this.variables }, expression)
 
-    let matchedCase = cases.find((c: any) => c.value === value)
-    let portId = matchedCase ? `case-${cases.indexOf(matchedCase) + 1}` : 'default'
+    const matchedCase = cases.find((c: any) => c.value === value)
+    const portId = matchedCase ? `case-${cases.indexOf(matchedCase) + 1}` : 'default'
 
     const edge = this.workflow.edges.find(
       e => e.source === node.id && e.sourcePort === portId

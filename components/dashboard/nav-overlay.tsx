@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { usePathname } from "next/navigation"
 import { X } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { useEffect, useRef } from "react"
+
 import { CircularNavigation } from "@/components/dashboard/circular-nav"
 import { useNavOverlay } from "@/components/dashboard/nav-overlay-context"
-import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n/context"
 
 /**

@@ -1,7 +1,7 @@
 "use client"
 
-import { NavOverlayProvider } from "@/components/dashboard/nav-overlay-context"
 import { NavOverlay } from "@/components/dashboard/nav-overlay"
+import { NavOverlayProvider } from "@/components/dashboard/nav-overlay-context"
 import { GlobalNavButton } from "@/components/global-nav-button"
 import { PageTransition } from "@/components/page-transition"
 

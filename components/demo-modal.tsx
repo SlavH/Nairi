@@ -1,13 +1,15 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import { Sparkles, FileText, Globe, BarChart3, ArrowRight, Code, Palette, Play, BookOpen, Zap, Lock } from "lucide-react"
-import { useTranslation } from "@/lib/i18n/context"
-import { useState } from "react"
 import Link from "next/link"
+import { useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useTranslation } from "@/lib/i18n/context"
+
 
 interface DemoModalProps {
   isOpen: boolean

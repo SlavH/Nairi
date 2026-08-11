@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+
 import { retrieve, type QueryEmbedder } from "@/lib/nairibook/retrieval"
 
 // Fake embeddings: deterministic unit vectors so cosine is exact.

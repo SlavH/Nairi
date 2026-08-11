@@ -1,21 +1,26 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FileText, Send, Loader2, Trash2, Sparkles, BookOpen, HelpCircle, FileCheck, Mic, ListOrdered, Lightbulb, ListChecks, Network, Zap, MessageSquare, Camera } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState, useCallback } from "react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+
+
+
+
 import { BookProvider } from "./book-context"
 import { ConceptMapPanel } from "./concept-map-panel"
-import { RagChatPanel } from "./rag-chat-panel"
 import { ExercisesPanel } from "./exercises-panel"
-import { ProblemSolverPanel } from "./problem-solver-panel"
 import { PhotoCheckPanel } from "./photo-check-panel"
+import { ProblemSolverPanel } from "./problem-solver-panel"
+import { RagChatPanel } from "./rag-chat-panel"
 
 interface Source {
   id: string

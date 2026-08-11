@@ -12,7 +12,7 @@
 #### GPU Integration (4 files)
 | File | Change |
 |------|--------|
-| `app/api/nairi-chat/route.ts` | Rewrote with `generateWithFallback` → BITNET_BASE_URL, fixed TS type bug |
+| `app/api/nairi-chat/route.ts` | Rewrote with `generateWithFallback` → NAIRI_AI_BASE_URL, fixed TS type bug |
 | `app/api/nairi-chat/health/route.ts` | New health endpoint for GPU backends |
 | `lib/api/nairi-client.ts` | Updated health check to new endpoint |
 | `lib/rate-limit.ts` | Added `create` rate limit config |
@@ -48,17 +48,17 @@
 ## Architecture
 
 ```
-User → /api/nairi-chat → generateWithFallback → BITNET_BASE_URL (AMD GPU)
+User → /api/nairi-chat → generateWithFallback → NAIRI_AI_BASE_URL (AMD GPU)
                                       ↓ GROQ_API_KEY (fallback)
                                       ↓ OPENROUTER_API_KEY (fallback 2)
 
-User → /api/chat → streamWithFallback → BITNET_BASE_URL (primary)
-                               ↓ GROQ_API_KEY (fallback)
+User → /api/chat → streamWithFallback → NAIRI_AI_BASE_URL (primary)
+                                 ↓ GROQ_API_KEY (fallback)
 
-User → /api/factory/generate → 3-agent stream → BITNET_BASE_URL
+User → /api/factory/generate → 3-agent stream → NAIRI_AI_BASE_URL
 
 Multimedia (video/image/audio/song):
-  LLM parts → generateWithFallback → BITNET_BASE_URL
+  LLM parts → generateWithFallback → NAIRI_AI_BASE_URL
   Media parts → NAIRI_ROUTER_BASE_URL → Replicate → HuggingFace → Pollinations
 ```
 

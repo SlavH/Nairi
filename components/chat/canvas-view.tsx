@@ -1,7 +1,10 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { SlideDeck } from "./slide-deck"
 import { Sandpack } from "@codesandbox/sandpack-react"
+
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+import { SlideDeck } from "./slide-deck"
+
 
 interface CanvasViewProps {
   content: string

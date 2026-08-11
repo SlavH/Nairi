@@ -1,8 +1,9 @@
 "use client"
 
-import type React from "react"
 import Image from "next/image"
+import type React from "react"
 import { useState } from "react"
+
 import { WaitlistModal } from "@/components/waitlist-modal"
 import { useTranslation } from "@/lib/i18n/context"
 

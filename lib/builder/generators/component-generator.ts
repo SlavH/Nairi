@@ -2,8 +2,8 @@
  * Component generation utilities for Builder V2
  */
 
-import { searchWeb } from '../utils/web-search'
 import { analyzePrompt } from '../utils/prompt-analysis'
+import { searchWeb } from '../utils/web-search'
 
 interface ExtractedColors {
   isDark: boolean

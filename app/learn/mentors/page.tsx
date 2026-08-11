@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
 import { ChevronLeft, Plus } from "lucide-react"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+
+import { AIMentorsList } from "@/components/learn/ai-mentors-list"
 import { getSession } from "@/lib/auth"
 import { listMentorsForUser } from "@/lib/learn/ai-mentors"
-import { AIMentorsList } from "@/components/learn/ai-mentors-list"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function MentorsPage() {
   const supabase = await createClient()

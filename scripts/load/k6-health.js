@@ -3,8 +3,8 @@
  * Run: k6 run scripts/load/k6-health.js
  * Install k6: https://k6.io/docs/getting-started/installation/
  */
-import http from 'k6/http';
 import { check, sleep } from 'k6';
+import http from 'k6/http';
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 

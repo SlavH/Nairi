@@ -6,8 +6,8 @@
  */
 
 import { getColabChatUrl, isColabConfigured, isOllamaConfigured, getOllamaChatUrl, OLLAMA_MODEL, OLLAMA_STREAM, OLLAMA_SYSTEM_PROMPT } from "./config"
-import { fetchWithRetry } from "./request"
 import { withMutex } from "./mutex"
+import { fetchWithRetry } from "./request"
 import type { ColabMessage } from "./types"
 import { isColabChatResponse, isOllamaChatResponse } from "./types"
 

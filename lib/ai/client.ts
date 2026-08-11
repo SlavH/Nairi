@@ -1,4 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai'
+
 import { isRouterConfigured } from '@/lib/nairi-api/router'
 
 // AI backend: Nairi Router (NAIRI_ROUTER_BASE_URL) or Nairi AI (COLAB_AI_BASE_URL / NAIRI_AI_BASE_URL).

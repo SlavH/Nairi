@@ -1,5 +1,7 @@
 import * as React from 'react'
+
 import { cn } from '@/lib/utils'
+
 import { Label } from './label'
 
 export interface AccessibleToggleProps extends Omit<React.ComponentProps<'input'>, 'type' | 'role' | 'aria-checked'> {

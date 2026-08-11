@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { FolderGit2, Sparkles } from "lucide-react"
 import Link from "next/link"
+
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/server"
 
 interface ProjectRow {
   id: string

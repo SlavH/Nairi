@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
-import type React from "react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import type React from "react"
+
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
   title: "Marketplace | Nairi",

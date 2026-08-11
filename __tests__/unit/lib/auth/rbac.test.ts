@@ -2,6 +2,7 @@
  * RBAC Manager Tests (Phase 13)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { RBACManager } from "@/lib/auth/rbac";
 
 // Mock Supabase client — chainable methods return mockSupabase

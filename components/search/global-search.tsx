@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
 import { Search, X, MessageSquare, Sparkles, Store, Loader2, Command } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
+import useSWR from "swr"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useRouter } from "next/navigation"
-import useSWR from "swr"
 import { useDebounce } from "@/hooks/use-debounce"
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())

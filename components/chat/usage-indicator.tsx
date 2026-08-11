@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Zap, AlertTriangle, Clock } from "lucide-react"
+import { useState, useEffect } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 interface UsageIndicatorProps {

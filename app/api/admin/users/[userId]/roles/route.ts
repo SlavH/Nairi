@@ -3,12 +3,14 @@
  * Assign or remove roles for users
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
 import { RBACManager } from "@/lib/auth/rbac";
 import { handleError } from "@/lib/errors/handler";
 import { forbiddenError, unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
+
 
 const assignRoleSchema = z.object({
   role: z.enum(["user", "pro", "admin", "enterprise"]),

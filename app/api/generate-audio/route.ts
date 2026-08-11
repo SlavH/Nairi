@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+
 import { isRouterConfigured, generate as routerGenerate, pollForResult } from '@/lib/nairi-api/router';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 // Free text-to-speech using edge-tts compatible API
 // Fallback chain: Browser Speech API -> Edge TTS -> Error with guidance

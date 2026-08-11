@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
 
 // Lyrics Generation API
 // Generate song lyrics from theme/topic

@@ -1,18 +1,19 @@
 "use client"
 
+import { CheckCircle, Eye, EyeOff } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import type React from "react"
+import { useState, useEffect } from "react"
 
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
-import Image from "next/image"
 import { useTranslation } from "@/lib/i18n/context"
-import { CheckCircle, Eye, EyeOff } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+
 
 export default function ResetPasswordPage() {
   const t = useTranslation()

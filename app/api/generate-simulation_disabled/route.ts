@@ -6,9 +6,10 @@
  * See also: workspace create "Simulation" type (coming soon) and app/api/create game/simulation.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+
 import { generateWithFallback } from '@/lib/ai/groq-direct';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { createClient } from '@/lib/supabase/server';
 
 export const maxDuration = 60;
 

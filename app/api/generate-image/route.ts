@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
-import { createClient } from "@/lib/supabase/server"
+
 import { checkCostLimit, logGenerationCost, GENERATION_COSTS } from "@/lib/cost-tracker"
 import { isRouterConfigured, generate as routerGenerate, pollForResult } from "@/lib/nairi-api/router"
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,8 +33,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     
     // Dev bypass for testing - allow unauthenticated access on localhost
-    const isDev = process.env.NODE_ENV === 'development' || 
-                  request.headers.get('host')?.includes('localhost')
+    const isDev = process.env.NODE_ENV === 'development'
     
     if (!user && !isDev) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const finalNegativePrompt = negativePrompt || defaultNegativePrompt
 
     // Build enhanced prompt with style
-    let enhancedPrompt = style && styleModifiers[style] 
+    const enhancedPrompt = style && styleModifiers[style] 
       ? `${prompt}, ${styleModifiers[style]}`
       : prompt
     
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
         // console.log('[IMAGE-GEN] Nairi Router result received:', typeof raw, JSON.stringify(raw).substring(0, 200))
         // Router may return: object { url?, image?, base64? } or a plain URL string
         const result = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {}
-        let url: string | null =
+        const url: string | null =
           typeof result.url === "string" ? result.url
           : typeof raw === "string" && (raw.startsWith("http") || raw.startsWith("data:"))
             ? raw

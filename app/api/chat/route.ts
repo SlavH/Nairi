@@ -1,12 +1,9 @@
 // Audio generation support added
-import { NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+
 import { createUIMessageStream, createUIMessageStreamResponse } from "ai"
-import { streamWithFallback, generateWithFallback } from "@/lib/ai/groq-direct"
-import { routeForChat } from "@/lib/ai/model-router"
-import { colabChat, ollamaChat } from "@/lib/colab"
-import { isOllamaConfigured, OLLAMA_STREAM } from "@/lib/colab/config"
-import { NAIRI_OLLAMA_SYSTEM_PROMPT } from "@/lib/ai/system-prompts"
+import { NextRequest } from "next/server"
+
 
 /** Use Colab POST /chat when this env is set AND NAIRI_AI_BASE_URL is not set. */
 function useColabBackend(): boolean {
@@ -22,13 +19,18 @@ function useOllamaBackend(): boolean {
 function useOpenCodeBackend(): boolean {
   return !!process.env.OPENCODE_API_URL?.trim()
 }
-import { wrapStreamWithQualityGates } from "@/lib/ai/stream-quality"
-import { truncateMessages } from "@/lib/ai/context-window"
 import { filterInput, filterOutput } from "@/lib/ai/content-filters"
+import { truncateMessages } from "@/lib/ai/context-window"
+import { streamWithFallback, generateWithFallback } from "@/lib/ai/groq-direct"
+import { routeForChat } from "@/lib/ai/model-router"
+import { wrapStreamWithQualityGates } from "@/lib/ai/stream-quality"
+import { NAIRI_OLLAMA_SYSTEM_PROMPT } from "@/lib/ai/system-prompts"
 import { getSystemPrompt, detectPromptInjection } from "@/lib/ai/system-prompts"
+import { getUserIdForApi } from "@/lib/auth"
+import { colabChat, ollamaChat } from "@/lib/colab"
+import { isOllamaConfigured, OLLAMA_STREAM } from "@/lib/colab/config"
 import { checkRateLimitAsync, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
 import { validateRequestSize, validateContentType, sanitizeString, detectSuspiciousPatterns, MAX_REQUEST_SIZES, assertSameOrigin } from "@/lib/security/request-validator"
-import { getUserIdForApi } from "@/lib/auth"
 import { WorkspaceManager } from "@/lib/workspace/manager"
 
 export const maxDuration = 180

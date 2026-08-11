@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 
 // Autonomous Agents API - Multi-step planning, tool-using agents with safety controls

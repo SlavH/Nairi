@@ -30,14 +30,14 @@
 ### Primary Path (NAIRI_AI_BASE_URL)
 - ✅ `/api/nairi-chat` — All LLM inference routes through `generateWithFallback`
 - ✅ `/api/chat` — `streamWithFallback` uses NAIRI_AI_BASE_URL as primary
-- ✅ `/api/factory/generate` — 3-agent orchestration uses BITNET
-- ✅ `/api/generate-video` — LLM prompt enhancement uses BITNET
+- ✅ `/api/factory/generate` — 3-agent orchestration uses NAIRI_AI_BASE_URL
+- ✅ `/api/generate-video` — LLM prompt enhancement uses NAIRI_AI_BASE_URL
 - ✅ `/api/generate-image` — No LLM needed (direct generation)
-- ✅ `/api/generate-song` — Lyrics generation uses BITNET
+- ✅ `/api/generate-song` — Lyrics generation uses NAIRI_AI_BASE_URL
 - ✅ `/api/generate-audio` — No LLM needed (TTS)
 
 ### Health Check
-- ✅ `/api/nairi-chat/health` — Checks BITNET, GROQ, OPENROUTER backends
+- ✅ `/api/nairi-chat/health` — Checks NAIRI_AI, GROQ, OPENROUTER backends
 - ✅ Client updated to use new health endpoint
 
 ## Frontend States — Verified
@@ -55,7 +55,7 @@
 ### Environment Variables
 ```bash
 # Required
-BITNET_BASE_URL=https://your-bitnet-endpoint
+NAIRI_AI_BASE_URL=https://your-ai-endpoint/v1
 GROQ_API_KEY=sk-xxx  # Fallback
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=xxx
@@ -71,7 +71,7 @@ REDIS_URL=redis://xxx  # Rate limiting (optional, falls back to in-memory)
 ### Pre-Deployment
 - [ ] Run `npm run build` — verify zero errors
 - [ ] Run `npm test` — verify all tests pass
-- [ ] Verify `BITNET_BASE_URL` is accessible from deployment environment
+- [ ] Verify `NAIRI_AI_BASE_URL` is accessible from deployment environment
 - [ ] Verify Supabase connection and migrations applied
 - [ ] Set up Redis for production rate limiting (optional)
 - [ ] Configure CORS for production domain

@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
 import { KnowledgeGraph } from "@/components/knowledge/knowledge-graph"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function KnowledgePage() {
   const supabase = await createClient()

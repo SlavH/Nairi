@@ -2,9 +2,10 @@
  * GET /api/marketplace/recommendations — agent recommendations for the current user (Phase 41)
  */
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { RecommendationEngine } from "@/lib/marketplace/recommendation";
+
 import { handleError } from "@/lib/errors/handler";
+import { RecommendationEngine } from "@/lib/marketplace/recommendation";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(req: Request) {
   try {

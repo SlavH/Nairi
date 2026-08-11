@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+
 import { generate as routerGenerate, isRouterConfigured } from "@/lib/nairi-api/router"
 import type { NairiRouterGenerationType } from "@/lib/nairi-api/types"
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"

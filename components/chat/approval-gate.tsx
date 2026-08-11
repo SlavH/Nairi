@@ -1,6 +1,8 @@
 "use client"
 
+import { Shield, AlertTriangle, CheckCircle2, Eye, Edit3 } from "lucide-react"
 import { useState } from "react"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,11 +13,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Shield, AlertTriangle, CheckCircle2, Eye, Edit3 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/context"
 import { cn } from "@/lib/utils"
 

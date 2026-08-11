@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+
+import { LearnNotebooksList } from "@/components/learn/learn-notebooks-list"
 import { Button } from "@/components/ui/button"
 import { getSession } from "@/lib/auth"
-import { LearnNotebooksList } from "@/components/learn/learn-notebooks-list"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function LearnNotebooksPage() {
   const supabase = await createClient()

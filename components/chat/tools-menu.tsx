@@ -1,8 +1,10 @@
 "use client"
 
-import { useState, type ComponentType } from "react"
-import { Button } from "@/components/ui/button"
 import { Video, Mic, ImageIcon, ChevronDown, Plus, Pin, MessageSquare, Scale, Brain, GraduationCap, Sparkles, Search, Code } from "lucide-react"
+import { useState, type ComponentType } from "react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -18,13 +20,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+
 import type { ChatMode } from "./chat-mode-selector"
 import { CHAT_MODES } from "./chat-mode-selector"
 import { ImageGenerator } from "./image-generator"
 import { VideoGenerator } from "./video-generator"
 import { VoiceMode } from "./voice-mode"
-import { cn } from "@/lib/utils"
 
 type ToolType = "image" | "video" | "voice" | null
 

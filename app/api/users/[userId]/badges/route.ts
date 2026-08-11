@@ -4,9 +4,10 @@
  *   Caller must be admin or the user themselves for self-award (e.g. after exam).
  */
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { getUserBadges, awardBadgeToUser } from "@/lib/features/badges"
+
 import { handleError } from "@/lib/errors/handler"
+import { getUserBadges, awardBadgeToUser } from "@/lib/features/badges"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
   _req: Request,

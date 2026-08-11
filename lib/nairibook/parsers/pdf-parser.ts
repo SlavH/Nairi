@@ -1,4 +1,5 @@
 import type { ParsedDocument } from "../types"
+
 import { parseText } from "./text-parser"
 
 export class NoTextLayerError extends Error {

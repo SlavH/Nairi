@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
+import { createClient } from "@/lib/supabase/server"
 
 // GET - Get referral info and history
 export async function GET() {

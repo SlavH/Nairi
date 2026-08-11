@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
+import { createClient } from "@/lib/supabase/server"
 
 const PRODUCT_TYPES = ["prompt", "template", "tool", "workflow", "course", "design", "code"] as const
 

@@ -3,9 +3,10 @@
  * GET - User achievements; POST - Check and unlock achievements
  */
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { AchievementSystem } from "@/lib/learn/achievements";
+
 import { handleError } from "@/lib/errors/handler";
+import { AchievementSystem } from "@/lib/learn/achievements";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {

@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
 import { DebateInterface } from "@/components/debate/debate-interface"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export const metadata = {
   title: "Debate - Nairi",

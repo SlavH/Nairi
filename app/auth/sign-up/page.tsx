@@ -1,20 +1,21 @@
 "use client"
 
-import type React from "react"
-
-import { createClient } from "@/lib/supabase/client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AccessibleInput } from "@/components/ui/accessible-input"
+import { Chrome } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import type React from "react"
 import { useState, useEffect } from "react"
-import Image from "next/image"
-import { useTranslation } from "@/lib/i18n/context"
-import { checkTempmailRisk, logTempmailUsage } from "@/lib/tempmail-detection"
+
 import { HCaptcha } from "@/components/hcaptcha-wrapper"
+import { AccessibleInput } from "@/components/ui/accessible-input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LiveRegion } from "@/components/ui/live-region"
-import { Chrome } from "lucide-react"
+import { useTranslation } from "@/lib/i18n/context"
+import { createClient } from "@/lib/supabase/client"
+import { checkTempmailRisk, logTempmailUsage } from "@/lib/tempmail-detection"
+
 
 export default function SignUpPage() {
   const { t } = useTranslation()

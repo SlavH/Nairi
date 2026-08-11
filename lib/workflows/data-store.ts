@@ -3,8 +3,9 @@
  * Built-in storage for workflow state and long-running processes
  */
 
-import { DataStore, DataStoreEntry } from './types'
 import { compress, decompress } from '../utils/compression'
+
+import { DataStore, DataStoreEntry } from './types'
 
 // ============================================================================
 // In-Memory Data Store Implementation

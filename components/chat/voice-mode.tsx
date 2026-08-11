@@ -1,8 +1,5 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Mic,
   MicOff,
@@ -14,6 +11,10 @@ import {
   X,
   Waves,
 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,

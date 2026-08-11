@@ -50,7 +50,7 @@ export async function generateImage(
   const url = generateImageUrl(prompt, options)
 
   const maxRetries = 3
-  let lastError: Error | null = null
+  const lastError: Error | null = null
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const res = await fetch(url, {

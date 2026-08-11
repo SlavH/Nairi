@@ -1,10 +1,10 @@
-import type { BookCore, Concept, ProcessingProgress } from "./types"
-import { parseDocument, NoTextLayerError } from "./parsers"
 import { chunkDocument } from "./chunking"
-import { embedChunks } from "./embeddings"
 import { extractConceptsForChapter } from "./concepts"
+import { embedChunks } from "./embeddings"
 import { buildGraph } from "./graph"
+import { parseDocument, NoTextLayerError } from "./parsers"
 import { saveBookCore } from "./store"
+import type { BookCore, Concept, ProcessingProgress } from "./types"
 
 export interface PipelineCallbacks {
   onProgress: (p: ProcessingProgress) => void

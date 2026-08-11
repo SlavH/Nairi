@@ -1,11 +1,13 @@
 "use client"
 
+import { Search, MessageSquare, FileText, Bot, Loader2, ArrowLeft } from "lucide-react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
-import { Search, MessageSquare, FileText, Bot, Loader2, ArrowLeft } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 
 interface SearchResult {
   type: string

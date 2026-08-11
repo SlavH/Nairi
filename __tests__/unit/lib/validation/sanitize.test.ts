@@ -2,6 +2,7 @@
  * Sanitization Tests (Phase 61)
  */
 import { describe, it, expect } from "vitest";
+
 import {
   sanitizeHtml,
   sanitizeText,

@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server'
+
 import { updateSession } from "@/lib/supabase/session"
-import { validateOrigin, MAX_REQUEST_SIZES } from './lib/security/request-validator'
+
 import { generateCSPHeader } from './lib/security/csp.mjs'
+import { validateOrigin, MAX_REQUEST_SIZES } from './lib/security/request-validator'
 
 /**
  * Middleware for Next.js 16+

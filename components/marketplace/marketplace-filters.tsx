@@ -1,9 +1,10 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import { Search, SlidersHorizontal, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import React from "react"
+import { useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -13,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Search, SlidersHorizontal, X } from "lucide-react"
+
 
 interface MarketplaceFiltersProps {
   categories: string[]

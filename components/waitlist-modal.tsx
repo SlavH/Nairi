@@ -1,13 +1,13 @@
 "use client"
 
+import { Loader2, Mail, Sparkles, CheckCircle2 } from "lucide-react"
 import type React from "react"
-
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, Sparkles, CheckCircle2 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n/context"
 
 interface WaitlistModalProps {

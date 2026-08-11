@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
 import { Loader2, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState, useEffect, useRef } from "react"
+
 import type { AgentState, AgentMessage } from "@/lib/agents/types"
+import { cn } from "@/lib/utils"
 
 interface AgentFeedProps {
   agents: Record<string, AgentState>

@@ -1,11 +1,12 @@
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { MessageSquare, Store, Zap, TrendingUp, Clock, Bot } from "lucide-react"
-import { DashboardContent } from "@/components/dashboard/dashboard-content"
+import Link from "next/link"
 import { redirect } from "next/navigation"
+
+import { DashboardContent } from "@/components/dashboard/dashboard-content"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function DashboardPage() {
   const supabase = await createClient()

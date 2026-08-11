@@ -4,14 +4,15 @@
  * Body: { action: 'interaction' | 'progress_notes' | 'teaching_preferences', progress_notes?: string, teaching_preferences?: object }
  */
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+
+import { handleError } from "@/lib/errors/handler"
 import {
   getMentorByDomain,
   recordMentorInteraction,
   updateMentorProgressNotes,
   updateMentorTeachingPreferences,
 } from "@/lib/learn/ai-mentors"
-import { handleError } from "@/lib/errors/handler"
+import { createClient } from "@/lib/supabase/server"
 
 function decodeDomain(domain: string): string {
   return decodeURIComponent(domain)

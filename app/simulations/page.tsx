@@ -1,14 +1,17 @@
 'use client'
 
-import { useState, useRef } from 'react'
 import { Globe, Loader2, Play, Sparkles, Zap, Monitor, Box, TreePine, Mountain, Droplets, Wind } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { toast } from 'sonner'
+
+import { WorldViewer, type WorldSpec } from '@/components/simulations/world-viewer'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { toast } from 'sonner'
-import { WorldViewer, type WorldSpec } from '@/components/simulations/world-viewer'
+import { Textarea } from '@/components/ui/textarea'
+
+
 
 const WORLD_MODES = [
   { id: 'world', name: 'Full World', description: 'Explorable 3D environment' },

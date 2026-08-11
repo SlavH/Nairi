@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
 import { SkillTreeView } from "@/components/learn/skill-tree-view"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function SkillTreePage() {
   const supabase = await createClient()

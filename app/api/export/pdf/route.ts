@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
+
+import { createClient } from "@/lib/supabase/server"
 
 // Simple PDF generation without external dependencies
 // Uses a minimal PDF structure that browsers can render

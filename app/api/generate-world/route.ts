@@ -11,9 +11,10 @@
  * Weights: https://huggingface.co/amd/Micro-World-T2W
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { checkRateLimitAsync, getClientIdentifier } from '@/lib/rate-limit'
+
 import { generateWithFallback } from '@/lib/ai/groq-direct'
+import { checkRateLimitAsync, getClientIdentifier } from '@/lib/rate-limit'
+import { createClient } from '@/lib/supabase/server'
 
 export const maxDuration = 120
 

@@ -1,12 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -22,8 +15,17 @@ import {
   CheckCircle2
 } from "lucide-react"
 import Image from "next/image"
-import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { createClient } from "@/lib/supabase/client"
+
 
 interface OnboardingFlowProps {
   userId: string

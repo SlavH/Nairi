@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useCallback } from "react"
 import { X, Copy, Download, Maximize2, Minimize2, Code, FileText, Table, Play, Check } from "lucide-react"
+import { useState, useCallback } from "react"
+import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+
 
 type ArtifactType = "code" | "html" | "markdown" | "table" | "mermaid" | "svg"
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { cn } from "@/lib/utils"
+
 import {
   MessageSquareIcon,
   SearchIcon,
@@ -9,6 +9,7 @@ import {
   SparklesIcon as Sparkles,
   FileTextIcon,
 } from "@/lib/icons"
+import { cn } from "@/lib/utils"
 
 const STEPS = [
   { id: "understand", label: "Understanding your question", icon: MessageSquareIcon },

@@ -1,9 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { useRouter } from "next/navigation"
-import { useTranslation } from "@/lib/i18n/context"
 import {
   type LucideIcon,
   Store,
@@ -39,13 +36,10 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react"
-import { CentralCircle } from "./central-circle"
-import { NavCircle } from "./nav-circle"
-import { SubCircle } from "./sub-circle"
-import { SubCircleLines } from "./sub-circle-lines"
-import { BackgroundEffects } from "./background-effects"
-import { ConnectionLines } from "./connection-lines"
-import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -53,9 +47,17 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { useTranslation } from "@/lib/i18n/context"
+import { createClient } from "@/lib/supabase/client"
+
+import { BackgroundEffects } from "./background-effects"
+import { CentralCircle } from "./central-circle"
+import { ConnectionLines } from "./connection-lines"
+import { NavCircle } from "./nav-circle"
+import { SubCircle } from "./sub-circle"
+import { SubCircleLines } from "./sub-circle-lines"
 
 const CUSTOM_CIRCLES_STORAGE_KEY = "nairi_custom_nav_circles"
 

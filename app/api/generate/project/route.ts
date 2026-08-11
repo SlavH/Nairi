@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
 import { streamWithFallback } from "@/lib/ai/groq-direct"
+import { createClient } from "@/lib/supabase/server"
 
 export const maxDuration = 300
 

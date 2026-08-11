@@ -1,8 +1,9 @@
 "use client"
 
+import { Globe, Check } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Globe, Check } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import { SUPPORTED_LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n/translations"
 import { cn } from "@/lib/utils"

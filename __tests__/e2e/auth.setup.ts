@@ -8,9 +8,10 @@
  * 2. Sets the Supabase auth cookies in the browser context from that session.
  * 3. Saves the storage state so subsequent e2e runs start authenticated.
  */
-import { test as setup } from "@playwright/test"
 import * as fs from "fs"
 import * as path from "path"
+
+import { test as setup } from "@playwright/test"
 import { config } from "dotenv"
 config({ path: ".env.local" })
 

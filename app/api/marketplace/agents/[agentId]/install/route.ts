@@ -2,9 +2,10 @@
  * POST /api/marketplace/agents/[agentId]/install — install (purchase) an agent for the current user.
  * Equivalent to POST /api/marketplace/purchase with body { agentId }. Auth required.
  */
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+
 import { stripe } from '@/lib/stripe'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(
   req: Request,

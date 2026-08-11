@@ -5,40 +5,6 @@
 
 "use client"
 
-import React, { useState, useMemo } from 'react'
-import { cn } from '@/lib/utils'
-import { useWorkflowStore } from '@/lib/workflows/store'
-import {
-  WORKFLOW_TEMPLATES,
-  TEMPLATE_CATEGORIES,
-  getTemplatesByCategory,
-  searchTemplates,
-  getPopularTemplates,
-  createWorkflowFromTemplate,
-} from '@/lib/workflows/templates'
-import { WorkflowTemplate } from '@/lib/workflows/types'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   Search,
   LayoutTemplate,
@@ -58,7 +24,43 @@ import {
   Copy,
   ChevronRight,
 } from 'lucide-react'
+import React, { useState, useMemo } from 'react'
 import { toast } from 'sonner'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import { useWorkflowStore } from '@/lib/workflows/store'
+import {
+  WORKFLOW_TEMPLATES,
+  TEMPLATE_CATEGORIES,
+  getTemplatesByCategory,
+  searchTemplates,
+  getPopularTemplates,
+  createWorkflowFromTemplate,
+} from '@/lib/workflows/templates'
+import { WorkflowTemplate } from '@/lib/workflows/types'
+
 
 // ============================================================================
 // Category Icons

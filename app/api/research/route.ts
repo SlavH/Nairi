@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
+
 import { streamWithFallback } from "@/lib/ai/groq-direct"
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 export const maxDuration = 120
 

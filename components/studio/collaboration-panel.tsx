@@ -1,10 +1,11 @@
 'use client'
 
+import { Users, Share2, MessageSquare, History, Clock, User, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Users, Share2, MessageSquare, History, Clock, User, Copy, Check } from 'lucide-react'
 
 interface Collaborator {
   id: string

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+
 import { GET } from "@/app/auth/callback/route"
 
 describe("GET /auth/callback", () => {

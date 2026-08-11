@@ -3,8 +3,10 @@
  * Falls back to generateWithFallback only if OPENCODE_API_URL is not set.
  */
 import { NextRequest, NextResponse } from "next/server"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 const MAX_HISTORY = 20
 const RATE_LIMIT_REQUESTS = 10

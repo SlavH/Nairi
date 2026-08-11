@@ -2,11 +2,12 @@
  * Workspace Search API (Phase 31)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
+import { getUserIdForApi } from "@/lib/auth";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdForApi } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {

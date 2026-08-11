@@ -1,11 +1,3 @@
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
-import { getProduct, SUBSCRIPTION_PLANS } from "@/lib/products"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
   Zap,
   Crown,
@@ -16,6 +8,16 @@ import {
   ArrowLeft,
   AlertTriangle,
 } from "lucide-react"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { getProduct, SUBSCRIPTION_PLANS } from "@/lib/products"
+import { createClient } from "@/lib/supabase/server"
+
 
 const PLAN_ICONS: Record<string, typeof Crown> = {
   starter: Zap,

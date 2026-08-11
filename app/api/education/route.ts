@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 
 // Education AI API - AI Tutor, Quiz Generation, Step-by-step explanations

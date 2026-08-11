@@ -1,7 +1,7 @@
 "use client"
 
-import React from 'react'
 import { AlertCircle, RefreshCw } from 'lucide-react'
+import React from 'react'
 
 interface SectionErrorBoundaryProps {
   children: React.ReactNode

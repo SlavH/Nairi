@@ -1,9 +1,5 @@
 "use client"
 
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
 import {
   History,
   RotateCcw,
@@ -12,8 +8,13 @@ import {
   FileCode,
   ChevronRight
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { ProjectVersion } from "@/lib/builder/types"
+import { cn } from "@/lib/utils"
 
 interface VersionHistoryProps {
   versions: ProjectVersion[]

@@ -1,9 +1,13 @@
 "use client"
 
-import { useState } from "react"
 import { Bell, Check, CheckCheck, X, Zap, Gift, Shield, AlertTriangle, Info, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { toast } from "sonner"
+import useSWR from "swr"
+
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { LiveRegion } from "@/components/ui/live-region"
 import {
   Popover,
   PopoverContent,
@@ -11,9 +15,7 @@ import {
 } from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import useSWR from "swr"
-import { toast } from "sonner"
-import { LiveRegion } from "@/components/ui/live-region"
+
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 

@@ -1,5 +1,5 @@
-import * as path from 'path'
 import * as fs from 'fs/promises'
+import * as path from 'path'
 
 const WORKSPACE_BASE = process.env.WORKSPACE_BASE_PATH || '/workspaces'
 

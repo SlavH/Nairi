@@ -2,8 +2,9 @@
  * GET /api/marketplace/agents/[agentId] — get a single marketplace agent.
  * Auth optional; when authenticated, response includes owned flag.
  */
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   _req: Request,

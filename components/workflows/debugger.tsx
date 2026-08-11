@@ -5,25 +5,6 @@
 
 "use client"
 
-import React, { useState, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { useWorkflowStore } from '@/lib/workflows/store'
-import { WorkflowNode, ExecutionStatus } from '@/lib/workflows/types'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   Bug,
   Play,
@@ -47,6 +28,26 @@ import {
   Database,
   Terminal,
 } from 'lucide-react'
+import React, { useState, useCallback } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { useWorkflowStore } from '@/lib/workflows/store'
+import { WorkflowNode, ExecutionStatus } from '@/lib/workflows/types'
 
 // ============================================================================
 // Debugger Component

@@ -3,9 +3,10 @@
  * PATCH /api/presentations/[id] — update a presentation.
  * DELETE /api/presentations/[id] — delete a presentation.
  */
-import { createClient } from '@/lib/supabase/server'
-import { getUserIdForApi } from '@/lib/auth'
 import { NextResponse } from 'next/server'
+
+import { getUserIdForApi } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   _req: Request,

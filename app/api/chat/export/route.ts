@@ -3,11 +3,12 @@
  * Export conversations in various formats (PDF, Markdown, JSON)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
+import { getUserIdForApi } from "@/lib/auth";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdForApi } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {

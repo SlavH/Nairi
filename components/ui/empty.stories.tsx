@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from './empty'
-import { Button } from './button'
 import { FileQuestion } from 'lucide-react'
+
+import { Button } from './button'
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription, EmptyContent } from './empty'
 
 const meta: Meta = {
   title: 'UI/Empty',

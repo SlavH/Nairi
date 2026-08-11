@@ -1,9 +1,10 @@
 'use client'
 
+import { Activity, Info } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Activity, Info } from 'lucide-react'
 
 interface LimitRow {
   key: string

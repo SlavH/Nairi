@@ -2,8 +2,9 @@
  * GET /api/badges – list all expert badges (catalog)
  */
 import { NextResponse } from "next/server"
-import { listExpertBadges } from "@/lib/features/badges"
+
 import { handleError } from "@/lib/errors/handler"
+import { listExpertBadges } from "@/lib/features/badges"
 
 export async function GET() {
   try {

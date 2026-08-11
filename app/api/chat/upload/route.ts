@@ -3,11 +3,12 @@
  * Handles file uploads for multimodal chat
  */
 import { NextRequest, NextResponse } from "next/server";
+
+import { getUserIdForApi } from "@/lib/auth";
 import { MultimodalHandler } from "@/lib/chat/multimodal";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdForApi } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export const POST = withLogging(async (req: NextRequest) => {

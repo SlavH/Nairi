@@ -2,8 +2,9 @@
  * Session Manager (Phase 4)
  * Handles session management, refresh token rotation, and session timeout
  */
-import { createClient } from "@/lib/supabase/server";
 import { createHash, randomBytes } from "crypto";
+
+import { createClient } from "@/lib/supabase/server";
 
 export interface SessionInfo {
   id: string;

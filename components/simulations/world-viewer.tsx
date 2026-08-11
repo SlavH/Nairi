@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { PointerLockControls, Sky, Stars, Text, Float, MeshReflectorMaterial } from '@react-three/drei'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import * as THREE from 'three'
 
 export interface WorldSpec {

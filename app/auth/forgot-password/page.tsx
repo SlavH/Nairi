@@ -1,16 +1,17 @@
 "use client"
 
+import { ArrowLeft, Mail } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
 import type React from "react"
+import { useState } from "react"
 
-import { createClient } from "@/lib/supabase/client"
+import { AccessibleInput } from "@/components/ui/accessible-input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AccessibleInput } from "@/components/ui/accessible-input"
-import Link from "next/link"
-import { useState } from "react"
-import Image from "next/image"
 import { useTranslation } from "@/lib/i18n/context"
-import { ArrowLeft, Mail } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+
 
 export default function ForgotPasswordPage() {
   const t = useTranslation()

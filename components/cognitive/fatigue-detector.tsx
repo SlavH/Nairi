@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { Battery, BatteryLow, BatteryMedium, Coffee, Brain, X } from "lucide-react"
+import { useState, useEffect } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 import { useTranslation } from "@/lib/i18n/context"
 import { cn } from "@/lib/utils"
 

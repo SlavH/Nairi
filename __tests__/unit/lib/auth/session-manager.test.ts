@@ -2,6 +2,7 @@
  * Session Manager Tests (Phase 12)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { SessionManager } from "@/lib/auth/session-manager";
 
 // Mock Supabase client — all chainable methods return mockSupabase

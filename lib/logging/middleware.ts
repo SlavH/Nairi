@@ -2,9 +2,11 @@
  * Request/Response Logging Middleware (Phase 9)
  * Logs all API requests and responses
  */
-import { NextRequest, NextResponse } from "next/server";
-import { logger } from "./logger";
 import { randomUUID } from "crypto";
+
+import { NextRequest, NextResponse } from "next/server";
+
+import { logger } from "./logger";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function withLogging(handler: (req: NextRequest, context?: any) => Promise<any>) {

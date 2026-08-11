@@ -5,10 +5,10 @@ All notable changes to Nairi v34 will be documented in this file. The format is 
 ## [Unreleased]
 
 ### AMD GPU Integration
-- `/api/nairi-chat` — rewrote to use `generateWithFallback` → `BITNET_BASE_URL` for all AI inference (classifier, plan, answer passes)
-- `/api/nairi-chat/health` — new health endpoint checking BITNET/GROQ/OPENROUTER backends
+- `/api/nairi-chat` — rewrote to use `generateWithFallback` → `NAIRI_AI_BASE_URL` for all AI inference (classifier, plan, answer passes)
+- `/api/nairi-chat/health` — new health endpoint checking NAIRI_AI/GROQ/OPENROUTER backends
 - `lib/api/nairi-client.ts` — updated health check to use new endpoint
-- All multimedia routes verified: LLM prompt enhancement uses BITNET, media uses router with fallback chains
+- All multimedia routes verified: LLM prompt enhancement uses NAIRI_AI_BASE_URL, media uses router with fallback chains
 
 ### Security Hardening
 - `/api/create` — added rate limiting + prompt length validation (2000 chars)

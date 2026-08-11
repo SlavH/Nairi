@@ -4,10 +4,12 @@
  * Auth required (or BYPASS_AUTH in dev). Uses admin client in bypass mode so RLS passes.
  */
 
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { getUserIdForApi } from "@/lib/auth"
 import { NextResponse } from "next/server"
+
+import { getUserIdForApi } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
+
 
 export async function GET() {
   try {
@@ -17,7 +19,7 @@ export async function GET() {
       return NextResponse.json({ error: "Please sign in." }, { status: 401 })
     }
 
-    let client = supabase
+    const client = supabase
     // No bypass mode - use regular client
 
     let data: { id: string; title: string; updated_at: string; is_pinned?: boolean; pinned_at?: string | null; folder_id?: string | null }[] | null = null
@@ -66,7 +68,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please sign in to start a chat." }, { status: 401 })
     }
 
-    let client = supabase
+    const client = supabase
     // No bypass mode - use regular client
 
     const body = await req.json().catch(() => ({}))

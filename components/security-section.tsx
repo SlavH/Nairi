@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import { Shield, Eye, Lock, AlertCircle, ChevronDown } from "lucide-react"
+import { useState } from "react"
+
 import { useTranslation } from "@/lib/i18n/context"
 
 export function SecuritySection() {

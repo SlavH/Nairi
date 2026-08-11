@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { getUserIdForApi } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
 import { getConversationFolders, createConversationFolder } from "@/lib/features/chat"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET() {
   const supabase = await createClient()

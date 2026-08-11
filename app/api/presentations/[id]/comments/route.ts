@@ -2,12 +2,14 @@
  * Presentation Comments API (Phase 29)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
+import { getUserIdForApi } from "@/lib/auth";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdForApi } from "@/lib/auth";
-import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
+
 
 const createCommentSchema = z.object({
   slideId: z.number().optional(),

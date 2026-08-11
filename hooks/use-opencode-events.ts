@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+
 import { getOpenCodeClient, type OpenCodeEvent } from "@/lib/opencode-client"
 
 interface UseOpenCodeEventsOptions {

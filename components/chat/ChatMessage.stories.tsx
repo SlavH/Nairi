@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react'
+
 import { ChatMessage } from './chat-message'
 
 const meta = {

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { createClient } from "@/lib/supabase/server"
-import { getUserIdForApi } from "@/lib/auth"
-import { checkRateLimitAsync, getClientIdentifier } from "@/lib/rate-limit"
 import { generateForBuilder } from "@/lib/ai/builder-generate-fallback"
+import { getUserIdForApi } from "@/lib/auth"
 // Lazy-load system prompt so the route still registers if the module path fails (avoids 404)
 let _cachedSystemPrompt: string | null = null
 async function getSystemPrompt(): Promise<string> {
@@ -17,21 +17,13 @@ async function getSystemPrompt(): Promise<string> {
     return _cachedSystemPrompt
   }
 }
-import type { GenerateRequest, TaskUpdate, FileUpdate, MessageUpdate, CompleteUpdate, PlanUpdate } from "@/lib/builder/types"
-import { safeParseGenerateRequest } from "@/lib/builder/schemas/request-schema"
-import { searchWeb } from "@/lib/builder/utils/web-search"
-import { analyzePrompt, type PromptAnalysis } from "@/lib/builder/utils/prompt-analysis"
-import { enhanceToHighLevelWebsitePrompt } from "@/lib/builder/utils/prompt-enhancer"
-import { getImagePromptsForWebsite, generateImageUrlForBuilder } from "@/lib/builder/utils/builder-image"
-import { getDesignGuidance } from "@/lib/builder/utils/design-intelligence"
 import { getInitialTaskPlan } from "@/lib/builder/generate/initial-plan"
-import { extractColors as extractColorsFromCSS } from "@/lib/builder/utils/website-analyzer"
-import { applyDynamicColorReplacement } from "@/lib/builder/generators/component-generator"
 import { 
   cleanGeneratedCode, 
   validateTypeScriptCode, 
   autoFixCommonErrors 
 } from "@/lib/builder/generators/code-cleaner"
+import { applyDynamicColorReplacement } from "@/lib/builder/generators/component-generator"
 import {
   normalizeJsonBacktickStrings,
   escapeControlCharsInJsonStrings,
@@ -40,7 +32,16 @@ import {
   extractJsonWithBalancedBraces,
   repairTruncatedJson,
 } from "@/lib/builder/json-normalizers"
+import { safeParseGenerateRequest } from "@/lib/builder/schemas/request-schema"
 import { validateBuilderResponse } from "@/lib/builder/schemas/response-schema"
+import type { GenerateRequest, TaskUpdate, FileUpdate, MessageUpdate, CompleteUpdate, PlanUpdate } from "@/lib/builder/types"
+import { getImagePromptsForWebsite, generateImageUrlForBuilder } from "@/lib/builder/utils/builder-image"
+import { getDesignGuidance } from "@/lib/builder/utils/design-intelligence"
+import { analyzePrompt, type PromptAnalysis } from "@/lib/builder/utils/prompt-analysis"
+import { enhanceToHighLevelWebsitePrompt } from "@/lib/builder/utils/prompt-enhancer"
+import { searchWeb } from "@/lib/builder/utils/web-search"
+import { extractColors as extractColorsFromCSS } from "@/lib/builder/utils/website-analyzer"
+import { checkRateLimitAsync, getClientIdentifier } from "@/lib/rate-limit"
 
 export const maxDuration = 120
 

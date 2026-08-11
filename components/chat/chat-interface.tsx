@@ -27,6 +27,23 @@ interface SpeechRecognition extends EventTarget {
 
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState, useMemo, useCallback } from "react"
+import { toast } from "sonner"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Label } from "@/components/ui/label"
+import { LiveRegion } from "@/components/ui/live-region"
+import { Textarea } from "@/components/ui/textarea"
+import { useTranslation } from "@/lib/i18n/context"
 import { 
   SendIcon as Send, BotIcon as Bot, UserIcon as User, Loader2Icon as Loader2, 
   RotateCcwIcon as RotateCcw, MicIcon as Mic, MicOffIcon as MicOff, 
@@ -37,35 +54,19 @@ import {
   GraduationCapIcon as GraduationCap, LightbulbIcon as Lightbulb, 
   TargetIcon as Target, FileTextIcon as FileText 
 } from "@/lib/icons"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Label } from "@/components/ui/label"
-
-import { cn } from "@/lib/utils"
-import { useEffect, useRef, useState, useMemo, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
+
+import { AnimatedConversationTitle } from "./animated-conversation-title"
+import { AnimatedMessageContent } from "./animated-message-content"
+import { Artifact, parseArtifacts } from "./artifacts"
 import type { ChatMode } from "./chat-mode-selector"
 import { ConfidenceIndicator } from "./confidence-indicator"
-import { TextToSpeech } from "./text-to-speech"
-import { ToolsMenu } from "./tools-menu"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { toast } from "sonner"
-import { UsageIndicator } from "./usage-indicator"
 import { QuickActions } from "./quick-actions"
-import { LiveRegion } from "@/components/ui/live-region"
-import { useTranslation } from "@/lib/i18n/context"
+import { TextToSpeech } from "./text-to-speech"
 import { ThinkingSteps } from "./thinking-steps"
-import { AnimatedMessageContent } from "./animated-message-content"
-import { AnimatedConversationTitle } from "./animated-conversation-title"
-import { Artifact, parseArtifacts } from "./artifacts"
+import { ToolsMenu } from "./tools-menu"
+import { UsageIndicator } from "./usage-indicator"
 
 // Voice input languages with native names
 const VOICE_LANGUAGES = [

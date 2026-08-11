@@ -3,11 +3,12 @@
  * Endpoints for managing users, roles, and permissions
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+
 import { RBACManager } from "@/lib/auth/rbac";
 import { handleError } from "@/lib/errors/handler";
 import { forbiddenError, unauthorizedError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
+import { createClient } from "@/lib/supabase/server";
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {

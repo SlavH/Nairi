@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+
 import { getLatencyPercentiles } from "@/lib/ai/latency"
 
 export const dynamic = "force-dynamic"

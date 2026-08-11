@@ -1,8 +1,5 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import Image from "next/image"
 import {
   Home,
   MessageSquare,
@@ -24,12 +21,18 @@ import {
   Code,
   GitBranch,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
+import Image from "next/image"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import { useTranslation } from "@/lib/i18n/context"
+import { createClient } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
+
+
 
 interface Profile {
   id: string

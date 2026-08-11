@@ -1,9 +1,10 @@
-import type React from "react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import type React from "react"
+
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
 import { getSession } from "@/lib/auth"
 import { getConversationFolders } from "@/lib/features/chat"
+import { createClient } from "@/lib/supabase/server"
 
 export const dynamic = "force-dynamic"
 

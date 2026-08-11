@@ -7,9 +7,9 @@
 // the UI for step progress and by analytics. The outcome (independent / hinted /
 // shown) feeds the existing SM-2 scheduler via qualityFromSolve().
 
-import { callZen, type ZenMessage } from "./zen"
 import { idbGet, idbPut, STORES } from "./db"
 import type { Concept } from "./types"
+import { callZen, type ZenMessage } from "./zen"
 
 export type SolveResult = "independent" | "hinted" | "shown"
 type Difficulty = "easy" | "medium" | "hard"

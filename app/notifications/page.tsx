@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Bell, Check, Trash2, Settings, Filter } from 'lucide-react'
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
+
 import { LiveRegion } from '@/components/ui/live-region'
 
 type NotificationType = 'generation' | 'credit' | 'system' | 'agent' | 'collaboration' | 'security'

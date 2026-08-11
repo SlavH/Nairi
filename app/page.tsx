@@ -1,12 +1,12 @@
+import { CapabilitiesSection } from "@/components/capabilities-section"
+import { Footer } from "@/components/footer"
+import { FutureSection } from "@/components/future-section"
 import { Header } from "@/components/header"
 import { HeroSection } from "@/components/hero-section"
 import { HowItWorksSection } from "@/components/how-it-works-section"
-import { CapabilitiesSection } from "@/components/capabilities-section"
-import { MarketplaceSection } from "@/components/marketplace-section"
 import { LimitsSection } from "@/components/limits-section"
+import { MarketplaceSection } from "@/components/marketplace-section"
 import { SecuritySection } from "@/components/security-section"
-import { FutureSection } from "@/components/future-section"
-import { Footer } from "@/components/footer"
 
 export default function Home() {
   return (

@@ -5,40 +5,6 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { useWorkflowStore } from '@/lib/workflows/store'
-import { createExecutor } from '@/lib/workflows/executor'
-import { WorkflowCanvas } from '@/components/workflows/workflow-canvas'
-import { NodePalette } from '@/components/workflows/node-palette'
-import { NodeProperties } from '@/components/workflows/node-properties'
-import { ExecutionLogs } from '@/components/workflows/execution-logs'
-import { TemplateGallery } from '@/components/workflows/template-gallery'
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from '@/components/ui/resizable'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import {
   Sparkles,
   Play,
@@ -69,8 +35,43 @@ import {
   XCircle,
   AlertTriangle,
 } from 'lucide-react'
-import { toast } from 'sonner'
 import Link from 'next/link'
+import React, { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ExecutionLogs } from '@/components/workflows/execution-logs'
+import { NodePalette } from '@/components/workflows/node-palette'
+import { NodeProperties } from '@/components/workflows/node-properties'
+import { TemplateGallery } from '@/components/workflows/template-gallery'
+import { WorkflowCanvas } from '@/components/workflows/workflow-canvas'
+import { cn } from '@/lib/utils'
+import { createExecutor } from '@/lib/workflows/executor'
+import { useWorkflowStore } from '@/lib/workflows/store'
 import { exportWorkflow, importWorkflow, validateWorkflow } from '@/lib/workflows/utils'
 import { versionControl } from '@/lib/workflows/version-control'
 

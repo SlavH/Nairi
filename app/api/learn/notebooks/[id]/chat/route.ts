@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { getUserIdForApi } from "@/lib/auth"
-import { generateWithFallback } from "@/lib/ai/groq-direct"
+
 import { REQUIRE_CITATIONS_INSTRUCTION } from "@/lib/ai/citations"
+import { generateWithFallback } from "@/lib/ai/groq-direct"
+import { getUserIdForApi } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(
   req: Request,

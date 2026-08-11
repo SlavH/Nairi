@@ -1,9 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
-import { getPlanLimits, getUpgradeMessage } from "@/lib/plan-limits"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { isRouterConfigured, generate as routerGenerate, pollForResult } from "@/lib/nairi-api/router"
+import { getPlanLimits, getUpgradeMessage } from "@/lib/plan-limits"
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 export const maxDuration = 120
 
@@ -87,8 +88,7 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     
     // Dev bypass for testing - allow unauthenticated access on localhost
-    const isDev = process.env.NODE_ENV === 'development' || 
-                  req.headers.get('host')?.includes('localhost')
+    const isDev = process.env.NODE_ENV === 'development'
     
     // Check if user has access to video generation
     if (user) {

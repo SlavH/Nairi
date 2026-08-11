@@ -1,21 +1,21 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { Bot, Sparkles, DollarSign, Settings, Eye, Save, Plus, X, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type React from "react"
+import { useState } from "react"
+
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Bot, Sparkles, DollarSign, Settings, Eye, Save, Plus, X, Loader2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
+import { Textarea } from "@/components/ui/textarea"
 import { useTranslation } from "@/lib/i18n/context"
+import { createClient } from "@/lib/supabase/client"
 
 interface AgentInitialData {
   id: string

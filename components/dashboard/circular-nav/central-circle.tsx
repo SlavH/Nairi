@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useRef, useEffect } from "react";
+
 import { useTranslation } from "@/lib/i18n/context";
 
 interface CentralCircleProps {

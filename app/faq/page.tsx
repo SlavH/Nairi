@@ -1,20 +1,22 @@
 "use client"
 
-import { Header } from "@/components/header"
+import { Search, MessageCircle, BookOpen, CreditCard, Shield, Bot, Zap, HelpCircle } from "lucide-react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { Suspense } from "react"
+
 import { Footer } from "@/components/footer"
-import { Input } from "@/components/ui/input"
+import { Header } from "@/components/header"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Search, MessageCircle, BookOpen, CreditCard, Shield, Bot, Zap, HelpCircle } from "lucide-react"
-import { useState } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { useSearchParams } from "next/navigation"
-import { Suspense } from "react"
+import { Input } from "@/components/ui/input"
+
 import Loading from "./loading"
 
 const faqCategories = [

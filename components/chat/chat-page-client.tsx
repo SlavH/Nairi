@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import { ChatInterface } from "@/components/chat/chat-interface"
 import { NairiChatView } from "@/components/chat/nairi-chat-view"
 

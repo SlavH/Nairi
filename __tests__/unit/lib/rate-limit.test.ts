@@ -2,6 +2,7 @@
  * Rate Limit Tests (Phase 14)
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit";
 
 describe("Rate Limiting", () => {

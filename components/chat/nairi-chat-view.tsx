@@ -1,10 +1,11 @@
 "use client"
 
 import { useRef, useEffect, useCallback, useState } from "react"
-import { useNairiChat, type NairiConnectionState, type NairiChatMessage } from "@/hooks/use-nairi-chat"
-import { BotIcon as Bot, UserIcon as User, Loader2Icon as Loader2, RotateCcwIcon as RotateCcw, ExternalLinkIcon as ExternalLink } from "@/lib/icons"
+
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { useNairiChat, type NairiConnectionState, type NairiChatMessage } from "@/hooks/use-nairi-chat"
+import { BotIcon as Bot, UserIcon as User, Loader2Icon as Loader2, RotateCcwIcon as RotateCcw, ExternalLinkIcon as ExternalLink } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 const CONNECTION_LABELS: Record<NairiConnectionState, string> = {

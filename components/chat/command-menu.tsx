@@ -1,7 +1,5 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
 import { 
   FileText, 
   Image, 
@@ -12,6 +10,9 @@ import {
   Sparkles,
   Brain,
 } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command"
 
 interface CommandMenuProps {
   isOpen: boolean

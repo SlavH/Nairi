@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
+import { createClient } from "@/lib/supabase/server"
 
 // GET - Fetch user's execution traces
 export async function GET(req: Request) {

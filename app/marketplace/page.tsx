@@ -1,8 +1,3 @@
-import type React from "react"
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Star,
   Sparkles,
@@ -18,9 +13,15 @@ import {
   ChevronLeft,
   Plus,
 } from "lucide-react"
-import Link from "next/link"
 import Image from "next/image"
+import Link from "next/link"
+import type React from "react"
+
 import { MarketplaceFilters } from "@/components/marketplace/marketplace-filters"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/server"
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   search: Search,

@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
+import { generateDesignBrief, designBriefToPromptEnhancement, type DesignBrief } from "@/lib/ai/design-brief"
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { checkRateLimitAsync, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
-import { generateDesignBrief, designBriefToPromptEnhancement, type DesignBrief } from "@/lib/ai/design-brief"
+import { createClient } from "@/lib/supabase/server"
 
 export const maxDuration = 120
 

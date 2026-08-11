@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
+
 import { CourseDetail } from "@/components/learn/course-detail"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params

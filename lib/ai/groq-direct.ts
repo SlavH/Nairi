@@ -1,9 +1,11 @@
 // AI requests: Nairi Router (NAIRI_ROUTER_BASE_URL) or Nairi AI (COLAB_AI_BASE_URL / NAIRI_AI_BASE_URL).
 
 import { streamText, generateText, createUIMessageStream, createUIMessageStreamResponse } from "ai"
-import { nairiAiProvider } from "./client"
-import { isCircuitOpen, recordFailure, recordSuccess } from "./circuit-breaker"
+
 import { isRouterConfigured, generate as routerGenerate, pollForResult } from "@/lib/nairi-api/router"
+
+import { isCircuitOpen, recordFailure, recordSuccess } from "./circuit-breaker"
+import { nairiAiProvider } from "./client"
 
 const NAIRI_AI_MODEL = process.env.NAIRI_AI_MODEL || "nairi-llama"
 

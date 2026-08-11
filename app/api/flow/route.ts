@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+
+import { getUserIdForApi } from "@/lib/auth"
 import { handleError } from "@/lib/errors/handler"
 import { unauthorizedError } from "@/lib/errors/types"
 import { withLogging } from "@/lib/logging/middleware"
-import { getUserIdForApi } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 const mockFlowData = [
   {
@@ -208,7 +209,7 @@ export const GET = withLogging(async (req: NextRequest) => {
       hasMore = end < mockFlowData.length
     }
     
-    let sortedData = [...data]
+    const sortedData = [...data]
     switch (sort) {
       case "trending":
         sortedData.sort((a, b) => (b.metadata?.likes_count || 0) - (a.metadata?.likes_count || 0))

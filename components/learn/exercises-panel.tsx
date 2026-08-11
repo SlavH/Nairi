@@ -1,24 +1,14 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Loader2, Zap, Flame, Heart, Check, X, RotateCcw, Network, BookOpen } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { useBook } from "./book-context"
-import { listBooks, loadBookCore, type LoadedBook } from "@/lib/nairibook/store"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 import { getExerciseSet, gradeLocally, gradeFillAnswer, type Exercise } from "@/lib/nairibook/exercises"
-import {
-  getNextConcepts,
-  isUnlocked,
-  lessonQuality,
-  loadSM2,
-  review,
-  saveSM2,
-  type SM2State,
-} from "@/lib/nairibook/srs"
 import {
   addXP,
   loadGamification,
@@ -29,6 +19,18 @@ import {
   streakAtRisk,
   type GamificationState,
 } from "@/lib/nairibook/gamification"
+import {
+  getNextConcepts,
+  isUnlocked,
+  lessonQuality,
+  loadSM2,
+  review,
+  saveSM2,
+  type SM2State,
+} from "@/lib/nairibook/srs"
+import { listBooks, loadBookCore, type LoadedBook } from "@/lib/nairibook/store"
+
+import { useBook } from "./book-context"
 
 type Phase = "select" | "lesson" | "summary" | "failed"
 

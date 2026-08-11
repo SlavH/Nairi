@@ -2,15 +2,16 @@
  * POST /api/learn/notebooks/[id]/sources/upload
  * Multipart form with "file" (PDF or .txt). Extracts text and adds as source (source_type pdf | file).
  */
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
 import { getUserIdForApi } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024 // 20 MB
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text?: string }>;
     const data = await pdfParse(buffer);
     return (data?.text ?? "").trim().slice(0, 500_000);

@@ -1,14 +1,15 @@
-import type React from "react"
+import { Analytics } from "@vercel/analytics/next"
 import type { Metadata, Viewport } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
+import type React from "react"
 import { Toaster } from "sonner"
+
 import "./globals.css"
-import { I18nProvider } from "@/lib/i18n/context"
-import { ThemeProvider } from "@/components/theme-provider"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { NavOverlayWrapper } from "@/components/nav-overlay-wrapper"
+import { ThemeProvider } from "@/components/theme-provider"
 import { TopProgressBar } from "@/components/top-progress-bar"
+import { I18nProvider } from "@/lib/i18n/context"
 
 const _inter = Inter({ subsets: ["latin", "cyrillic"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })

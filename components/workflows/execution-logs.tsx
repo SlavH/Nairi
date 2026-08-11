@@ -5,22 +5,6 @@
 
 "use client"
 
-import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { cn } from '@/lib/utils'
-import { useWorkflowStore } from '@/lib/workflows/store'
-import { WorkflowExecution, ExecutionLog, ExecutionNodeResult, ExecutionStatus } from '@/lib/workflows/types'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Search,
   Filter,
@@ -42,11 +26,28 @@ import {
   Activity,
   Zap,
 } from 'lucide-react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { cn } from '@/lib/utils'
+import { useWorkflowStore } from '@/lib/workflows/store'
+import { WorkflowExecution, ExecutionLog, ExecutionNodeResult, ExecutionStatus } from '@/lib/workflows/types'
 
 // ============================================================================
 // Status Badge Component

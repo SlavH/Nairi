@@ -70,7 +70,7 @@ hooks/
 - **`COLAB_AI_BASE_URL`** (recommended): Base URL of the Colab backend, **without** `/chat`.
   - Example: `https://xxxx.ngrok.io`
   - After a Colab/ngrok restart, update this value.
-- **`BITNET_BASE_URL`**: Fallback if `COLAB_AI_BASE_URL` is not set (same semantics: base URL only).
+- **`NAIRI_AI_BASE_URL`**: Fallback if `COLAB_AI_BASE_URL` is not set (same semantics: base URL only).
 - **`AI_REQUEST_TIMEOUT`**: Request timeout in ms (default 30000).
 - **`AI_MAX_RETRIES`**: Retries for timeout/5xx/network (default 2; total attempts = 1 + retries).
 
@@ -82,7 +82,7 @@ All Colab requests go to `{COLAB_AI_BASE_URL}/chat` and (optional) `{COLAB_AI_BA
 
 ### 1. `lib/colab/config.ts`
 
-- Reads `COLAB_AI_BASE_URL` or `BITNET_BASE_URL`, trims and strips trailing slashes.
+- Reads `COLAB_AI_BASE_URL` or `NAIRI_AI_BASE_URL`, trims and strips trailing slashes.
 - Exposes `getColabChatUrl()`, `getColabHealthUrl()`, `isColabConfigured()`.
 - Defines `COLAB_REQUEST_TIMEOUT_MS`, `COLAB_MAX_RETRIES`, `COLAB_CHAT_PATH` (`/chat`), `COLAB_HEALTH_PATH` (`/health`).
 
@@ -143,7 +143,7 @@ All Colab requests go to `{COLAB_AI_BASE_URL}/chat` and (optional) `{COLAB_AI_BA
 
 ## Switching from Colab to VPS
 
-1. **Same API contract**: Deploy a server that exposes `POST /chat` and optional `GET /health` with the same request/response shape. Set `COLAB_AI_BASE_URL` (or `BITNET_BASE_URL`) to the new base URL. No code changes in Nairi.
+1. **Same API contract**: Deploy a server that exposes `POST /chat` and optional `GET /health` with the same request/response shape. Set `COLAB_AI_BASE_URL` (or `NAIRI_AI_BASE_URL`) to the new base URL. No code changes in Nairi.
 2. **If you add streaming later**: Introduce a new endpoint or adapter that returns a stream; the current Colab integration remains for the non-streaming path. Frontend can choose transport (e.g. `useColabChat` vs streaming `useChat`) based on config or feature flag.
 3. **Production hardening** (on backend or Nairi proxy): Add authentication, rate limiting, and stable URLs; the integration layer (timeout, retry, mutex, validation, fallback) remains valid.
 

@@ -1,12 +1,13 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
-import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, FileText } from "lucide-react"
+import Link from "next/link"
+import { redirect, notFound } from "next/navigation"
+
 import { ProductPurchaseButton } from "@/components/marketplace/product-purchase-button"
 import { ProductReviews } from "@/components/marketplace/product-reviews"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/server"
 
 const productTypeLabels: Record<string, string> = {
   prompt: "Text",

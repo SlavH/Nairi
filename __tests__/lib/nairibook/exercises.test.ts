@@ -113,7 +113,7 @@ describe("exercises + SM-2 MC loop (small scale)", () => {
     expect(allCorrect).toBe(true)
     // 3. Update SM-2 from lesson quality
     const q = lessonQuality(set.exercises.length, set.exercises.length)
-    let st = review(undefined, q)
+    const st = review(undefined, q)
     st.book_id = "book-1"
     st.concept_id = "concept-0-1"
     await saveSM2(st)

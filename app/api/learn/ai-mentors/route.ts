@@ -4,9 +4,10 @@
  * Body: { domain: string, mentorName?: string, personality?: string }
  */
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { listMentorsForUser, getOrCreateMentor } from "@/lib/learn/ai-mentors"
+
 import { handleError } from "@/lib/errors/handler"
+import { listMentorsForUser, getOrCreateMentor } from "@/lib/learn/ai-mentors"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET() {
   try {

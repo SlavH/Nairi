@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+
 import { getSharedConversation } from "@/lib/features/chat"
 
 export async function GET(

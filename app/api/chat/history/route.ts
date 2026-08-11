@@ -3,9 +3,10 @@
  * Auth required (or BYPASS_AUTH in dev).
  */
 
-import { createClient } from "@/lib/supabase/server"
-import { getUserIdForApi } from "@/lib/auth"
 import { NextResponse } from "next/server"
+
+import { getUserIdForApi } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET() {
   const supabase = await createClient()

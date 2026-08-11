@@ -1,14 +1,22 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { Loader2, Zap, Flame, RotateCcw, Network, BookOpen, Eye, MessageSquare } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
-import { useBook } from "./book-context"
-import { listBooks, loadBookCore, type LoadedBook } from "@/lib/nairibook/store"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import {
+  addXP,
+  loadGamification,
+  recordActiveDay,
+  refillLives,
+  saveGamification,
+  streakAtRisk,
+  type GamificationState,
+} from "@/lib/nairibook/gamification"
 import {
   generateProblem,
   tutorReply,
@@ -23,15 +31,9 @@ import {
   applySolveResult,
   type SM2State,
 } from "@/lib/nairibook/srs"
-import {
-  addXP,
-  loadGamification,
-  recordActiveDay,
-  refillLives,
-  saveGamification,
-  streakAtRisk,
-  type GamificationState,
-} from "@/lib/nairibook/gamification"
+import { listBooks, loadBookCore, type LoadedBook } from "@/lib/nairibook/store"
+
+import { useBook } from "./book-context"
 import { MathMarkdown } from "./math-markdown"
 
 type Phase = "select" | "solving" | "done"

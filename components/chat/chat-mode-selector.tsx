@@ -1,8 +1,9 @@
 "use client"
 
+import { MessageSquare, Scale, Brain, GraduationCap, Sparkles, ChevronDown, Search, Code } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MessageSquare, Scale, Brain, GraduationCap, Sparkles, ChevronDown, Search, Code } from "lucide-react"
 
 export type ChatMode = "default" | "debate" | "reasoning" | "tutor" | "creator" | "research" | "builder" | "learn"
 

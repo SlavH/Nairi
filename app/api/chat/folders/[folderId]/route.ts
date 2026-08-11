@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { getUserIdForApi } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
 import { updateConversationFolder, deleteConversationFolder } from "@/lib/features/chat"
+import { createClient } from "@/lib/supabase/server"
 
 export async function PATCH(
   req: NextRequest,

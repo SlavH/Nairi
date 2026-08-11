@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+
 import { checkStatus, getResult, isRouterConfigured } from "@/lib/nairi-api/router"
 
 export async function GET(

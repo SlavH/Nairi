@@ -1,12 +1,16 @@
 "use client"
 
-import { useState, useCallback, useEffect, useMemo } from "react"
 import dynamic from "next/dynamic"
+import Image from "next/image"
+import Link from "next/link"
+import { useState, useCallback, useEffect, useMemo } from "react"
+import { toast } from "sonner"
+
 import { BuilderChat } from "@/components/builder/builder-chat"
 import { FileExplorer } from "@/components/builder/file-explorer"
+import { PreviewErrorBoundary } from "@/components/builder/preview-error-boundary"
 import { TaskPanel } from "@/components/builder/task-panel"
 import { VersionHistory } from "@/components/builder/version-history"
-import { PreviewErrorBoundary } from "@/components/builder/preview-error-boundary"
 
 // Lazy load heavy components to improve initial page load
 // CodeEditor and LivePreview use Sandpack which is ~500KB
@@ -39,11 +43,6 @@ const LivePreview = dynamic(
     ssr: false // Sandpack doesn't support SSR
   }
 )
-import { 
-  ResizableHandle, 
-  ResizablePanel, 
-  ResizablePanelGroup 
-} from "@/components/ui/resizable"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -51,6 +50,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { LiveRegion } from "@/components/ui/live-region"
+import { 
+  ResizableHandle, 
+  ResizablePanel, 
+  ResizablePanelGroup 
+} from "@/components/ui/resizable"
+
 import {
   Code,
   Eye,
@@ -75,15 +81,13 @@ import {
   Terminal,
   Wrench
 } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { LiveRegion } from "@/components/ui/live-region"
-import { toast } from "sonner"
-import Link from "next/link"
-import Image from "next/image"
-import type { ProjectFile, BuildPlan, Task, ProjectVersion, ChatMessage, ViewportSize, LeftPanelTab, RightPanelTab, RightSidePanelTab } from "@/lib/builder/types"
-import { INITIAL_FILES, VIEWPORT_SIZES } from "@/lib/builder/constants"
+
 import { useOpenCode } from "@/hooks/use-opencode"
+import { INITIAL_FILES, VIEWPORT_SIZES } from "@/lib/builder/constants"
 import { BUILDER_OPENCODE_INSTRUCTION } from "@/lib/builder/opencode-prompt"
+import type { ProjectFile, BuildPlan, Task, ProjectVersion, ChatMessage, ViewportSize, LeftPanelTab, RightPanelTab, RightSidePanelTab } from "@/lib/builder/types"
+import { cn } from "@/lib/utils"
+
 
 export default function BuilderPage() {
   const opencode = useOpenCode()
@@ -351,8 +355,8 @@ export default function App() {
       }
 
       let assistantContent = ""
-      let updatedFiles: ProjectFile[] = [...files]
-      let buffer = "" // Buffer for incomplete JSON lines
+      const updatedFiles: ProjectFile[] = [...files]
+      const buffer = "" // Buffer for incomplete JSON lines
       let receivedComplete = false
       let streamErrorMessage: string | null = null
 

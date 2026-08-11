@@ -1,8 +1,5 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
-import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
 import {
   User,
   Mail,
@@ -19,8 +16,12 @@ import {
   ChevronLeft,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState, useCallback } from "react"
+
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { createClient } from "@/lib/supabase/client"
 
 interface Stat {
   label: string

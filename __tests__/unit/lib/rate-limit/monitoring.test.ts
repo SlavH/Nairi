@@ -2,6 +2,7 @@
  * Rate Limit Monitoring Tests (Phase 15)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { RateLimitMonitor } from "@/lib/rate-limit/monitoring";
 
 // Mock Supabase client — chainable methods return mockSupabase

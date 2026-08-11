@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Sparkles, Plus, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect, useState } from "react"
+
 import { FlowFeed } from "@/components/flow/flow-feed"
 import { FlowStories, FlowStory } from "@/components/flow/flow-stories"
-import { Sparkles, Plus, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/client"
 
 export default function FlowPage() {
   const router = useRouter()

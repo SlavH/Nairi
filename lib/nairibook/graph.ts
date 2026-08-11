@@ -85,7 +85,7 @@ Return only the JSON object defined by the schema.`
     if (!edgeMap.has(cid)) edgeMap.set(cid, new Set(deps))
   }
 
-  let edges: DependencyEdge[] = [...edgeMap.entries()].map(([concept_id, s]) => ({
+  const edges: DependencyEdge[] = [...edgeMap.entries()].map(([concept_id, s]) => ({
     concept_id,
     depends_on: [...s],
   }))

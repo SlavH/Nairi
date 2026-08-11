@@ -1,7 +1,5 @@
 "use client"
 
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
 import {
   CheckCircle2,
   Circle,
@@ -14,8 +12,11 @@ import {
   TestTube,
   Wrench
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { BuildPlan, Task } from "@/lib/builder/types"
+import { cn } from "@/lib/utils"
 
 interface TaskPanelProps {
   plan: BuildPlan | null

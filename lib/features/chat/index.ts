@@ -3,8 +3,9 @@
  * Real implementations: search, folders/tags, export, shared, templates, suggested replies.
  */
 
-import { createClient } from "@/lib/supabase/server"
 import type { SupabaseClient } from "@supabase/supabase-js"
+
+import { createClient } from "@/lib/supabase/server"
 
 export const CONVERSATION_FOLDERS_ENABLED = process.env.NAIRI_CONVERSATION_FOLDERS !== "false"
 export const CONVERSATION_TAGS_ENABLED = process.env.NAIRI_CONVERSATION_TAGS !== "false"

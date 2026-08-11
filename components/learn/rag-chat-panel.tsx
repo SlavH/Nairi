@@ -1,14 +1,5 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { toast } from "sonner"
-import { createClient } from "@/lib/supabase/client"
 import {
   MessageSquare,
   Loader2,
@@ -20,9 +11,15 @@ import {
   FileText,
   Network,
 } from "lucide-react"
-import { useBook } from "./book-context"
-import { buildNotebookDoc, loadNotebookDoc, type NotebookDoc } from "@/lib/nairibook/notebook-doc"
-import { runRagChat, type RagSource } from "@/lib/nairibook/rag"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { toast } from "sonner"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Progress } from "@/components/ui/progress"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   loadChatHistory,
   saveChatTurns,
@@ -30,6 +27,12 @@ import {
   saveFeedback,
   type ChatTurn,
 } from "@/lib/nairibook/chat-store"
+import { buildNotebookDoc, loadNotebookDoc, type NotebookDoc } from "@/lib/nairibook/notebook-doc"
+import { runRagChat, type RagSource } from "@/lib/nairibook/rag"
+import { createClient } from "@/lib/supabase/client"
+
+import { useBook } from "./book-context"
+
 
 interface Msg {
   id: string

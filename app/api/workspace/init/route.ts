@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
+import { getUserIdForApi } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { WorkspaceManager } from "@/lib/workspace/manager"
-import { getUserIdForApi } from "@/lib/auth"
 
 const OPENCODE_API_URL = process.env.OPENCODE_API_URL || "http://localhost:4096"
 

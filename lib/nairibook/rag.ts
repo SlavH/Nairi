@@ -1,7 +1,8 @@
+import { truncateMessages, type ContextMessage } from "@/lib/ai/context-window"
+
 import type { RetrievalChunk, RetrievalResult } from "./retrieval"
 import { retrieve } from "./retrieval"
 import { streamZen } from "./zen"
-import { truncateMessages, type ContextMessage } from "@/lib/ai/context-window"
 
 const NO_INFO_MARKER = "NO_DOCUMENT_INFO"
 

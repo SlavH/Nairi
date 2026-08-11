@@ -1,11 +1,14 @@
-import type { Metadata } from "next"
-import type React from "react"
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
 import { ChevronLeft } from "lucide-react"
+import type { Metadata } from "next"
+import Image from "next/image"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+import type React from "react"
+
+import { Button } from "@/components/ui/button"
+import { createClient } from "@/lib/supabase/server"
+
+
 
 export const metadata: Metadata = {
   title: "Community | Nairi",

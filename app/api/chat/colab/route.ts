@@ -6,6 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+
 import { colabChat } from "@/lib/colab"
 import type { ColabMessage } from "@/lib/colab"
 

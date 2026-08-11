@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Terminal, Clock, CheckCircle, XCircle, AlertCircle, ChevronDown, ChevronRight, Filter, Search, RefreshCw } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+
+import { createClient } from '@/lib/supabase/client'
+
 
 type TraceStatus = 'success' | 'error' | 'warning' | 'running'
 

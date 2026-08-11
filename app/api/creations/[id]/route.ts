@@ -3,12 +3,13 @@
  * PATCH /api/creations/[id] — update a creation (own only).
  * DELETE /api/creations/[id] — delete a creation (own only).
  */
-import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
 import { getUserIdForApi } from '@/lib/auth'
 import { handleError } from '@/lib/errors/handler'
 import { unauthorizedError, validationError } from '@/lib/errors/types'
-import { NextResponse } from 'next/server'
-import { z } from 'zod'
+import { createClient } from '@/lib/supabase/server'
 
 const updateBodySchema = z.object({
   prompt: z.string().min(0).max(10000).optional(),

@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+
 import { healthCheck, sendNairiChat } from "@/lib/api/nairi-client"
-import type { NairiMessage } from "@/lib/nairi-api/types"
 import type { NairiChatSource, NairiChatMeta } from "@/lib/api/nairi-client"
+import type { NairiMessage } from "@/lib/nairi-api/types"
 
 const MAX_HISTORY_MESSAGES = 20
 const HEALTH_RETRIES = 2

@@ -1,12 +1,14 @@
 "use client"
 
-import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { MapPin, Clock, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
+
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 
 const departments = [
   { id: "engineering", name: "Engineering", count: 5 },

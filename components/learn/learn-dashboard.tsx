@@ -1,13 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { listBooks } from "@/lib/nairibook/store"
-import { loadGamification } from "@/lib/nairibook/gamification"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 import {
   BookOpen,
   Trophy,
@@ -22,6 +14,15 @@ import {
   NotebookPen,
 } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { loadGamification } from "@/lib/nairibook/gamification"
+import { listBooks } from "@/lib/nairibook/store"
 
 interface Course {
   id: string

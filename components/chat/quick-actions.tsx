@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
 import { 
   Mail, Lightbulb, FileText, Globe, Brain, BarChart3, 
   Code, Image, Sparkles, BookOpen,
   PenTool,
 } from "lucide-react"
+import { useState } from "react"
+
 import { cn } from "@/lib/utils"
 
 interface QuickAction {

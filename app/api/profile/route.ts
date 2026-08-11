@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 const PROFILE_UPDATE_LIMIT = { maxRequests: 5, windowMs: 60_000 }
 const PROFILE_READ_LIMIT = { maxRequests: 30, windowMs: 60_000 }

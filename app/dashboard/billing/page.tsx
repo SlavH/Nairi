@@ -1,12 +1,13 @@
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Check, Zap } from "lucide-react"
 import Link from "next/link"
-import { SUBSCRIPTION_PLANS } from "@/lib/products"
 import { redirect } from "next/navigation"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
+import { SUBSCRIPTION_PLANS } from "@/lib/products"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function BillingPage() {
   const supabase = await createClient()

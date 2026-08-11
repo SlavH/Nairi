@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+
 import { config } from '@/lib/config/env'
+import { createClient } from '@/lib/supabase/server'
 
 interface HealthCheck {
   name: string;

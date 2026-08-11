@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+
 import { autoFixCommonErrors, validateTypeScriptCode } from "@/lib/builder/generators/code-cleaner"
 
 describe("code-cleaner autoFixCommonErrors", () => {

@@ -1,9 +1,10 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { getSession } from "@/lib/auth"
+
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
+import { getSession } from "@/lib/auth"
 import { getConversationFolders } from "@/lib/features/chat"
+import { createClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
   title: "Flow | Nairi",

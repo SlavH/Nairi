@@ -3,9 +3,10 @@
  * GET - User learning progress across courses
  */
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { LearningProgressTracker } from "@/lib/learn/progress-tracker";
+
 import { handleError } from "@/lib/errors/handler";
+import { LearningProgressTracker } from "@/lib/learn/progress-tracker";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {

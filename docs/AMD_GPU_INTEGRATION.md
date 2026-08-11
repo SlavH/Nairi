@@ -83,7 +83,7 @@ This will output a URL like `https://xxxxx.trycloudflare.com`.
 Add to `.env`:
 
 ```env
-BITNET_BASE_URL=https://xxxxx.trycloudflare.com/v1
+NAIRI_AI_BASE_URL=https://xxxxx.trycloudflare.com/v1
 ```
 
 ## Performance Benchmarks
@@ -111,17 +111,17 @@ BITNET_BASE_URL=https://xxxxx.trycloudflare.com/v1
 
 ## Local Development (Fallback)
 
-For local development without AMD GPU access, set `BITNET_BASE_URL` to any OpenAI-compatible endpoint:
+For local development without AMD GPU access, set `NAIRI_AI_BASE_URL` to any OpenAI-compatible endpoint:
 
 ```env
 # OpenAI
-BITNET_BASE_URL=https://api.openai.com/v1
+NAIRI_AI_BASE_URL=https://api.openai.com/v1
 
 # Groq
-BITNET_BASE_URL=https://api.groq.com/openai/v1
+NAIRI_AI_BASE_URL=https://api.groq.com/openai/v1
 
 # Local Ollama
-BITNET_BASE_URL=http://localhost:11434/v1
+NAIRI_AI_BASE_URL=http://localhost:11434/v1
 ```
 
 ## References

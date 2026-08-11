@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { getUserIdForApi } from "@/lib/auth"
-import { createClient } from "@/lib/supabase/server"
 import { createSharedLink } from "@/lib/features/chat"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))

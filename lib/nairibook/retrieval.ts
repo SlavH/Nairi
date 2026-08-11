@@ -1,5 +1,5 @@
-import type { Chunk } from "./types"
 import { embedChunks, cosineSimilarity } from "./embeddings"
+import type { Chunk } from "./types"
 
 // Injectable query embedder (default: the shared transformers.js model).
 // Allows tests to stub embeddings without loading the real model.

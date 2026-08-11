@@ -1,10 +1,13 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
+import { ChevronLeft } from "lucide-react"
 import Link from "next/link"
-import { getSession } from "@/lib/auth"
+import { redirect, notFound } from "next/navigation"
+
+
 import { NotebookView } from "@/components/learn/notebook-view"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft } from "lucide-react"
+import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
+
 
 export default async function NotebookDetailPage({
   params,

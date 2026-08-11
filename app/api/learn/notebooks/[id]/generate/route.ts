@@ -3,10 +3,11 @@
  * NotebookLM-style generations: overview, study_guide, faq, briefing.
  * Body: { type: "overview" | "study_guide" | "faq" | "briefing" }
  */
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { getUserIdForApi } from "@/lib/auth"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
+import { getUserIdForApi } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 const GENERATION_TYPES = [
   "overview",

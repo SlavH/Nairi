@@ -3,9 +3,10 @@
  * Auth optional; when authenticated, response can include owned flag per agent.
  * Responses are cached (short TTL) for anonymous or repeated requests to reduce DB load.
  */
-import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+
 import { get, set } from '@/lib/cache/simple'
+import { createClient } from '@/lib/supabase/server'
 
 const CACHE_TTL_MS = 60 * 1000 // 1 minute
 

@@ -2,9 +2,10 @@
  * GET /api/learn/quizzes/[id] – quiz with questions (for taking).
  */
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { getQuizWithQuestions } from "@/lib/learn/quizzes"
+
 import { handleError } from "@/lib/errors/handler"
+import { getQuizWithQuestions } from "@/lib/learn/quizzes"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
   _req: Request,

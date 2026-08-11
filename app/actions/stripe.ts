@@ -1,8 +1,8 @@
 "use server"
 
+import { getProduct } from "@/lib/products"
 import { stripe } from "@/lib/stripe"
 import { createClient } from "@/lib/supabase/server"
-import { getProduct } from "@/lib/products"
 
 export async function createCheckoutSession(productId: string, agentId?: string) {
   const supabase = await createClient()

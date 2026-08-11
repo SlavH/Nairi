@@ -1,12 +1,13 @@
 "use client"
 
 import { Search, ArrowLeft } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { NotificationBell } from "@/components/notifications/notification-bell"
-import { LanguageSwitcher } from "@/components/language-switcher"
-import { useTranslation } from "@/lib/i18n/context"
+
 import { useNavOverlay } from "@/components/dashboard/nav-overlay-context"
+import { LanguageSwitcher } from "@/components/language-switcher"
+import { NotificationBell } from "@/components/notifications/notification-bell"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useTranslation } from "@/lib/i18n/context"
 interface Profile {
   id: string
   email: string | null

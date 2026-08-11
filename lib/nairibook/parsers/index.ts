@@ -1,7 +1,8 @@
 import type { BookFormat, ParsedDocument } from "../types"
-import { parseText } from "./text-parser"
-import { parsePdf, NoTextLayerError } from "./pdf-parser"
+
 import { parseEpub } from "./epub-parser"
+import { parsePdf, NoTextLayerError } from "./pdf-parser"
+import { parseText } from "./text-parser"
 
 export { NoTextLayerError }
 

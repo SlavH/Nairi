@@ -1,7 +1,9 @@
-import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { Label } from './label'
 import { ChevronDown } from 'lucide-react'
+import * as React from 'react'
+
+import { cn } from '@/lib/utils'
+
+import { Label } from './label'
 
 export interface AccessibleSelectProps extends Omit<React.ComponentProps<'select'>, 'aria-invalid' | 'aria-describedby' | 'aria-required'> {
   /**

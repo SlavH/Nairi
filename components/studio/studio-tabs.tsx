@@ -1,8 +1,9 @@
 "use client"
 
-import dynamic from "next/dynamic"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Image, Video, Volume2, Presentation } from "lucide-react"
+import dynamic from "next/dynamic"
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const ImageGenerator = dynamic(
   () => import("@/components/studio/image-generator").then(m => ({ default: m.ImageGenerator })),

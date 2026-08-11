@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
 import { getUserIdForApi } from "@/lib/auth"
 import { fetchUrlAndExtractText } from "@/lib/learn/url-research"
+import { createClient } from "@/lib/supabase/server"
 
 export async function POST(
   req: Request,

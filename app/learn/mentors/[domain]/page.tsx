@@ -1,10 +1,11 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
-import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
+import Link from "next/link"
+import { redirect, notFound } from "next/navigation"
+
+import { MentorDetail } from "@/components/learn/mentor-detail"
 import { getSession } from "@/lib/auth"
 import { getMentorByDomain } from "@/lib/learn/ai-mentors"
-import { MentorDetail } from "@/components/learn/mentor-detail"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function MentorDomainPage({
   params,

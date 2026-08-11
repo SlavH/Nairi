@@ -5,10 +5,6 @@
 
 "use client"
 
-import React, { memo, useCallback } from 'react'
-import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Webhook,
   Clock,
@@ -53,7 +49,10 @@ import {
   Loader2,
   Pause,
 } from 'lucide-react'
-import { WorkflowNode, NodeType, ExecutionStatus } from '@/lib/workflows/types'
+import React, { memo, useCallback } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +60,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
+import { WorkflowNode, NodeType, ExecutionStatus } from '@/lib/workflows/types'
 
 // ============================================================================
 // Node Icon Mapping

@@ -1,12 +1,13 @@
-import { redirect, notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { getSession } from "@/lib/auth"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { ArrowLeft, ShieldCheck, Check } from "lucide-react"
 import Link from "next/link"
+import { redirect, notFound } from "next/navigation"
+
 import { CheckoutForm } from "@/components/checkout/checkout-form"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { getSession } from "@/lib/auth"
 import { getProduct } from "@/lib/products"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function PlanCheckoutPage({
   params,

@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
+import { createClient } from "@/lib/supabase/server"
 
 export const maxDuration = 60
 
@@ -80,6 +81,10 @@ export async function POST(req: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const body: CodeAgentRequest = await req.json()
     const { prompt, code, language = "typescript", action = "general" } = body

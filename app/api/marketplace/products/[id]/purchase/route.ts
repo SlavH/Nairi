@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
 import { stripe } from "@/lib/stripe"
+import { createClient } from "@/lib/supabase/server"
 
 /**
  * POST - Purchase a marketplace product (free or with credits).

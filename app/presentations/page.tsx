@@ -1,13 +1,14 @@
 'use client'
 
+import { Loader2, Download, Copy, Presentation, ChevronLeft, ChevronRight, Edit, Save, X, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Loader2, Download, Copy, Presentation, ChevronLeft, ChevronRight, Edit, Save, X, Plus, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 
 interface Slide {
   id: number

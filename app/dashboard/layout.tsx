@@ -1,8 +1,9 @@
-import type React from "react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import type React from "react"
+
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 const LAYOUT_TIMEOUT_MS = 10_000
 

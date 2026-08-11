@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { getUserIdForApi } from '@/lib/auth';
+
 import { generateWithFallback } from '@/lib/ai/groq-direct';
+import { getUserIdForApi } from '@/lib/auth';
 import { checkRateLimit, getClientIdentifier } from '@/lib/rate-limit';
+import { createClient } from '@/lib/supabase/server';
 
 export const maxDuration = 120;
 

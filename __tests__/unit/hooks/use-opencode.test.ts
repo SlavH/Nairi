@@ -1,9 +1,15 @@
 /**
  * useOpenCode Hook Tests
+ *
+ * The hook is a React hook, so this file runs under the `jsdom` environment
+ * (see the pragma below). The `webContainerProvider` dependency is mocked so
+ * the real bridge/hook integration is exercised deterministically without an
+ * actual WebContainer, and `vi.resetModules()` is called between tests so the
+ * bridge singleton does not leak state across cases.
+ *
+ * @vitest-environment jsdom
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useOpenCode, DEFAULT_MODEL, FREE_MODELS } from "@/hooks/use-opencode";
 
 // Mock the toast hook
 vi.mock("@/hooks/use-toast", () => ({
@@ -12,11 +18,89 @@ vi.mock("@/hooks/use-toast", () => ({
   }),
 }));
 
+// ---------------------------------------------------------------------------
+// Controllable WebContainer provider mock
+// ---------------------------------------------------------------------------
+const providerMock = vi.hoisted(() => {
+  type Status =
+    | { state: "idle" }
+    | { state: "booting" }
+    | { state: "ready" }
+    | { state: "error"; error: string };
+
+  let status: Status = { state: "idle" };
+  let bootError: string | null = null;
+  const listeners = new Set<(s: Status) => void>();
+
+  return {
+    getStatus: vi.fn(() => status),
+    subscribe: vi.fn((listener: (s: Status) => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    }),
+    boot: vi.fn(async () => {
+      status = bootError
+        ? { state: "error", error: bootError }
+        : { state: "ready" };
+      listeners.forEach((l) => l(status));
+    }),
+    createSession: vi.fn(async (opts?: { model?: string }) => ({
+      id: "test-session",
+      title: "Test Session",
+      modelID: opts?.model,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })),
+    sendMessage: vi.fn(async () => ({
+      id: "test-msg",
+      sessionID: "test-session",
+      role: "assistant",
+      parts: [{ type: "text", text: "Generated a todo app" }],
+      createdAt: new Date().toISOString(),
+    })),
+    shutdown: vi.fn(async () => {}),
+    __setBootError(error: string | null) {
+      bootError = error;
+    },
+    __reset() {
+      status = { state: "idle" };
+      bootError = null;
+      listeners.clear();
+    },
+  };
+});
+
+vi.mock("@/lib/webcontainer-provider", () => ({
+  webContainerProvider: providerMock,
+}));
+
+// ---------------------------------------------------------------------------
+// Handles into the freshly-imported module graph (imported after reset)
+// ---------------------------------------------------------------------------
+let renderHook: typeof import("@testing-library/react")["renderHook"];
+let act: typeof import("@testing-library/react")["act"];
+let useOpenCode: typeof import("@/hooks/use-opencode")["useOpenCode"];
+let DEFAULT_MODEL: string;
+let FREE_MODELS: { id: string; name: string }[];
+
 describe("useOpenCode Hook", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.resetModules();
     vi.clearAllMocks();
-    // Mock fetch
+    providerMock.__reset();
+    localStorage.clear();
     global.fetch = vi.fn();
+
+    // Import RTL and the hook from the same (fresh) module graph so they
+    // share a single React instance.
+    const rtl = await import("@testing-library/react");
+    renderHook = rtl.renderHook;
+    act = rtl.act;
+
+    const hookMod = await import("@/hooks/use-opencode");
+    useOpenCode = hookMod.useOpenCode;
+    DEFAULT_MODEL = hookMod.DEFAULT_MODEL;
+    FREE_MODELS = hookMod.FREE_MODELS;
   });
 
   describe("initialization", () => {
@@ -39,12 +123,21 @@ describe("useOpenCode Hook", () => {
       expect(FREE_MODELS[0].id).toBe("opencode/big-pickle");
     });
 
-    it("should initialize successfully", async () => {
-      // Mock successful health check
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ healthy: true, version: "1.0.0" }),
+    it("should initialize successfully when WebContainer boots", async () => {
+      const { result } = renderHook(() => useOpenCode());
+
+      await act(async () => {
+        await result.current.initialize();
       });
+
+      expect(result.current.initialized).toBe(true);
+      expect(result.current.initializing).toBe(false);
+      expect(result.current.status.initialized).toBe(true);
+      expect(providerMock.boot).toHaveBeenCalledTimes(1);
+    });
+
+    it("should initialize successfully even if boot fails", async () => {
+      providerMock.__setBootError("WebContainer is not supported");
 
       const { result } = renderHook(() => useOpenCode());
 
@@ -57,50 +150,28 @@ describe("useOpenCode Hook", () => {
     });
 
     it("should not initialize twice", async () => {
-      // Mock successful health check
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ healthy: true }),
-      });
-
       const { result } = renderHook(() => useOpenCode());
 
       await act(async () => {
         await result.current.initialize();
       });
 
-      // Second call should be no-op
+      // Second call should be a no-op
       await act(async () => {
         await result.current.initialize();
       });
 
-      // Only one fetch call (health check)
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      // Only one boot attempt
+      expect(providerMock.boot).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("executeTask", () => {
-    it("should execute task successfully", async () => {
-      // Mock successful health check
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ healthy: true }),
-      });
-
+    it("should execute task successfully through WebContainer", async () => {
       const { result } = renderHook(() => useOpenCode());
 
       await act(async () => {
         await result.current.initialize();
-      });
-
-      // Mock successful task execution
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          success: true,
-          type: "generate-code",
-          explanation: "Generated code",
-        }),
       });
 
       let taskResult;
@@ -113,23 +184,16 @@ describe("useOpenCode Hook", () => {
       });
 
       expect(taskResult!.success).toBe(true);
-      expect(taskResult!.explanation).toBe("Generated code");
+      expect(taskResult!.type).toBe("generate-code");
+      expect(taskResult!.explanation).toBe("Generated a todo app");
+      expect(providerMock.sendMessage).toHaveBeenCalledWith(
+        "test-session",
+        "Create a todo app",
+      );
     });
 
     it("should auto-initialize before executing task", async () => {
-      // Mock successful health check
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ healthy: true }),
-      });
-
       const { result } = renderHook(() => useOpenCode());
-
-      // Mock successful task execution
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true }),
-      });
 
       let taskResult;
       await act(async () => {
@@ -145,20 +209,10 @@ describe("useOpenCode Hook", () => {
     });
 
     it("should handle task execution errors", async () => {
-      // Mock successful health check
-      (global.fetch as any).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ healthy: true }),
-      });
+      providerMock.__setBootError("WebContainer is not supported");
+      (global.fetch as any).mockRejectedValueOnce(new Error("Task failed"));
 
       const { result } = renderHook(() => useOpenCode());
-
-      await act(async () => {
-        await result.current.initialize();
-      });
-
-      // Mock failed task execution
-      (global.fetch as any).mockRejectedValueOnce(new Error("Task failed"));
 
       let taskResult;
       await act(async () => {
@@ -191,13 +245,15 @@ describe("useOpenCode Hook", () => {
       const { result } = renderHook(() => useOpenCode());
 
       const status = result.current.status;
-      expect(status).toHaveProperty("state");
+      expect(status).toHaveProperty("initialized");
+      expect(status).toHaveProperty("model");
+      expect(status).toHaveProperty("permissions");
     });
 
     it("should use free model by default", () => {
       const { result } = renderHook(() => useOpenCode());
 
-      expect(result.current.status).toBeDefined();
+      expect(result.current.status.model).toBe(DEFAULT_MODEL);
     });
   });
 

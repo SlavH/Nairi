@@ -1,8 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { 
   Settings, 
   User, 
@@ -22,13 +19,17 @@ import {
   Save,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+
 import { AccessibleInput } from '@/components/ui/accessible-input'
 import { AccessibleSelect } from '@/components/ui/accessible-select'
-import { AccessibleToggle } from '@/components/ui/accessible-toggle'
 import { AccessibleTextarea } from '@/components/ui/accessible-textarea'
+import { AccessibleToggle } from '@/components/ui/accessible-toggle'
 import { Button } from '@/components/ui/button'
-import { toast } from 'sonner'
 import { getPollinationsKey, setPollinationsKey } from '@/lib/image-providers/pollinations-config'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SettingsPage() {
   const router = useRouter()

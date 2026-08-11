@@ -4,10 +4,12 @@
  * Auth required (or BYPASS_AUTH in dev). User can only access their own conversations.
  */
 
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
-import { getUserIdForApi } from "@/lib/auth"
 import { NextResponse } from "next/server"
+
+import { getUserIdForApi } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
+
 
 async function getSupabaseAndUserId() {
   const supabase = await createClient()

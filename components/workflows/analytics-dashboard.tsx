@@ -5,19 +5,6 @@
 
 "use client"
 
-import React, { useMemo } from 'react'
-import { cn } from '@/lib/utils'
-import { useWorkflowStore } from '@/lib/workflows/store'
-import { WorkflowExecution, ExecutionStatus } from '@/lib/workflows/types'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   BarChart3,
   TrendingUp,
@@ -33,6 +20,20 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react'
+import React, { useMemo } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { cn } from '@/lib/utils'
+import { useWorkflowStore } from '@/lib/workflows/store'
+import { WorkflowExecution, ExecutionStatus } from '@/lib/workflows/types'
 
 // ============================================================================
 // Analytics Dashboard Component

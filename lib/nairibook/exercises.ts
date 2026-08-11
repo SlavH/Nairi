@@ -9,9 +9,9 @@
 // Types: mc (multiple choice), fill (fill-in-the-blank, free text),
 //        match (term/definition pairs), tf (true/false with explanation).
 
-import { callZen } from "./zen"
 import { idbGet, idbPut, STORES } from "./db"
 import type { Concept } from "./types"
+import { callZen } from "./zen"
 
 export type ExerciseType = "mc" | "fill" | "match" | "tf"
 

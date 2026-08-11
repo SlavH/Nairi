@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { stripe } from "@/lib/stripe"
+
 import { handleError } from "@/lib/errors/handler"
+import { stripe } from "@/lib/stripe"
+import { createClient } from "@/lib/supabase/server"
 
 // POST - Initiate a purchase for an agent
 export async function POST(req: Request) {

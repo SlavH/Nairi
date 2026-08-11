@@ -2,13 +2,15 @@
  * Model Comparison API – all requests go to Colab (NAIRI_AI_BASE_URL).
  */
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
+import { getUserIdForApi } from "@/lib/auth";
 import { ModelComparison } from "@/lib/chat/model-comparison";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdForApi } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { z } from "zod";
+
 
 const compareModelsSchema = z.object({
   prompt: z.string().min(1).max(10000),

@@ -1,9 +1,9 @@
-import type { Chunk } from "./types"
 import { chunkDocument } from "./chunking"
+import { idbPut, idbGet, STORES } from "./db"
 import { embedChunks } from "./embeddings"
 import { saveVectors, loadVectors } from "./opfs"
-import { idbPut, idbGet, STORES } from "./db"
 import type { RetrievalChunk } from "./retrieval"
+import type { Chunk } from "./types"
 
 interface NotebookSource {
   id: string

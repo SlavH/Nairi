@@ -1,5 +1,6 @@
-import { Metadata } from "next"
 import { Sparkles } from "lucide-react"
+import { Metadata } from "next"
+
 import { StudioTabs } from "@/components/studio/studio-tabs"
 
 export const metadata: Metadata = {

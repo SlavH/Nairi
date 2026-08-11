@@ -1,10 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import { FlowCard, FlowCardData } from "./flow-card"
 import { Loader2, Sparkles, TrendingUp, Clock, GitFork } from "lucide-react"
+import { useState, useEffect, useCallback, useRef } from "react"
+
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+
+import { FlowCard, FlowCardData } from "./flow-card"
 
 export type FlowSortOption = "trending" | "new" | "most-remixed"
 

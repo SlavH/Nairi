@@ -5,13 +5,6 @@
 
 "use client"
 
-import React, { useCallback, useRef, useState, useEffect, memo } from 'react'
-import { cn } from '@/lib/utils'
-import { useWorkflowStore } from '@/lib/workflows/store'
-import { WorkflowNode, WorkflowEdge, NodeType } from '@/lib/workflows/types'
-import { createDefaultNode } from '@/lib/workflows/utils'
-import { WorkflowNodeComponent, NODE_DEFINITIONS } from './nodes'
-import { Button } from '@/components/ui/button'
 import {
   ZoomIn,
   ZoomOut,
@@ -30,6 +23,15 @@ import {
   Bug,
   Map,
 } from 'lucide-react'
+import React, { useCallback, useRef, useState, useEffect, memo } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { useWorkflowStore } from '@/lib/workflows/store'
+import { WorkflowNode, WorkflowEdge, NodeType } from '@/lib/workflows/types'
+import { createDefaultNode } from '@/lib/workflows/utils'
+
+import { WorkflowNodeComponent, NODE_DEFINITIONS } from './nodes'
 
 // ============================================================================
 // Canvas Component

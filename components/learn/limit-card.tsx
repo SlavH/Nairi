@@ -1,8 +1,9 @@
 "use client"
 
 import { AlertTriangle, X, Zap, Clock, Info } from "lucide-react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 interface LimitCardProps {
   type: "rate-limit" | "vision-error" | "photo-check" | "exercises" | "problem-solver"

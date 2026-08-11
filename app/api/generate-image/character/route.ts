@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
@@ -101,7 +102,7 @@ async function handleCreateCharacter(
   // For now, we'll store the reference image and description
   
   const replicateKey = process.env.REPLICATE_API_TOKEN
-  let faceEmbedding = null
+  const faceEmbedding = null
   
   if (replicateKey && isValidApiKey(replicateKey)) {
     try {

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Activity, Clock, Zap, MessageSquare, Image, Code, Video, FileText, Filter, Calendar, RefreshCw } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+
+import { createClient } from '@/lib/supabase/client'
+
 
 type ActivityType = 'chat' | 'image' | 'code' | 'video' | 'document' | 'agent' | 'login' | 'settings'
 

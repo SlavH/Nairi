@@ -1,12 +1,15 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
+import { ChevronLeft, Plus } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+
+
 import { CreatorDashboard } from "@/components/marketplace/creator-dashboard"
+import { Button } from "@/components/ui/button"
 import { getSession } from "@/lib/auth"
 import { getCreatorBadges } from "@/lib/features/badges"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, Plus } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+
 
 export default async function CreatorPage() {
   const supabase = await createClient()

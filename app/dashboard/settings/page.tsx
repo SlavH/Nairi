@@ -1,12 +1,13 @@
-import { createClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { User, Brain, Globe } from "lucide-react"
+import { redirect } from "next/navigation"
+
 import { ProfileForm } from "@/components/dashboard/profile-form"
 import { AIGovernance } from "@/components/settings/ai-governance"
 import { LanguageSettings } from "@/components/settings/language-settings"
-import { User, Brain, Globe } from "lucide-react"
-import { redirect } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function SettingsPage() {
   const supabase = await createClient()

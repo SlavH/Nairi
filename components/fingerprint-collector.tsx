@@ -9,6 +9,7 @@
  */
 
 import { useEffect, useState } from 'react'
+
 import type { DeviceFingerprint } from '@/lib/device-fingerprint'
 
 interface FingerprintCollectorProps {

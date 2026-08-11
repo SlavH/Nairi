@@ -1,7 +1,7 @@
 "use client"
 
-import { webContainerProvider } from "@/lib/webcontainer-provider"
 import { getOpenCodeClient, type Session, type Message } from "@/lib/opencode-client"
+import { webContainerProvider } from "@/lib/webcontainer-provider"
 
 export interface OpenCodeConfig {
   apiKey: string

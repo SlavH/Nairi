@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+
 import { checkDeviceFingerprintLimit, analyzeFingerprintRisk } from '@/lib/device-fingerprint'
 import type { DeviceFingerprint } from '@/lib/device-fingerprint'
 

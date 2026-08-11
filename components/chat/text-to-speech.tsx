@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useCallback, useRef, useEffect } from "react"
 import { Volume2, VolumeX, Pause, Play, Settings } from "lucide-react"
+import { useState, useCallback, useRef, useEffect } from "react"
+import { toast } from "sonner"
+
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Slider } from "@/components/ui/slider"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+
 
 interface TextToSpeechProps {
   text: string

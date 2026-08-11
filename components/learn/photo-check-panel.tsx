@@ -1,24 +1,26 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Loader2, Camera, Check, X, Eye, AlertTriangle, KeyRound, Network } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
-import { useBook } from "./book-context"
-import { listBooks, loadBookCore, type LoadedBook } from "@/lib/nairibook/store"
-import {
-  generateProblem,
-  loadProblemCache,
-  type Problem,
-} from "@/lib/nairibook/problem"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   assessPhoto,
   preprocessImage,
   VisionUnavailableError,
   type PhotoFeedback,
 } from "@/lib/nairibook/photo-check"
+import {
+  generateProblem,
+  loadProblemCache,
+  type Problem,
+} from "@/lib/nairibook/problem"
+import { listBooks, loadBookCore, type LoadedBook } from "@/lib/nairibook/store"
+
+import { useBook } from "./book-context"
 import { MathMarkdown } from "./math-markdown"
 
 type Phase = "setup" | "capturing" | "result"

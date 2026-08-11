@@ -1,14 +1,15 @@
 'use client'
 
+import { Loader2, Download, Copy, FileText } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2, Download, Copy, FileText } from 'lucide-react'
-import { toast } from 'sonner'
+import { Textarea } from '@/components/ui/textarea'
 
 export default function DocumentGeneratorPage() {
   const [prompt, setPrompt] = useState('')

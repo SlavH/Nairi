@@ -1,11 +1,13 @@
 /**
  * GET /api/creations/stats — creation counts by type and recent activity for the authenticated user.
  */
-import { createClient } from '@/lib/supabase/server'
+import { NextResponse } from 'next/server'
+
 import { getUserIdForApi } from '@/lib/auth'
 import { handleError } from '@/lib/errors/handler'
 import { unauthorizedError } from '@/lib/errors/types'
-import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+
 
 export async function GET() {
   try {

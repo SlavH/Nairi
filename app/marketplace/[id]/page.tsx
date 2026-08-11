@@ -1,14 +1,15 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect, notFound } from "next/navigation"
-import { getSession } from "@/lib/auth"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Star, ArrowLeft, Check, Zap } from "lucide-react"
 import Link from "next/link"
-import { PurchaseButton } from "@/components/marketplace/purchase-button"
+import { redirect, notFound } from "next/navigation"
+
 import { AgentReviews } from "@/components/marketplace/agent-reviews"
+import { PurchaseButton } from "@/components/marketplace/purchase-button"
 import { BreadcrumbNav } from "@/components/navigation/breadcrumb-nav"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function AgentDetailPage({
   params,

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles } from "lucide-react"
+import { useState } from "react"
+
 import { AuthModal } from "@/components/auth-modal"
+import { Button } from "@/components/ui/button"
 import { WaitlistModal } from "@/components/waitlist-modal"
 import { useTranslation } from "@/lib/i18n/context"
 

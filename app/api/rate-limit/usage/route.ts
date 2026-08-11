@@ -3,6 +3,7 @@
  * Current remaining/reset for a given window are returned in response headers (X-RateLimit-Remaining, X-RateLimit-Reset) on each rate-limited API request; this endpoint exposes the configured limits for display in the dashboard.
  */
 import { NextResponse } from 'next/server'
+
 import { RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function GET() {

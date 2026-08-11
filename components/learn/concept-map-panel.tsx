@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { toast } from "sonner"
 import { Upload, Loader2, Network, AlertTriangle, BookOpen, Cpu, Smartphone } from "lucide-react"
-import { useBook } from "./book-context"
+import { useState, useRef } from "react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { isWebGPUAvailable } from "@/lib/nairibook/embeddings"
 import { runPipeline, NoTextLayerError } from "@/lib/nairibook/pipeline"
 import { loadSM2 } from "@/lib/nairibook/srs"
-import { isWebGPUAvailable } from "@/lib/nairibook/embeddings"
 import type { BookCore, ProcessingProgress } from "@/lib/nairibook/types"
 
 function isMobileDevice(): boolean {
@@ -17,6 +17,8 @@ function isMobileDevice(): boolean {
   return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 }
 import type { SM2State } from "@/lib/nairibook/srs"
+
+import { useBook } from "./book-context"
 import { ConceptGraphView } from "./concept-graph-view"
 
 const STAGE_LABELS: Record<ProcessingProgress["stage"], string> = {

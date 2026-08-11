@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+
+import { isRouterConfigured, generate as routerGenerate, pollForResult } from "@/lib/nairi-api/router"
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
-import { isRouterConfigured, generate as routerGenerate, pollForResult } from "@/lib/nairi-api/router"
 
 export const maxDuration = 120
 

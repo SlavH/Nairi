@@ -2,8 +2,9 @@
  * Multi-Factor Authentication Manager (Phase 4)
  * Handles TOTP, SMS, and Email MFA
  */
-import { createClient } from "@/lib/supabase/server";
 import { createHash, randomBytes, createHmac } from "crypto";
+
+import { createClient } from "@/lib/supabase/server";
 
 export type MFAMethod = "totp" | "sms" | "email";
 

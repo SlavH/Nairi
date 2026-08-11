@@ -3,8 +3,8 @@
  * Real implementations: versioning (lib/workflows), triggers, steps, monitoring, templates, concurrency.
  */
 
-import { VersionControlManager } from "@/lib/workflows/version-control"
 import type { Workflow } from "@/lib/workflows/types"
+import { VersionControlManager } from "@/lib/workflows/version-control"
 
 export const WORKFLOW_TRIGGER_TYPES = ["webhook", "schedule", "event"] as const
 export const WORKFLOW_STEP_TYPES = ["http", "db", "ai", "transform"] as const

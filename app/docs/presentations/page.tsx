@@ -1,8 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ComingSoonBadge } from "@/components/ui/coming-soon-badge"
-import Link from "next/link"
 import {
   ArrowLeft,
   Presentation,
@@ -17,6 +12,13 @@ import {
   Play,
   CheckCircle2
 } from "lucide-react"
+import Link from "next/link"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { ComingSoonBadge } from "@/components/ui/coming-soon-badge"
+
 
 export const metadata = {
   title: "Presentations | Nairi Documentation",

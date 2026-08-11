@@ -1,7 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
 import { LearnDashboard } from "@/components/learn/learn-dashboard"
 import { getSession } from "@/lib/auth"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function LearnPage() {
   const supabase = await createClient()

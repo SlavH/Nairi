@@ -1,13 +1,14 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
 import { ChevronLeft, Award } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { redirect } from "next/navigation"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getSession } from "@/lib/auth"
 import { getCreatorBadges, listExpertBadges } from "@/lib/features/badges"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function CreatorBadgesPage() {
   const supabase = await createClient()

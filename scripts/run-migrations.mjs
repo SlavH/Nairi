@@ -9,12 +9,13 @@
  * - Records execution time and checksums
  * - Supports rollback tracking
  */
+import { createHash } from "crypto";
 import { readFileSync, readdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { createHash } from "crypto";
-import pg from "pg";
+
 import dotenv from "dotenv";
+import pg from "pg";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, "..");

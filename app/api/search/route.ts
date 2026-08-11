@@ -2,11 +2,12 @@
  * Global Search API (Phase 60)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { GlobalSearch } from "@/lib/search/global-search";
+
+import { getUserIdForApi } from "@/lib/auth";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
-import { getUserIdForApi } from "@/lib/auth";
+import { GlobalSearch } from "@/lib/search/global-search";
 import { createClient } from "@/lib/supabase/server";
 
 export const GET = withLogging(async (req: NextRequest) => {

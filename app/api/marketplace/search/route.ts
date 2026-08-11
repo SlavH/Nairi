@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
+
+import { createClient } from "@/lib/supabase/server"
 
 // GET - Search marketplace products and agents
 export async function GET(req: Request) {
@@ -115,7 +116,7 @@ export async function GET(req: Request) {
     }
 
     // Combine and sort results
-    let results = [...agents, ...products]
+    const results = [...agents, ...products]
     
     // Re-sort combined results if needed
     if (type === "all") {

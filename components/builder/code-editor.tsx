@@ -1,8 +1,5 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Copy,
   Check,
@@ -13,9 +10,15 @@ import {
   Settings,
   Maximize2
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import type { ProjectFile } from "@/lib/builder/types"
+import { cn } from "@/lib/utils"
+
+
 
 interface CodeEditorProps {
   file: ProjectFile

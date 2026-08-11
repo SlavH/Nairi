@@ -1,11 +1,13 @@
 "use client"
 
 import { Shield, Lock, Eye, Server, Key, FileCheck, Users, Globe, CheckCircle2 } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import Image from "next/image"
+
 
 const securityFeatures = [
   {
