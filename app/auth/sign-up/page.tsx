@@ -112,8 +112,8 @@ export default function SignUpPage() {
       return
     }
     
-    // Use a test token in development if no captcha token
-    const tokenToUse = captchaToken || (isDev ? 'dev-test-token' : null)
+    // Only send a captcha token when one was actually provided (none in dev)
+    const tokenToUse = captchaToken || null
 
     try {
       // Verify captcha and check IP limits on backend
@@ -202,13 +202,13 @@ export default function SignUpPage() {
 
     // Enforce captcha + IP/tempmail limits before initiating OAuth (production only).
     const isDev = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
-    const tokenToUse = captchaToken || (isDev ? 'dev-test-token' : null)
-    if (!tokenToUse) {
+    if (!captchaToken && !isDev) {
       const errorMsg = "Please complete the captcha verification"
       setError(errorMsg)
       setStatusMessage(`Error: ${errorMsg}`)
       return
     }
+    const tokenToUse = captchaToken || null
 
     try {
       const verifyResponse = await fetch('/api/auth/verify-signup', {

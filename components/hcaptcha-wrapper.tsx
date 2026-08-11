@@ -16,6 +16,11 @@ declare global {
 }
 
 export function HCaptcha({ sitekey, onVerify, onError, onExpire }: HCaptchaProps) {
+  // Disabled in development — captcha is bypassed via dev-test-token on the server.
+  if (process.env.NODE_ENV === 'development') {
+    return null
+  }
+
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const scriptLoadedRef = useRef<boolean>(false)

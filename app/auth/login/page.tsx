@@ -60,7 +60,7 @@ function LoginForm() {
         email,
         password,
         options: {
-          captchaToken: captchaToken || (isDev ? 'dev-test-token' : undefined),
+          captchaToken: captchaToken || undefined,
         },
       })
       if (error) throw error
