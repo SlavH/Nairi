@@ -271,5 +271,19 @@ describe("useOpenCode Hook", () => {
 
       expect(result.current.config.model).toBe(DEFAULT_MODEL);
     });
+
+    it("should default all permissions to 'ask' for security", () => {
+      const { result } = renderHook(() => useOpenCode());
+
+      const permissions = result.current.config.permissions;
+      expect(permissions.bash).toBe("ask");
+      expect(permissions.read).toBe("ask");
+      expect(permissions.edit).toBe("ask");
+      expect(permissions.write).toBe("ask");
+      expect(permissions.glob).toBe("ask");
+      expect(permissions.grep).toBe("ask");
+      expect(permissions.webfetch).toBe("ask");
+      expect(permissions.websearch).toBe("ask");
+    });
   });
 });
