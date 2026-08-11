@@ -11,6 +11,7 @@ export interface WebsiteAnalysis {
   pages: { url: string; purpose: string; elements: string[] }[]
   tailwindClasses: string
 }
+
 /**
  * Extract all internal links from HTML
  */
@@ -145,67 +146,6 @@ export async function extractAllCSS(html: string, baseUrl: string): Promise<stri
 
 
 /**
- * SSRF guard: validate that a URL is safe to fetch from the server.
- * - Allows only https:// scheme
- * - Rejects private/loopback/link-local/metadata hostnames
- */
-async function validateFetchTarget(url: string): Promise<boolean> {
-  try {
-    const parsed = new URL(url)
-    
-    // Only allow https
-    if (parsed.protocol !== 'https:') {
-      return false
-    }
-    
-    // Block localhost and local network
-    const hostname = parsed.hostname
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
-      return false
-    }
-    
-    // Block private IP ranges and metadata hostnames
-    const blockedPatterns = [
-      /^10\./,                    // 10.0.0.0/8
-      /^192\.168\./,              // 192.168.0.0/16
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
-      /^169\.254\./,              // link-local
-      /^127\./,                   // loopback
-      /^0\./,                     // this network
-      /^::1$/,                    // IPv6 loopback
-      /^fe80::/i,                 // IPv6 link-local
-      /^fc00::/i,                 // IPv6 unique local
-      /^fd00::/i,                 // IPv6 unique local
-    ]
-    
-    for (const pattern of blockedPatterns) {
-      if (pattern.test(hostname)) {
-        return false
-      }
-    }
-    
-    // Block known metadata service hostnames
-    const blockedHosts = [
-      'metadata.google.internal',
-      'metadata',
-      '169.254.169.254',
-      'instance-data',
-      'metadata.azure.com',
-      'metadata.aws.internal',
-    ]
-    
-    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
-      return false
-    }
-    
-    return true
-  } catch {
-    return false
-  }
-}
-
-
-/**
  * Extract colors from CSS
  */
 export function extractColors(css: string): { hex: string; count: number }[] {
@@ -235,67 +175,6 @@ export function extractColors(css: string): { hex: string; count: number }[] {
     .map(([hex, count]) => ({ hex, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 20)
-}
-
-
-/**
- * SSRF guard: validate that a URL is safe to fetch from the server.
- * - Allows only https:// scheme
- * - Rejects private/loopback/link-local/metadata hostnames
- */
-async function validateFetchTarget(url: string): Promise<boolean> {
-  try {
-    const parsed = new URL(url)
-    
-    // Only allow https
-    if (parsed.protocol !== 'https:') {
-      return false
-    }
-    
-    // Block localhost and local network
-    const hostname = parsed.hostname
-    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
-      return false
-    }
-    
-    // Block private IP ranges and metadata hostnames
-    const blockedPatterns = [
-      /^10\./,                    // 10.0.0.0/8
-      /^192\.168\./,              // 192.168.0.0/16
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./, // 172.16.0.0/12
-      /^169\.254\./,              // link-local
-      /^127\./,                   // loopback
-      /^0\./,                     // this network
-      /^::1$/,                    // IPv6 loopback
-      /^fe80::/i,                 // IPv6 link-local
-      /^fc00::/i,                 // IPv6 unique local
-      /^fd00::/i,                 // IPv6 unique local
-    ]
-    
-    for (const pattern of blockedPatterns) {
-      if (pattern.test(hostname)) {
-        return false
-      }
-    }
-    
-    // Block known metadata service hostnames
-    const blockedHosts = [
-      'metadata.google.internal',
-      'metadata',
-      '169.254.169.254',
-      'instance-data',
-      'metadata.azure.com',
-      'metadata.aws.internal',
-    ]
-    
-    if (blockedHosts.some(h => hostname === h || hostname.endsWith('.' + h))) {
-      return false
-    }
-    
-    return true
-  } catch {
-    return false
-  }
 }
 
 

@@ -20,6 +20,7 @@ vi.mock("@/lib/rate-limit", () => ({
 }))
 
 vi.mock("@/lib/security/request-validator", () => ({
+  MAX_REQUEST_SIZES: { chat: 100 * 1024, builder: 500 * 1024, upload: 10 * 1024 * 1024, default: 1 * 1024 * 1024 },
   validateRequestSize: vi.fn(() => Promise.resolve({ valid: true })),
   validateContentType: vi.fn(() => ({ valid: true })),
   assertSameOrigin: vi.fn(() => null),

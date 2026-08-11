@@ -114,7 +114,7 @@ export default function SignUpPage() {
     }
     
     // Only send a captcha token when one was actually provided (none in dev)
-    const tokenToUse = captchaToken || null
+    const tokenToUse = captchaToken || ""
 
     try {
       // Verify captcha and check IP limits on backend
@@ -209,7 +209,7 @@ export default function SignUpPage() {
       setStatusMessage(`Error: ${errorMsg}`)
       return
     }
-    const tokenToUse = captchaToken || null
+    const tokenToUse = captchaToken || ""
 
     try {
       const verifyResponse = await fetch('/api/auth/verify-signup', {
@@ -230,7 +230,8 @@ export default function SignUpPage() {
       return
     }
 
-    const redirectToUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback?next=${encodeURIComponent("/nav")}&captcha=${encodeURIComponent(tokenToUse)}`
+    const origin = typeof window !== "undefined" ? window.location.origin : ""
+    const redirectToUrl = `${origin}/auth/callback?next=${encodeURIComponent("/nav")}&captcha=${encodeURIComponent(tokenToUse)}`
     const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirectToUrl },

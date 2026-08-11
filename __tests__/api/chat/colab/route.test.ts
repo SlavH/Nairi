@@ -69,7 +69,9 @@ describe("POST /api/chat/colab", () => {
     expect(res.status).toBe(200)
     // Verify colabChat was called without system messages
     expect(mockColabChat).toHaveBeenCalled()
-    const callArgs = mockColabChat.mock.calls[0][0]
+    const calls = mockColabChat.mock.calls as Array<Array<any>>
+    const callArgs = calls[0]?.[0]
+    expect(callArgs).toBeDefined()
     const systemMessages = callArgs.filter((m: any) => m.role === "system")
     expect(systemMessages).toHaveLength(0)
   })
