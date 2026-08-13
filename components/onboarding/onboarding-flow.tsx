@@ -121,7 +121,7 @@ export function OnboardingFlow({ userId, userEmail, userName }: OnboardingFlowPr
                     alt="Nairi"
                     width={80}
                     height={80}
-                    className="rounded-full"
+                    className="h-20 w-20 object-cover rounded-full"
                   />
                 </div>
                 <div>

@@ -45,3 +45,7 @@ BEGIN
 END $do$;
 
 COMMENT ON TABLE public.rate_limit_events IS 'Rate limit event tracking for monitoring and analytics';
+
+-- Restrict execution of SECURITY DEFINER function to authenticated users
+REVOKE EXECUTE ON FUNCTION public.cleanup_rate_limit_events() FROM anon;
+GRANT EXECUTE ON FUNCTION public.cleanup_rate_limit_events() TO authenticated;

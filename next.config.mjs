@@ -1,6 +1,4 @@
-// Cache bust: 2026-02-05-v5-csp-integration
-import { generateCSPHeader, generateDevCSPHeader } from './lib/security/csp.mjs'
-
+// Cache bust: 2026-08-13-csp-nonce-middleware
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
@@ -50,12 +48,11 @@ const nextConfig = {
   },
   
   // Additional recommended security headers
+  // NOTE: Content-Security-Policy is intentionally NOT set here. A static header
+  // cannot carry a per-request nonce, and a second CSP header would be
+  // intersected by browsers, blocking Next.js inline hydration scripts. The
+  // nonce-based CSP is applied in proxy.ts (middleware).
   async headers() {
-    // Use development CSP in dev mode, production CSP in production
-    const csp = process.env.NODE_ENV === 'development'
-      ? generateDevCSPHeader()
-      : generateCSPHeader()
-
     return [
       // Cache public assets (Phase 32)
       {
@@ -69,10 +66,6 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: csp
-          },
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'

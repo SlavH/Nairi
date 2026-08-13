@@ -33,7 +33,8 @@ export function Footer() {
                   alt="Nairi Logo"
                   width={40}
                   height={40}
-                  className="rounded-full"
+                  loading="eager"
+                  className="h-10 w-10 object-cover rounded-full"
                 />
                 <span className="text-xl font-semibold gradient-text">Nairi</span>
               </a>

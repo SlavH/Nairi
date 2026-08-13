@@ -108,7 +108,7 @@ export function DashboardSidebar({ user, profile }: { user?: { id: string; email
       >
         <div className="p-6 border-b border-border">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/images/nairi-logo-header.jpg" alt="Nairi" width={40} height={40} />
+            <Image src="/images/nairi-logo-header.jpg" alt="Nairi" width={40} height={40} className="h-10 w-10 shrink-0 rounded-lg" />
             <span className="text-xl font-bold bg-gradient-to-r from-[#e052a0] to-[#00c9c8] bg-clip-text text-transparent">
               Nairi
             </span>

@@ -49,7 +49,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "signin" }: AuthModalP
               alt="Nairi"
               width={40}
               height={40}
-              className="rounded-full"
+              className="h-10 w-10 object-cover rounded-full"
             />
             <DialogTitle className="text-xl gradient-text">{t.auth.welcomeTitle}</DialogTitle>
           </div>

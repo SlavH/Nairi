@@ -48,14 +48,14 @@ class OpenCodeBridge {
     apiKey: "",
     model: "opencode/big-pickle",
     permissions: {
-      bash: "allow",
-      read: "allow",
-      edit: "allow",
-      write: "allow",
-      glob: "allow",
-      grep: "allow",
-      webfetch: "allow",
-      websearch: "allow",
+      bash: "ask",
+      read: "ask",
+      edit: "ask",
+      write: "ask",
+      glob: "ask",
+      grep: "ask",
+      webfetch: "ask",
+      websearch: "ask",
     },
   }
   private activeSession: Session | null = null
@@ -219,7 +219,14 @@ class OpenCodeBridge {
     if (config.model && config.model !== this.config.model) {
       this.activeSession = null
     }
-    this.config = { ...this.config, ...config }
+    this.config = {
+      ...this.config,
+      ...config,
+      permissions: {
+        ...this.config.permissions,
+        ...(config.permissions ?? {}),
+      },
+    }
     await this.saveConfig()
   }
 

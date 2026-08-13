@@ -180,6 +180,14 @@ AS $$
 DECLARE
   v_role_id UUID;
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    JOIN public.roles r ON r.id = ur.role_id
+    WHERE ur.user_id = auth.uid() AND r.name = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'Forbidden: admin role required';
+  END IF;
+
   SELECT id INTO v_role_id FROM public.roles WHERE name = p_role_name;
   
   IF v_role_id IS NULL THEN
@@ -207,6 +215,14 @@ AS $$
 DECLARE
   v_role_id UUID;
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    JOIN public.roles r ON r.id = ur.role_id
+    WHERE ur.user_id = auth.uid() AND r.name = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'Forbidden: admin role required';
+  END IF;
+
   SELECT id INTO v_role_id FROM public.roles WHERE name = p_role_name;
   
   IF v_role_id IS NULL THEN
@@ -251,3 +267,14 @@ COMMENT ON TABLE public.roles IS 'User roles for RBAC';
 COMMENT ON TABLE public.permissions IS 'Fine-grained permissions';
 COMMENT ON TABLE public.role_permissions IS 'Many-to-many relationship between roles and permissions';
 COMMENT ON TABLE public.user_roles IS 'User role assignments';
+
+-- Restrict execution of SECURITY DEFINER functions to authenticated users
+REVOKE EXECUTE ON FUNCTION public.user_has_permission(UUID, TEXT) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.get_user_roles(UUID) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.assign_role(UUID, TEXT, UUID) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.remove_role(UUID, TEXT) FROM anon;
+
+GRANT EXECUTE ON FUNCTION public.user_has_permission(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_roles(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.assign_role(UUID, TEXT, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.remove_role(UUID, TEXT) TO authenticated;

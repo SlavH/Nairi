@@ -90,13 +90,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 }
 
+export const dynamic = "force-dynamic" // per-request render so middleware CSP nonces reach Next's inline scripts (static shells can't be nonced)
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="bg-background">
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" className="bg-background">
       <body className={`font-sans antialiased`}>
         <a
           href="#main-content"

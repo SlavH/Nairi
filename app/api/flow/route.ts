@@ -6,152 +6,21 @@ import { unauthorizedError } from "@/lib/errors/types"
 import { withLogging } from "@/lib/logging/middleware"
 import { createClient } from "@/lib/supabase/server"
 
-const mockFlowData = [
-  {
-    id: "1",
-    prompt: "Create a futuristic neon cityscape at sunset with flying cars",
-    result: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800",
-    type: "image",
-    metadata: {
-      likes_count: 245,
-      remix_count: 89,
-      views_count: 12453,
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      user_name: "CreativeAI",
-      user_avatar: null,
-      title: "Neon Dreams",
-    },
-  },
-  {
-    id: "2",
-    prompt: "Build a responsive landing page for a fintech startup",
-    result: "https://example.com",
-    type: "website",
-    metadata: {
-      likes_count: 189,
-      remix_count: 156,
-      views_count: 8934,
-      created_at: new Date(Date.now() - 7200000).toISOString(),
-      user_name: "DevMaster",
-      user_avatar: null,
-      title: "FinTech Landing",
-    },
-  },
-  {
-    id: "3",
-    prompt: "Generate a React component for a glassmorphic button with hover effects",
-    result: `const GlassButton = ({ children, onClick }) => (
-  <button
-    onClick={onClick}
-    className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300"
-  >
-    {children}
-  </button>
-);`,
-    type: "code",
-    metadata: {
-      likes_count: 523,
-      remix_count: 312,
-      views_count: 15678,
-      created_at: new Date(Date.now() - 10800000).toISOString(),
-      user_name: "CodeWizard",
-      user_avatar: null,
-      title: "Glassmorphic Button",
-    },
-  },
-  {
-    id: "4",
-    prompt: "Create an animated particle system with mouse interaction",
-    result: "https://example.com/particle",
-    type: "simulation",
-    metadata: {
-      likes_count: 432,
-      remix_count: 278,
-      views_count: 19234,
-      created_at: new Date(Date.now() - 14400000).toISOString(),
-      user_name: "PhysicsDev",
-      user_avatar: null,
-      title: "Interactive Particles",
-    },
-  },
-  {
-    id: "5",
-    prompt: "Generate a cinematic drone shot over mountain ranges",
-    result: "https://example.com/video1.mp4",
-    type: "video",
-    metadata: {
-      likes_count: 367,
-      remix_count: 145,
-      views_count: 11234,
-      created_at: new Date(Date.now() - 18000000).toISOString(),
-      user_name: "VideoPro",
-      user_avatar: null,
-      title: "Mountain Aerial",
-    },
-  },
-  {
-    id: "6",
-    prompt: "Design a minimalist portfolio website with dark theme",
-    result: "https://example.com/portfolio",
-    type: "website",
-    metadata: {
-      likes_count: 298,
-      remix_count: 201,
-      views_count: 14567,
-      created_at: new Date(Date.now() - 21600000).toISOString(),
-      user_name: "DesignerX",
-      user_avatar: null,
-      title: "Dark Portfolio",
-    },
-  },
-  {
-    id: "7",
-    prompt: "Create a portrait of a cyberpunk character with neon lighting",
-    result: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
-    type: "image",
-    metadata: {
-      likes_count: 512,
-      remix_count: 345,
-      views_count: 21345,
-      created_at: new Date(Date.now() - 25200000).toISOString(),
-      user_name: "ArtMaster",
-      user_avatar: null,
-      title: "Cyberpunk Portrait",
-    },
-  },
-  {
-    id: "8",
-    prompt: "Write a TypeScript utility function for deep object cloning",
-    result: `function deepClone<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
+interface FlowItem {
+  id: string
+  prompt: string
+  result: string
+  type: string
+  metadata: {
+    likes_count: number
+    remix_count: number
+    views_count: number
+    created_at: string
+    user_name: string
+    user_avatar: string | null
+    title: string | null
   }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as T;
-  }
-  
-  const cloned = {} as T;
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      cloned[key] = deepClone(obj[key]);
-    }
-  }
-  
-  return cloned;
-}`,
-    type: "code",
-    metadata: {
-      likes_count: 678,
-      remix_count: 423,
-      views_count: 27890,
-      created_at: new Date(Date.now() - 28800000).toISOString(),
-      user_name: "TypeScriptNinja",
-      user_avatar: null,
-      title: "Deep Clone Utility",
-    },
-  },
-]
+}
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
@@ -163,7 +32,7 @@ export const GET = withLogging(async (req: NextRequest) => {
     const limit = parseInt(searchParams.get("limit") || "12")
     const sort = searchParams.get("sort") || "trending"
     
-    let data: typeof mockFlowData = []
+    let data: FlowItem[] = []
     let hasMore = false
     
     try {
@@ -199,14 +68,7 @@ export const GET = withLogging(async (req: NextRequest) => {
         hasMore = posts.length === limit
       }
     } catch (dbError) {
-      // console.log("Database not available, using mock data")
-    }
-    
-    if (data.length === 0) {
-      const start = (page - 1) * limit
-      const end = start + limit
-      data = mockFlowData.slice(start, end) as typeof mockFlowData
-      hasMore = end < mockFlowData.length
+      // Database query failed - return an empty collection
     }
     
     const sortedData = [...data]

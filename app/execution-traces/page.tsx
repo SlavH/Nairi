@@ -143,7 +143,7 @@ export default function ExecutionTracesPage() {
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div className="bg-white/5 rounded-xl p-4 border border-white/10">
             <div className="text-white/60 text-sm mb-1">Total Executions</div>
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -174,7 +174,7 @@ export default function ExecutionTracesPage() {
               className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-cyan-500"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Filter className="w-4 h-4 text-white/60" />
             <span className="text-sm text-white/60">Status:</span>
           </div>

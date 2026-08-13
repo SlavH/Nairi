@@ -11,6 +11,8 @@ import type { WorkflowExecution, ExecutionNodeResult, ExecutionLog } from '@/lib
 // In-memory execution storage for GET/DELETE
 const executions = new Map<string, any>()
 
+const WORKFLOW_EXECUTION_COST = 5
+
 function serializeExecution(exec: WorkflowExecution): any {
   return {
     id: exec.id,
@@ -87,8 +89,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check credits/rate limit (placeholder - implement based on your credit system)
-    // TODO: Implement credit check and consumption
+    // Check the user has enough credits before executing
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("tokens_balance")
+      .eq("id", user.id)
+      .single()
+    const balance = profile?.tokens_balance ?? 0
+    if (balance < WORKFLOW_EXECUTION_COST) {
+      return NextResponse.json(
+        {
+          error: "Insufficient credits",
+          required: WORKFLOW_EXECUTION_COST,
+          available: balance,
+        },
+        { status: 402 }
+      )
+    }
 
     const encoder = new TextEncoder()
     const stream = new ReadableStream({

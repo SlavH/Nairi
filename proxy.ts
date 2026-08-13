@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 
 import { updateSession } from "@/lib/supabase/session"
 
-import { generateCSPHeader } from './lib/security/csp.mjs'
+import { generateCSPHeader, generateNonce } from './lib/security/csp.mjs'
 import { validateOrigin, MAX_REQUEST_SIZES } from './lib/security/request-validator'
 
 /**
@@ -160,10 +160,18 @@ export async function proxy(request: NextRequest) {
   }
 
   // Update Supabase session
-  const response = await updateSession(request)
+  // Propagate a per-request CSP nonce to Next.js so its inline hydration
+  // scripts/styles are nonced instead of blocked (this is what makes client
+  // components mount instead of hanging on loading spinners).
+  const nonce = generateNonce()
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  const nonceRequest = new NextRequest(request.url, { headers: requestHeaders })
+  const response = await updateSession(nonceRequest)
 
   // Add security headers
-  response.headers.set('Content-Security-Policy', generateCSPHeader())
+  const isDev = process.env.NODE_ENV !== 'production'
+  response.headers.set('Content-Security-Policy', generateCSPHeader(nonce, { dev: isDev }))
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload')
   response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-Content-Type-Options', 'nosniff')

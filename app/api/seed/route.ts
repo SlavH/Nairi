@@ -359,6 +359,10 @@ const sampleCreations = [
 
 export async function POST(request: Request) {
   try {
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'true') {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
     const supabase = await createClient()
     
     // Get current user

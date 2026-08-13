@@ -113,6 +113,14 @@ export async function GET() {
 // POST - Process education request
 export async function POST(request: NextRequest) {
   try {
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const ip = request.headers.get("x-forwarded-for") || "unknown"
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
@@ -222,7 +230,7 @@ Be encouraging and supportive while maintaining educational rigor.`
       question,
       error: "Tutor service unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 
@@ -265,7 +273,7 @@ Structure your explanation with:
       topic,
       error: "Explanation service unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 
@@ -320,7 +328,7 @@ Include a mix of question types: factual, conceptual, and application-based.`
       topic,
       error: "Quiz generation unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 
@@ -361,7 +369,7 @@ This maintains academic integrity while providing genuine educational support.`
       problem,
       error: "Homework help unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 
@@ -395,7 +403,7 @@ Format as a structured list. Make problems progressively challenging.`
       topic,
       error: "Practice generation unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 
@@ -450,7 +458,7 @@ Include a mix of:
       topic,
       error: "Flashcard generation unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 
@@ -492,7 +500,7 @@ Make the plan realistic and achievable.`
       goal,
       error: "Study plan creation unavailable",
       provider: "fallback"
-    })
+    }, { status: 502 })
   }
 }
 

@@ -57,14 +57,14 @@ export function useOpenCode() {
     apiKey: "",
     model: DEFAULT_MODEL,
     permissions: {
-      bash: "allow",
-      read: "allow",
-      edit: "allow",
-      write: "allow",
-      glob: "allow",
-      grep: "allow",
-      webfetch: "allow",
-      websearch: "allow",
+      bash: "ask",
+      read: "ask",
+      edit: "ask",
+      write: "ask",
+      glob: "ask",
+      grep: "ask",
+      webfetch: "ask",
+      websearch: "ask",
     },
   })
   const [initialized, setInitialized] = useState(false)
@@ -129,7 +129,10 @@ export function useOpenCode() {
 
   const updateStatus = useCallback(() => {
     setStatus(bridge.getStatus())
-    setConfig(bridge.getConfig())
+    setConfig((prev) => {
+      const { permissions: _permissions, ...bridgeConfig } = bridge.getConfig()
+      return { ...prev, ...bridgeConfig, permissions: prev.permissions }
+    })
   }, [bridge])
 
   const updateConfig = useCallback(

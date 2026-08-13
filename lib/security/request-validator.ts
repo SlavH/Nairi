@@ -159,10 +159,7 @@ export function validateOrigin(
 
   const isAllowed = allowedOrigins.some(allowed => {
     if (allowed === '*') return true
-    if (allowed.includes('localhost')) {
-      return requestOrigin.includes('localhost') || requestOrigin.includes('127.0.0.1')
-    }
-    return requestOrigin === allowed
+    return isExactOriginMatch(requestOrigin, allowed)
   })
 
   if (!isAllowed) {
@@ -173,6 +170,34 @@ export function validateOrigin(
   }
 
   return { valid: true }
+}
+
+/**
+ * Exact origin comparison: protocol, hostname, and port must all match.
+ * Default ports (80/443) are normalized so https://example.com matches
+ * https://example.com:443. Hostnames are case-insensitive (URL normalizes).
+ */
+function isExactOriginMatch(requestOrigin: string, allowedOrigin: string): boolean {
+  let requestUrl: URL
+  let allowedUrl: URL
+  try {
+    requestUrl = new URL(requestOrigin)
+    allowedUrl = new URL(allowedOrigin)
+  } catch {
+    return false
+  }
+  return (
+    requestUrl.protocol === allowedUrl.protocol &&
+    requestUrl.hostname === allowedUrl.hostname &&
+    effectivePort(requestUrl) === effectivePort(allowedUrl)
+  )
+}
+
+function effectivePort(url: URL): string {
+  if (url.port) return url.port
+  if (url.protocol === 'https:') return '443'
+  if (url.protocol === 'http:') return '80'
+  return ''
 }
 
 /**

@@ -802,6 +802,7 @@ Please regenerate the entire page.tsx file with the fix applied.`
                       alt="Nairi" 
                       width={32} 
                       height={32} 
+                      unoptimized
                       className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 rounded-lg backdrop-blur-sm border border-white/20 shadow-lg shrink-0" 
                     />
                     <span className="font-bold text-xs sm:text-sm md:text-base lg:text-lg bg-gradient-to-r from-[#e052a0] to-[#00c9c8] bg-clip-text text-transparent hidden sm:inline">

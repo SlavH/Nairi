@@ -158,6 +158,14 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    JOIN public.roles r ON r.id = ur.role_id
+    WHERE ur.user_id = auth.uid() AND r.name = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'Forbidden: admin role required';
+  END IF;
+
   DELETE FROM public.failed_login_attempts
   WHERE email = p_email;
   
@@ -178,6 +186,14 @@ AS $$
 DECLARE
   v_revoked_count INTEGER;
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.user_roles ur
+    JOIN public.roles r ON r.id = ur.role_id
+    WHERE ur.user_id = auth.uid() AND r.name = 'admin'
+  ) THEN
+    RAISE EXCEPTION 'Forbidden: admin role required';
+  END IF;
+
   UPDATE public.sessions
   SET is_revoked = TRUE, revoked_at = NOW()
   WHERE user_id = p_user_id AND is_revoked = FALSE;
@@ -238,3 +254,16 @@ COMMENT ON TABLE public.failed_login_attempts IS 'Tracks failed login attempts f
 COMMENT ON TABLE public.account_lockouts IS 'Tracks locked accounts';
 COMMENT ON TABLE public.mfa_settings IS 'Multi-factor authentication settings';
 COMMENT ON TABLE public.mfa_verifications IS 'MFA verification history';
+
+-- Restrict execution of SECURITY DEFINER functions to authenticated users
+REVOKE EXECUTE ON FUNCTION public.is_account_locked(UUID) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.record_failed_login(TEXT, TEXT, TEXT) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.clear_failed_logins(TEXT) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.revoke_all_sessions(UUID) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.cleanup_expired_sessions() FROM anon;
+
+GRANT EXECUTE ON FUNCTION public.is_account_locked(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.record_failed_login(TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.clear_failed_logins(TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.revoke_all_sessions(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.cleanup_expired_sessions() TO authenticated;

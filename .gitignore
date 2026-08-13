@@ -9,6 +9,7 @@ instrumentation-client.ts
 node_modules/
 .next/
 .env*.local
+.env*
 .DS_Store
 .env
 *.log
@@ -26,7 +27,10 @@ manifest.md
 report_*.md
 structure.json
 
-# Playwright e2e.auth/
+# Playwright e2e auth
 playwright-report/
 playwright/.cache/
 test-results/
+
+# Auth session storage (e2e login cookies, etc.)
+.auth/

@@ -1,54 +1,22 @@
 'use client'
 
-import { Users, Share2, MessageSquare, History, Clock, User, Copy, Check } from 'lucide-react'
+import { Users, Share2, MessageSquare, History, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
-interface Collaborator {
-  id: string
-  name: string
-  email: string
-  avatar?: string
-  status: 'online' | 'offline' | 'editing'
-  lastActive?: Date
-}
-
-interface Version {
-  id: string
-  timestamp: Date
-  author: string
-  description: string
-  slideCount: number
-}
-
 interface CollaborationPanelProps {
   presentationId?: string
   onVersionRestore?: (versionId: string) => void
 }
 
-export function CollaborationPanel({ presentationId, onVersionRestore }: CollaborationPanelProps) {
+export function CollaborationPanel({ presentationId }: CollaborationPanelProps) {
   const [activeTab, setActiveTab] = useState<'collaborators' | 'versions' | 'comments'>('collaborators')
   const [shareLink, setShareLink] = useState('')
   const [copied, setCopied] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
-  
-  // Mock data for demonstration
-  const [collaborators] = useState<Collaborator[]>([
-    { id: '1', name: 'You', email: 'you@example.com', status: 'online' },
-  ])
-  
-  const [versions] = useState<Version[]>([
-    { 
-      id: 'v1', 
-      timestamp: new Date(), 
-      author: 'You', 
-      description: 'Initial version',
-      slideCount: 10
-    },
-  ])
   
   const generateShareLink = () => {
     const link = `${window.location.origin}/share/${presentationId || 'demo'}`
@@ -158,25 +126,10 @@ export function CollaborationPanel({ presentationId, onVersionRestore }: Collabo
             {/* Collaborator List */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Active Collaborators</label>
-              <div className="space-y-2">
-                {collaborators.map((collab) => (
-                  <div key={collab.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/50">
-                    <div className="relative">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                        <User className="h-4 w-4" />
-                      </div>
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background ${
-                        collab.status === 'online' ? 'bg-green-500' :
-                        collab.status === 'editing' ? 'bg-yellow-500' : 'bg-gray-400'
-                      }`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{collab.name}</div>
-                      <div className="text-xs text-muted-foreground">{collab.email}</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground capitalize">{collab.status}</div>
-                  </div>
-                ))}
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No collaborators yet</p>
+                <p className="text-xs">Invite collaborators to start working together</p>
               </div>
             </div>
           </div>
@@ -185,29 +138,11 @@ export function CollaborationPanel({ presentationId, onVersionRestore }: Collabo
         {/* Versions Tab */}
         {activeTab === 'versions' && (
           <div className="space-y-2">
-            {versions.map((version) => (
-              <div key={version.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Clock className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium">{version.description}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {version.author} • {version.timestamp.toLocaleString()} • {version.slideCount} slides
-                  </div>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="ghost"
-                  onClick={() => onVersionRestore?.(version.id)}
-                >
-                  Restore
-                </Button>
-              </div>
-            ))}
-            <p className="text-xs text-muted-foreground text-center py-2">
-              Version history is saved automatically as you edit
-            </p>
+            <div className="text-center py-8 text-muted-foreground">
+              <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No versions yet</p>
+              <p className="text-xs">Version history is saved automatically as you edit</p>
+            </div>
           </div>
         )}
         

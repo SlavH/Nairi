@@ -38,7 +38,7 @@ export default async function ChatPage() {
           alt="Nairi"
           width={100}
           height={100}
-          className="mx-auto rounded-2xl border border-border/50"
+          className="mx-auto h-[100px] w-[100px] object-cover rounded-2xl border border-border/50"
         />
         <div>
           <div className="section-badge mb-4 inline-flex">

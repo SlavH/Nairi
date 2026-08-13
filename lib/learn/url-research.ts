@@ -3,8 +3,10 @@
  * Used when user adds a URL so AI can use the website content without manual paste.
  */
 
+import { safeFetch } from "@/lib/builder/utils/fetch-target"
+
 const MAX_BODY_LENGTH = 500_000
-const FETCH_TIMEOUT_MS = 15_000
+const MAX_REDIRECTS = 5
 
 function extractTextFromHtml(html: string): string {
   // Remove script and style
@@ -29,36 +31,41 @@ function extractTextFromHtml(html: string): string {
 }
 
 export async function fetchUrlAndExtractText(url: string): Promise<{ text: string; title?: string }> {
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-      },
-      redirect: "follow",
-    })
-    clearTimeout(timeout)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`)
-    }
-    const contentType = response.headers.get("content-type") ?? ""
-    if (!contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
-      throw new Error("URL did not return HTML")
-    }
-    const html = await response.text()
-    const text = extractTextFromHtml(html)
-    if (!text || text.length < 50) {
-      throw new Error("Could not extract enough text from the page")
-    }
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
-    const title = titleMatch ? titleMatch[1].trim().slice(0, 200) : undefined
-    return { text, title }
-  } finally {
-    clearTimeout(timeout)
+  const headers = {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
   }
+
+  // safeFetch validates the target (https-only, blocks private/link-local/
+  // loopback/metadata hosts) and never follows redirects blindly — each hop is
+  // re-validated, so redirect-based SSRF is prevented.
+  let response = await safeFetch(url, { headers })
+
+  let redirects = 0
+  while (response.status >= 300 && response.status < 400 && redirects < MAX_REDIRECTS) {
+    const location = response.headers.get("location")
+    if (!location) {
+      throw new Error("Redirect without Location header")
+    }
+    response = await safeFetch(new URL(location, response.url).toString(), { headers })
+    redirects++
+  }
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`)
+  }
+  const contentType = response.headers.get("content-type") ?? ""
+  if (!contentType.includes("text/html") && !contentType.includes("application/xhtml")) {
+    throw new Error("URL did not return HTML")
+  }
+  const html = await response.text()
+  const text = extractTextFromHtml(html)
+  if (!text || text.length < 50) {
+    throw new Error("Could not extract enough text from the page")
+  }
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+  const title = titleMatch ? titleMatch[1].trim().slice(0, 200) : undefined
+  return { text, title }
 }

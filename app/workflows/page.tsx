@@ -272,7 +272,7 @@ export default function WorkflowsPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Run/Stop */}
           {isExecuting ? (
             <Button variant="destructive" size="sm" onClick={handleStopWorkflow}>

@@ -410,7 +410,7 @@ export function ChatSidebar({
         <div className="p-4 pl-16 lg:pl-4 border-b border-white/20 bg-white/5 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <Link href="/nav" className="flex items-center gap-2 min-w-0">
-              <Image src="/images/nairi-logo-header.jpg" alt="Nairi" width={32} height={32} className="rounded-lg backdrop-blur-sm border border-white/20 shadow-lg" />
+              <Image src="/images/nairi-logo-header.jpg" alt="Nairi" width={32} height={32} className="h-8 w-8 shrink-0 rounded-lg backdrop-blur-sm border border-white/20 shadow-lg" />
               <span className="text-lg font-bold bg-gradient-to-r from-[#e052a0] to-[#00c9c8] bg-clip-text text-transparent">
                 Nairi
               </span>

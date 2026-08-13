@@ -35,9 +35,11 @@ services:
       - OPENCODE_EXPERIMENTAL_WORKSPACES=true
     volumes:
       - /workspaces:/workspaces:rw
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./opencode.json:/workspaces/opencode.json:ro
     working_dir: /workspaces
+    # The host port mapping (127.0.0.1:4096:4096) keeps opencode reachable only
+    # from the loopback interface. 0.0.0.0 is required inside the container so
+    # the nairi container can reach it over the nairi-network.
     entrypoint: ["opencode", "serve", "--port", "4096", "--hostname", "0.0.0.0", "--cors", "http://localhost:3000"]
 
 networks:

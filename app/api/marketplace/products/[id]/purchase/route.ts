@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server"
 
 import { stripe } from "@/lib/stripe"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 /**
  * POST - Purchase a marketplace product (free or with credits).
  * Records product_purchases and increments purchase_count.
+ * Writes run through the admin (service role) client so they pass the
+ * hardened RLS policies, while the authenticated user client is still used
+ * for reads and authorization.
  */
 export async function POST(
   req: Request,
@@ -23,6 +27,8 @@ export async function POST(
     if (!productId) {
       return NextResponse.json({ error: "Product ID required" }, { status: 400 })
     }
+
+    const admin = createAdminClient()
 
     const { useCredits } = await req.json().catch(() => ({}))
 
@@ -51,7 +57,7 @@ export async function POST(
     const priceCents = product.price_cents ?? 0
 
     if (priceCents === 0) {
-      const { error: insertError } = await supabase.from("product_purchases").insert({
+      const { error: insertError } = await admin.from("product_purchases").insert({
         user_id: user.id,
         product_id: productId,
         amount_cents: 0,
@@ -59,74 +65,48 @@ export async function POST(
       if (insertError) {
         return NextResponse.json({ error: insertError.message }, { status: 500 })
       }
-      const currentCount = (product as { purchase_count?: number }).purchase_count ?? 0
-      await supabase
-        .from("marketplace_products")
-        .update({
-          purchase_count: currentCount + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", productId)
+      await atomicIncrementCount(admin, productId)
       return NextResponse.json({ success: true, message: "Product added to your library" })
     }
 
     const creditCost = Math.ceil(priceCents / 10)
     if (useCredits) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("tokens_balance")
-        .eq("id", user.id)
-        .single()
+      const deduction = await atomicAdjustBalance(admin, user.id, -creditCost)
 
-      if (!profile || (profile.tokens_balance ?? 0) < creditCost) {
-        return NextResponse.json({
-          error: "Insufficient credits",
-          required: creditCost,
-          available: profile?.tokens_balance ?? 0,
-        }, { status: 400 })
+      if (!deduction.ok) {
+        if (deduction.insufficient) {
+          return NextResponse.json({
+            error: "Insufficient credits",
+            required: creditCost,
+            available: deduction.balance ?? 0,
+          }, { status: 400 })
+        }
+        return NextResponse.json({ error: deduction.error || "Failed to deduct credits" }, { status: 500 })
       }
 
-      const { error: deductError } = await supabase
-        .from("profiles")
-        .update({
-          tokens_balance: (profile.tokens_balance ?? 0) - creditCost,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id)
-
-      if (deductError) {
-        return NextResponse.json({ error: "Failed to deduct credits" }, { status: 500 })
-      }
-
-      const { error: insertError } = await supabase.from("product_purchases").insert({
+      const { error: insertError } = await admin.from("product_purchases").insert({
         user_id: user.id,
         product_id: productId,
         amount_cents: priceCents,
       })
       if (insertError) {
-        await supabase
-          .from("profiles")
-          .update({ tokens_balance: profile.tokens_balance })
-          .eq("id", user.id)
+        await atomicAdjustBalance(admin, user.id, creditCost)
         return NextResponse.json({ error: "Failed to record purchase" }, { status: 500 })
       }
 
-      await supabase.from("credit_transactions").insert({
+      const { error: txError } = await admin.from("credit_transactions").insert({
         user_id: user.id,
         amount: -creditCost,
         type: "marketplace_purchase",
         description: `Purchased: ${product.title}`,
         metadata: { productId, productTitle: product.title },
       })
+      if (txError) {
+        await atomicAdjustBalance(admin, user.id, creditCost)
+        return NextResponse.json({ error: "Failed to record purchase" }, { status: 500 })
+      }
 
-      const currentCount = (product as { purchase_count?: number }).purchase_count ?? 0
-      await supabase
-        .from("marketplace_products")
-        .update({
-          purchase_count: currentCount + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", productId)
+      await atomicIncrementCount(admin, productId)
 
       if (product.creator_id) {
         const creatorShare = Math.floor(creditCost * 0.7)
@@ -136,17 +116,8 @@ export async function POST(
           .eq("id", product.creator_id)
           .single()
         if (creatorProfile?.user_id) {
-          const { data: creatorProfileRow } = await supabase
-            .from("profiles")
-            .select("tokens_balance")
-            .eq("id", creatorProfile.user_id)
-            .single()
-          const newBalance = (creatorProfileRow?.tokens_balance ?? 0) + creatorShare
-          await supabase
-            .from("profiles")
-            .update({ tokens_balance: newBalance, updated_at: new Date().toISOString() })
-            .eq("id", creatorProfile.user_id)
-          await supabase.from("credit_transactions").insert({
+          await atomicAdjustBalance(admin, creatorProfile.user_id, creatorShare)
+          await admin.from("credit_transactions").insert({
             user_id: creatorProfile.user_id,
             amount: creatorShare,
             type: "marketplace_sale",
@@ -202,4 +173,68 @@ export async function POST(
     console.error("Product purchase error:", e)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
+}
+
+async function atomicAdjustBalance(
+  admin: ReturnType<typeof createAdminClient>,
+  userId: string,
+  delta: number,
+): Promise<{ ok: true; balance: number } | { ok: false; insufficient?: boolean; balance?: number; error?: string }> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("tokens_balance")
+      .eq("id", userId)
+      .single()
+    const balance = profile?.tokens_balance ?? 0
+    if (balance + delta < 0) {
+      return { ok: false, insufficient: true, balance }
+    }
+    const { error, data } = await admin
+      .from("profiles")
+      .update({
+        tokens_balance: balance + delta,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId)
+      .eq("tokens_balance", balance)
+      .select()
+    if (error) {
+      return { ok: false, error: error.message }
+    }
+    if (data && data.length === 1) {
+      return { ok: true, balance: balance + delta }
+    }
+  }
+  return { ok: false, error: "Could not update balance atomically" }
+}
+
+async function atomicIncrementCount(
+  admin: ReturnType<typeof createAdminClient>,
+  productId: string,
+): Promise<boolean> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data: product } = await admin
+      .from("marketplace_products")
+      .select("purchase_count")
+      .eq("id", productId)
+      .single()
+    const current = product?.purchase_count ?? 0
+    const { error, data } = await admin
+      .from("marketplace_products")
+      .update({
+        purchase_count: current + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", productId)
+      .eq("purchase_count", current)
+      .select()
+    if (error) {
+      return false
+    }
+    if (data && data.length === 1) {
+      return true
+    }
+  }
+  return false
 }

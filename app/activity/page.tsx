@@ -130,7 +130,7 @@ export default function ActivityPage() {
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value as any)}
-              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cyan-500 w-full max-w-full"
             >
               <option value="today">Today</option>
               <option value="week">This Week</option>

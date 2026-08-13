@@ -128,7 +128,7 @@ export default function CreditsPage() {
                 <span className="text-xl text-white/60">credits</span>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-400">+{credits.earned}</div>
                 <div className="text-xs text-white/60">Earned</div>

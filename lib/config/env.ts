@@ -70,10 +70,11 @@ function getEnv(): Environment {
 function requireEnv(key: string, description?: string): string {
   const value = process.env[key];
   if (!value) {
-    // During Vercel build, provide a placeholder to avoid breaking the build
-    // The actual value must be set in production for runtime
-    if (process.env.VERCEL_ENV || process.env.NEXT_PHASE === 'phase-production-build') {
-      console.warn(`Missing ${key} in build environment, using placeholder`);
+    // During Vercel build, provide a placeholder to avoid breaking the build.
+    // The actual value must be set in production for runtime. Also allow
+    // degraded/auth-bypass mode (DISABLE_AUTH=true) to run without Supabase.
+    if (process.env.VERCEL_ENV || process.env.NEXT_PHASE === 'phase-production-build' || process.env.DISABLE_AUTH === 'true') {
+      console.warn(`Missing ${key} in ${process.env.DISABLE_AUTH === 'true' ? 'degraded (auth-bypass)' : 'build'} environment, using placeholder`);
       return `placeholder-${key}`;
     }
     throw new Error(
@@ -103,8 +104,8 @@ export function getConfig(): EnvConfig {
     },
     
     stripe: {
-      secretKey: requireEnv("STRIPE_SECRET_KEY", "Stripe secret key"),
-      publishableKey: requireEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", "Stripe publishable key"),
+      secretKey: optionalEnv("STRIPE_SECRET_KEY") ?? "",
+      publishableKey: optionalEnv("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY") ?? "",
       webhookSecret: optionalEnv("STRIPE_WEBHOOK_SECRET"),
     },
     

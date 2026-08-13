@@ -70,6 +70,7 @@ export function Header() {
               alt="Nairi Logo"
               width={40}
               height={40}
+              loading="eager"
               className="rounded-full shrink-0 h-10 w-10 object-cover aspect-square"
             />
             <span className="text-xl font-semibold gradient-text truncate max-w-[6rem] sm:max-w-[8rem] md:max-w-none">Nairi</span>

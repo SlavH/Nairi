@@ -267,7 +267,7 @@ export default function NotificationsPage() {
                     <p className="text-white/70 text-sm mb-3">{notification.message}</p>
                     
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
+<div className="flex items-center gap-2 flex-wrap">
                       {notification.actionUrl && (
                         <Link
                           href={notification.actionUrl}

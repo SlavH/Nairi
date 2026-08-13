@@ -8,7 +8,6 @@ export const RATE_LIMIT_GLOBAL_RPM = 1000
 export const RATE_LIMIT_PER_ENDPOINT: Record<string, number> = {
   "/api/chat": 60,
   "/api/create": 30,
-  "/api/builder/generate": 20,
   "/api/generate-presentation": 10,
 }
 
