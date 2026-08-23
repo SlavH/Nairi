@@ -3,10 +3,12 @@
  * NotebookLM-style generations: overview, study_guide, faq, briefing.
  * Body: { type: "overview" | "study_guide" | "faq" | "briefing" }
  */
-import { NextResponse } from "next/server"
+import { NextResponse, type NextRequest } from "next/server"
 
 import { generateWithFallback } from "@/lib/ai/groq-direct"
 import { getUserIdForApi } from "@/lib/auth"
+import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
+import { assertSameOrigin } from "@/lib/security/request-validator"
 import { createClient } from "@/lib/supabase/server"
 
 const GENERATION_TYPES = [
@@ -20,10 +22,23 @@ const GENERATION_TYPES = [
   "action_items",
 ] as const
 
+// F24: bounded context budget instead of every source × 60k chars.
+const MAX_CONTEXT_SOURCES = 10
+const PER_SOURCE_CHARS = 15_000
+const TOTAL_CONTEXT_CHARS = 60_000
+
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const originGuard = assertSameOrigin(req)
+  if (originGuard) return originGuard
+
+  const clientId = getClientIdentifier(req)
+  if (!checkRateLimit(`learn-gen:${clientId}`, { maxRequests: 6, windowMs: 60_000 }).success) {
+    return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 })
+  }
+
   const supabase = await createClient()
   const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -61,9 +76,16 @@ export async function POST(
     )
   }
 
-  const contextBlocks = sources.map(
-    (s, i) => `--- Source [${i + 1}]: ${s.title} ---\n${(s.content ?? "").slice(0, 60000)}`
-  )
+  const selectedSources = sources.slice(0, MAX_CONTEXT_SOURCES)
+  let usedChars = 0
+  const contextBlocks: string[] = []
+  for (const [i, s] of selectedSources.entries()) {
+    if (usedChars >= TOTAL_CONTEXT_CHARS) break
+    const room = Math.min(PER_SOURCE_CHARS, TOTAL_CONTEXT_CHARS - usedChars)
+    const chunk = (s.content ?? "").slice(0, room)
+    usedChars += chunk.length
+    contextBlocks.push(`--- Source [${i + 1}]: ${s.title} ---\n${chunk}`)
+  }
   const context = contextBlocks.join("\n\n")
 
   const prompts: Record<string, { system: string; user: string }> = {
