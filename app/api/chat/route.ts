@@ -563,27 +563,30 @@ export async function POST(req: NextRequest) {
 
     const lastUserMessage = messages.filter((m: UIMessage) => m.role === "user").pop()
 
-    // Check for refusal conditions and prompt injection
-    if (lastUserMessage) {
-      const userContent = getMessageContent(lastUserMessage)
-      
+    // Safety checks run against ALL user messages in the conversation, not
+    // only the last one — otherwise harmful content smuggled into earlier
+    // turns escapes inspection (F13).
+    const userMessages = messages.filter((m: UIMessage) => m.role === "user")
+    for (const userMessage of userMessages) {
+      const userContent = getMessageContent(userMessage)
+
       // Check for prompt injection attempts
       const injectionCheck = detectPromptInjection(userContent)
       if (injectionCheck.detected) {
         return new Response(
-          JSON.stringify({ 
+          JSON.stringify({
             error: "I detected an attempt to manipulate my instructions. I'm designed to be helpful, harmless, and honest. Please rephrase your request.",
             reason: "Prompt injection attempt detected"
-          }), 
+          }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         )
       }
-      
+
       // Check for harmful content
       const refusalCheck = shouldRefuse(userContent)
       if (refusalCheck.refuse) {
         return new Response(
-          JSON.stringify({ error: "I cannot help with this request.", reason: refusalCheck.reason }), 
+          JSON.stringify({ error: "I cannot help with this request.", reason: refusalCheck.reason }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         )
       }
@@ -595,7 +598,13 @@ export async function POST(req: NextRequest) {
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         )
       }
-      
+    }
+
+    // Feature routing (video/image/document/...) intentionally applies to the
+    // LATEST user message only.
+    if (lastUserMessage) {
+      const userContent = getMessageContent(lastUserMessage)
+
       // Check for video generation request - route to video API
       const videoCheck = detectVideoRequest(userContent)
       if (videoCheck.isVideoRequest) {
