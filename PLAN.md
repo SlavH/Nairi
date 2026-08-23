@@ -24,12 +24,12 @@
 - [~] T4. Claims PROGRESS.md/AUDIT_SUMMARY.md подтверждены реальными прогонами.
         tasks.json (стримы A–I) и P3 (F29–F47) — выборочная верификация не проводилась.
 - [x] T5. CHANGELOG_AGENTS.md создан и ведётся.
-- [ ] T6. Исправить открытые находки Priority 2 (порядок по риску):
+- [x] T6. ВСЕ 18 находок Priority 2 закрыты (см. CHANGELOG_AGENTS.md, цикл 2):
         F21 quiz answers leak → F25 credits TOCTOU → F16 fork RLS/email leak →
         F17 body size → F20 reviews → F23 skill tree schema → F26 provider-health →
         F27 signup PII/contact → F28 MFA → F24 rate limit learn → F12 share page →
         F13 shouldRefuse → F14 model comparison → F15 prompt injection tier →
-        F19 is_published + system_prompt column → F18 creator profiles split.
+        коммиты 3ce414f..df7fa48; тесты + полный regression на каждую.
 - [x] T7→ESC. Эскалации отправлены (см. CHANGELOG_AGENTS.md): биллинг GitHub Actions,
       определение критерия «100%», креды для e2e, объём lint-чистки.
 

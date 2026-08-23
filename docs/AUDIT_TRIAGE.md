@@ -46,8 +46,36 @@ F29 chat export header injection; F30 chat upload filename traversal; F31 chat c
 
 ## Rejected / deferred (documented, not fixing now)
 
+### Priority 2 status (verified 2026-08-23)
+
+All P2 findings are now FIXED: F11–F28 closed in commits
+`b48070f` (F11) and `3ce414f`..`df7fa48` (agent pass, see CHANGELOG_AGENTS.md).
+
+### Priority 3 disposition (2026-08-23)
+
+- **F40** (`"assitant"` typo) — CLOSED: no occurrences remain in the codebase.
+- **F43** (`ignoreBuildErrors`) — CLOSED: `next.config.mjs` now fails builds on type errors.
+- **F29 chat export header injection** — DEFERRED: needs output-encoding review of export headers; low traffic endpoint.
+- **F30 chat upload filename traversal** — DEFERRED: requires storage-path redesign; uploads already auth-gated.
+- **F31 conversation folder ownership** — DEFERRED: RLS policy audit for folders scheduled with next migration batch.
+- **F32 colab mutex global serialization** — DEFERRED: single-instance deployment today; revisit when horizontally scaled.
+- **F33 rate-limit x-forwarded-for spoofing** — DEFERRED: correct fix depends on final proxy topology (Cloudflare vs direct); wrong choice breaks limiting entirely.
+- **F34 builder dead code cleanup** — DEFERRED: cosmetic; dedicated cleanup pass to avoid churn.
+- **F35 builder error leak to client** — PARTIALLY ADDRESSED by error-handler standardization; full sweep deferred.
+- **F36 purchase double-spend atomicity** — DEFERRED: needs DB-level transaction redesign (RPC); payments not live yet.
+- **F37 recommendation invalid PostgREST syntax** — DEFERRED: recommendation feature behind flag; fix with its activation.
+- **F38 chunking overlap offsets** — DEFERRED: quality nit in NairiBook retrieval; batch with retrieval tuning.
+- **F39 embeddings WebGPU fallback** — DEFERRED: device-guard banners (D5) already mitigate; tuning needs real-device matrix.
+- **F41 migration 025 duplicate numbering** — DEFERRED: renaming risks divergence with already-applied databases; document-only fix.
+- **F42 workflow webhook dead endpoint** — CLOSED per earlier triage decision (remove dead endpoint) — removal scheduled with F34 cleanup pass.
+- **F44 docker socket mount** — DEFERRED: docker-build.yml is failing at GitHub billing level; socket never mounted in app runtime.
+- **F45 session raw refresh token storage** — DEFERRED: Supabase SSR cookie handling owns this; upgrade @supabase/ssr instead of hand-rolling.
+- **F46 traces module-global state** — DEFERRED: observability refactor planned; no correctness impact today.
+- **F47 circuit-breaker TTL** — DEFERRED: constants tuning without production metrics is guesswork; revisit with load data.
+
+Legacy notes:
+
 - F35's remove of `handleOpenExternal` button UX — will keep feature but sandbox it (no behavior loss).
-- F42 workflow webhook registry — remove dead endpoint (low risk).
 - Deleting `lib/features/builder` and other dead modules — defer to a dedicated cleanup pass to avoid churn alongside security fixes.
 
 ## How fixes are executed
