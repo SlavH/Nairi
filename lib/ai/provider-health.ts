@@ -35,15 +35,20 @@ export class ProviderHealthMonitor {
       const supabase = await createClient();
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-      const { data: logs } = await supabase
+      const { data: logs, error: logsError } = await supabase
         .from("usage_logs")
         .select("success")
         .eq("provider", provider)
         .gte("created_at", oneHourAgo);
 
-      if (logs && logs.length > 0) {
-        const failures = logs.filter((l) => !l.success).length;
-        errorRate = (failures / logs.length) * 100;
+      if (logsError) throw new Error(logsError.message);
+
+      // Only rows that actually report success/failure count toward the
+      // error rate; NULL (unknown) entries are skipped.
+      const known = (logs ?? []).filter((l) => typeof l.success === "boolean");
+      if (known.length > 0) {
+        const failures = known.filter((l) => !l.success).length;
+        errorRate = (failures / known.length) * 100;
 
         if (errorRate > 50) {
           status = "down";

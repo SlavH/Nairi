@@ -8,6 +8,8 @@ export interface GenerationCost {
   model?: string
   tokens?: number
   metadata?: Record<string, any>
+  provider?: string // used by ProviderHealthMonitor (F26)
+  success?: boolean // whether the generation succeeded (F26)
 }
 
 // Cost per generation type (approximate)
@@ -39,6 +41,8 @@ export async function logGenerationCost(
       model: generation.model,
       tokens: generation.tokens,
       metadata: generation.metadata,
+      provider: generation.provider,
+      success: generation.success,
       created_at: new Date().toISOString(),
     })
   } catch (error) {
