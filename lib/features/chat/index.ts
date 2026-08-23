@@ -141,7 +141,8 @@ export async function createSharedLink(
   expiresInHours?: number
 ): Promise<{ slug: string; url: string } | null> {
   const supabase = await createClient()
-  const slug = `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  // crypto.randomUUID: unpredictable slugs (Math.random is guessable).
+  const slug = `s-${Date.now().toString(36)}-${crypto.randomUUID()}`
   const expiresAt = expiresInHours
     ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000).toISOString()
     : null
