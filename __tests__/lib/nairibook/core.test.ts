@@ -1,4 +1,11 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
+
+// Mock Zen so buildGraph never hits the network; tests below exercise the
+// deterministic chapter-order edges and cycle-breaking logic only.
+vi.mock("@/lib/nairibook/zen", () => ({
+  callZen: vi.fn(async () => ({ content: "", parsed: { edges: [] } })),
+  tryParseJson: vi.fn(() => undefined),
+}))
 
 import { chunkDocument } from "@/lib/nairibook/chunking"
 import { buildGraph } from "@/lib/nairibook/graph"
