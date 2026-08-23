@@ -4,6 +4,7 @@
  * Course → lessons via course_modules (no direct lessons.course_id); progress uses lesson_progress.completed.
  */
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface LearningProgress {
   courseId: string;
@@ -127,8 +128,10 @@ export class LearningProgressTracker {
     value: number,
     metadata?: Record<string, unknown>
   ): Promise<void> {
-    const supabase = await createClient();
-    const { error } = await supabase.from("learning_analytics").insert({
+    // learning_analytics inserts are denied for user sessions by RLS
+    // (system-inserted, users cannot forge) — use the service-role client (F22).
+    const admin = createAdminClient();
+    const { error } = await admin.from("learning_analytics").insert({
       user_id: userId,
       course_id: courseId,
       lesson_id: lessonId,
@@ -138,6 +141,8 @@ export class LearningProgressTracker {
     });
     if (error && metricType === "time_spent") {
       // Fallback: learning_analytics may not exist (038 not run); update lesson_progress
+      // (user-owned table, so this stays on the user session's client).
+      const supabase = await createClient();
       await supabase
         .from("lesson_progress")
         .upsert(

@@ -2,6 +2,7 @@
  * Achievements System (Phase 46)
  */
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface Achievement {
   id: string;
@@ -39,11 +40,18 @@ export class AchievementSystem {
       const met = await this.checkCriteria(userId, criteria);
 
       if (met) {
-        // Unlock achievement
-        await supabase.from("user_achievements").insert({
+        // Unlock achievement. RLS denies user-session inserts on
+        // user_achievements (system grants, users cannot self-grant), so the
+        // write goes through the service-role client (F22).
+        const admin = createAdminClient();
+        const { error: grantError } = await admin.from("user_achievements").insert({
           user_id: userId,
           achievement_id: achievement.id,
         });
+        if (grantError) {
+          console.error("Failed to grant achievement:", grantError);
+          continue;
+        }
 
         unlocked.push({
           id: achievement.id,
