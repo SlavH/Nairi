@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { getUserIdForApi } from "@/lib/auth"
+import { BuilderProjectUpdateSchema, getProjectFilesSize, MAX_PROJECT_BYTES } from "@/lib/schemas/builder"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
@@ -40,35 +41,53 @@ export async function PATCH(
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  let body: { name?: string; files?: unknown[] }
+  let body: unknown
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
+  const parsed = BuilderProjectUpdateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", details: parsed.error.flatten() },
+      { status: 400 }
+    )
+  }
+  if (parsed.data.files && getProjectFilesSize(parsed.data.files) > MAX_PROJECT_BYTES) {
+    return NextResponse.json({ error: "Project exceeds the 500KB size limit" }, { status: 413 })
+  }
   const now = new Date().toISOString()
   const updates: { name?: string; files?: unknown[]; versions?: unknown[]; updated_at?: string } = {
     updated_at: now,
   }
-  if (typeof body.name === "string" && body.name.trim()) updates.name = body.name.trim()
-  if (Array.isArray(body.files)) {
-    updates.files = body.files
-    // Append version snapshot when files are saved (cap at 30)
+  if (typeof parsed.data.name === "string" && parsed.data.name.trim()) {
+    updates.name = parsed.data.name.trim()
+  }
+  if (Array.isArray(parsed.data.files)) {
+    // Snapshot only when the file payload actually changed (F17): fetching
+    // current files lets us compare instead of appending a version on every
+    // autosave tick.
     const { data: current } = await supabase
       .from("builder_projects")
-      .select("versions")
+      .select("versions, files")
       .eq("id", id)
       .eq("user_id", userId)
       .single()
     const prevVersions = Array.isArray(current?.versions) ? current.versions : []
-    const newVersion = {
-      id: crypto.randomUUID(),
-      name: `Save ${new Date().toLocaleString()}`,
-      description: "",
-      files: body.files,
-      createdAt: now,
+    const prevFilesJson = JSON.stringify(current?.files ?? null)
+    const nextFilesJson = JSON.stringify(parsed.data.files)
+    updates.files = parsed.data.files
+    if (nextFilesJson !== prevFilesJson) {
+      const newVersion = {
+        id: crypto.randomUUID(),
+        name: `Save ${new Date().toLocaleString()}`,
+        description: "",
+        files: parsed.data.files,
+        createdAt: now,
+      }
+      updates.versions = [...prevVersions, newVersion].slice(-30)
     }
-    updates.versions = [...prevVersions, newVersion].slice(-30)
   }
   const { data, error } = await supabase
     .from("builder_projects")

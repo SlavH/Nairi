@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 import { getUserIdForApi } from "@/lib/auth"
 import { checkRateLimit, getClientIdentifier } from "@/lib/rate-limit"
-import { BuilderProjectCreateSchema } from "@/lib/schemas/builder"
+import { BuilderProjectCreateSchema, getProjectFilesSize, MAX_PROJECT_BYTES } from "@/lib/schemas/builder"
 import { assertSameOrigin } from "@/lib/security/request-validator"
 import { createClient } from "@/lib/supabase/server"
 
@@ -83,6 +83,12 @@ export async function POST(req: NextRequest) {
     }
     const name = parsed.data.name?.trim() || "Untitled project"
     const files = parsed.data.files
+    if (getProjectFilesSize(files) > MAX_PROJECT_BYTES) {
+      return NextResponse.json(
+        { error: "Project exceeds the 500KB size limit" },
+        { status: 413 }
+      )
+    }
     const { data, error } = await supabase
       .from("builder_projects")
       .insert({ user_id: userId, name, files })
