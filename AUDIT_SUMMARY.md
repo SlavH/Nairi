@@ -25,7 +25,7 @@
    - All working as designed; no changes needed
 
 ### TypeScript Audit
-- Full-project `tsc --noEmit` previously reported 28 errors (including runtime-breaking bugs like an undefined `userContent` in `/api/chat` and a missing `setWatchProgress` state in the earn page). All 28 have been fixed; `npm run typecheck` now passes cleanly and `npm test` reports 73/73 passing.
+- Full-project `tsc --noEmit` previously reported 28 errors (including runtime-breaking bugs like an undefined `userContent` in `/api/chat` and a missing `setWatchProgress` state in the earn page). All 28 have been fixed; as of 2026-08-23 `npm run typecheck` now passes cleanly and `npm test` reports 388/388 passing.
 
 ## Architecture Summary
 

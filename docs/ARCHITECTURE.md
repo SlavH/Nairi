@@ -1,653 +1,174 @@
-# Nairi v34 - Architecture Documentation
+# Nairi — Architecture Report
 
-## System Overview
+**Repo:** `/content/Nairi` · **Package version:** 0.34.0 · **Stack:** Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind · Supabase (Auth + Postgres) · Stripe · Vercel AI SDK · OpenCode WASM + WebContainer · transformers.js · Vitest + Playwright
 
-Nairi is an advanced AI assistant platform built with Next.js 16, React 19, and TypeScript. It provides a comprehensive interface for interacting with multiple AI providers, building custom agents, and managing AI-powered workflows.
-
-## High-Level Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Client Layer                             │
-│  (Next.js 16 + React 19 + TypeScript + Tailwind CSS)           │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │   Homepage   │  │     Chat     │  │  Marketplace │        │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │  Dashboard   │  │   Builder    │  │Presentations │        │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-│                                                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                         API Layer                                │
-│              (Next.js API Routes + Proxy)                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │   Chat API   │  │   User API   │  │Marketplace API│       │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │ Payments API │  │  Health API  │  │  Admin API   │        │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-│                                                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                      Service Layer                               │
-│         (Business Logic + AI Integration + Security)             │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │ AI Providers │  │     Auth     │  │Rate Limiting │        │
-│  │   (9 APIs)   │  │  (Supabase)  │  │(Redis/In-Mem)│        │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-│                                                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │
-│  │   Payments   │  │   Analytics  │  │  Monitoring  │        │
-│  │   (Stripe)   │  │              │  │   (Sentry)   │        │
-│  └──────────────┘  └──────────────┘  └──────────────┘        │
-│                                                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                       Data Layer                                 │
-│              (Supabase PostgreSQL + Storage)                     │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Technology Stack
-
-### Frontend
-- **Framework**: Next.js 16.1.6 (App Router)
-- **UI Library**: React 19.0.0
-- **Language**: TypeScript 5.7.3
-- **Styling**: Tailwind CSS 3.4.17
-- **UI Components**: Radix UI, Shadcn/ui
-- **Icons**: Lucide React
-- **Animations**: Framer Motion
-- **Forms**: React Hook Form + Zod
-
-### Backend
-- **Runtime**: Node.js (via Next.js)
-- **API**: Next.js API Routes
-- **Authentication**: Supabase Auth
-- **Database**: Supabase (PostgreSQL)
-- **Storage**: Supabase Storage
-- **Payments**: Stripe
-
-### AI Providers
-- OpenAI (GPT-4, GPT-3.5)
-- Anthropic (Claude)
-- Google AI (Gemini)
-- Groq
-- Cohere
-- Mistral
-- Perplexity
-- OpenRouter
-- Replicate
-
-### DevOps
-- **Hosting**: Vercel
-- **CI/CD**: GitHub Actions
-- **Monitoring**: Sentry (configured)
-- **Testing**: Planned (Vitest + Playwright); see [Testing & QA](TESTING.md) for manual checklist.
-- **Linting**: ESLint + Prettier
-
-## Directory Structure
-
-```
-nairi_v34/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # Authentication pages
-│   ├── (dashboard)/         # Dashboard pages
-│   ├── api/                 # API routes
-│   │   ├── v1/             # Versioned API
-│   │   ├── chat/           # Chat endpoints
-│   │   ├── health/         # Health check
-│   │   └── webhooks/       # Webhook handlers
-│   ├── chat/               # Chat interface
-│   ├── marketplace/        # Agent marketplace
-│   ├── builder/         # Agent builder
-│   ├── presentations/      # Presentation creator
-│   └── layout.tsx          # Root layout
-│
-├── components/              # React components
-│   ├── ui/                 # Base UI components
-│   ├── chat/               # Chat components
-│   ├── navigation/         # Navigation components
-│   ├── forms/              # Form components
-│   └── modals/             # Modal components
-│
-├── lib/                     # Utility libraries
-│   ├── ai/                 # AI provider integrations
-│   ├── supabase/           # Supabase client
-│   ├── security/           # Security utilities
-│   ├── validation/         # Input validation
-│   ├── utils/              # General utilities
-│   └── icons.ts            # Icon exports
-│
-├── tests/                   # Test suites
-│   ├── unit/               # Unit tests
-│   ├── integration/        # Integration tests
-│   ├── e2e/                # End-to-end tests
-│   └── visual/             # Visual regression tests
-│
-├── public/                  # Static assets
-│   ├── images/             # Images
-│   └── fonts/              # Fonts
-│
-├── docs/                    # Documentation
-│   ├── API_DOCUMENTATION.md
-│   └── ARCHITECTURE.md
-│
-└── config files             # Configuration
-    ├── next.config.mjs     # Next.js config
-    ├── tailwind.config.ts  # Tailwind config
-    ├── tsconfig.json       # TypeScript config
-    ├── vitest.config.ts    # Vitest config
-    └── playwright.config.ts # Playwright config
-```
-
-## Core Components
-
-### 1. Chat Interface
-
-**Location**: `app/chat/page.tsx`, `components/chat/`
-
-**Features**:
-- Real-time AI chat
-- Multiple AI provider support
-- Message history
-- File attachments
-- Code syntax highlighting
-- Markdown rendering
-
-**Flow**:
-```
-User Input → Chat Component → API Route → AI Provider → Stream Response → UI Update
-```
-
-### 2. Agent Marketplace
-
-**Location**: `app/marketplace/page.tsx`, `app/api/marketplace/`
-
-**Features**:
-- Browse pre-built agents
-- Install agents
-- Rate and review
-- Search and filter
-- **Recommendation engine**: [lib/marketplace/recommendation.ts](../lib/marketplace/recommendation.ts) — `RecommendationEngine.getRecommendations(userId, limit)` returns personalized agent recommendations based on user's installed agents, usage patterns (usage_logs), and trending agents (agents table with `is_published`). Requires migration 025 (agents.is_published) for recommendations to work correctly.
-
-**Data Model**:
-```typescript
-interface Agent {
-  id: string
-  name: string
-  description: string
-  category: string
-  price: number
-  rating: number
-  installs: number
-  creator: User
-}
-```
-
-### 3. Builder
-
-**Location**: `app/builder/page.tsx`, `app/api/builder/`, `components/builder/`, `lib/builder/`
-
-**Features**:
-- Visual agent builder (chat, file explorer, tasks, version history, preview/code panels).
-- **Generate**: POST /api/builder/generate — streaming NDJSON (plan, task-update, file-update, message, complete, optional error). Request body validated with Zod (`lib/builder/schemas/request-schema.ts`). Prompt/plan phase uses `lib/builder/generate/initial-plan.ts` and design guidance from `lib/builder/utils/design-intelligence.ts`; execution and streaming live in the route. Generation can perform one optional retry on validation failure and one optional retry for a missing "wow" element when enabled via `BUILDER_RETRY_ON_VALIDATION_FAILURE` and `BUILDER_RETRY_FOR_WOW`.
-- **Projects**: GET/POST /api/builder/projects, GET/PATCH/DELETE /api/builder/projects/[id] — persist projects and version snapshots; RLS and auth required.
-- **Deploy**: POST /api/builder/deploy — deploy a project (e.g. to Vercel); request/response are implementation-specific.
-
-### 4. Dashboard
-
-**Location**: `app/dashboard/page.tsx`
-
-**Features**:
-- Usage statistics
-- Recent activity
-- Quick actions
-- Account management
-
-### 5. Learn (Education)
-
-**Location**: `app/learn/`, `app/api/learn/`, [lib/learn/progress-tracker.ts](../lib/learn/progress-tracker.ts), [lib/learn/achievements.ts](../lib/learn/achievements.ts)
-
-**Features**:
-- Courses, modules, lessons (scripts 008)
-- Lesson progress and learning analytics (scripts 008, 038, 044 for `progress_percentage`)
-- **LearningProgressTracker**: `getUserProgress(userId)` — aggregates progress per course (completed/total lessons, progress percent, time spent from `lesson_progress` and `learning_analytics`). Source of truth for learn progress. Aligns with [scripts/008_create_education_tables.sql](../scripts/008_create_education_tables.sql) (courses, course_modules, lessons, lesson_progress) and [scripts/038_learn_progress_tracking.sql](../scripts/038_learn_progress_tracking.sql) (learning_analytics).
-- **AchievementSystem**: check and unlock achievements (user_achievements, achievements tables from 038)
-- **NairiBook (notebooks)**: `app/api/learn/notebooks/` — CRUD for notebooks, sources (including upload), generate, and chat; migrations 042/043 if used.
-- **Quizzes**: `app/api/learn/quizzes/`, `app/api/learn/quizzes/[id]`, `app/api/learn/quizzes/[id]/attempt` — list, get quiz, submit and get attempt.
-- **AI mentors**: `app/api/learn/ai-mentors/`, `app/api/learn/ai-mentors/[domain]` — list, create, get by domain, update.
-- **Badges**: `app/api/badges`, `app/api/users/[userId]/badges` — system/user badges and award badges (creator/expert badges when enabled).
-
-### 6. Creations and Workspace
-
-**Location**: `app/workspace/`, `app/api/creations/`, `app/api/workspace/`, `app/api/create/`
-
-**Creations**: Table `creations` (script 013) stores user creations (type, content, metadata). GET/POST /api/creations and GET/PATCH/DELETE /api/creations/[id] provide CRUD (currently 501 placeholders; implement in Phase 221–222). Workspace folders (app/api/workspace/folders) and workspace search (app/api/workspace/search) organize and find creations. Activity and share for a creation: /api/workspace/creations/[id]/activity, /api/workspace/creations/[id]/share.
-
-**Create (workspace)**: POST /api/create — AI-generated content by type (presentation, website, document, visual, code, analysis); uses design brief and Groq fallback; can persist as creation when authenticated.
-
-### 7. Research and knowledge
-
-**Research (URL / deep research)**: POST /api/research — deep research flow; request body includes query and options; uses AI and optional web sources. See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for request/response shape.
-
-**Knowledge graph**: POST /api/knowledge/query, GET /api/knowledge/nodes, GET /api/knowledge/edges, GET /api/knowledge/graph — query and manage user knowledge nodes and edges (scripts 007, 041).
-
-## API Architecture
-
-### API Versioning
-
-**Strategy**: URL-based versioning
-
-```
-/api/v1/health      # Version 1
-/api/v2/health      # Version 2 (future)
-/api/health         # Latest (redirects to current version)
-```
-
-### Authentication Flow
-
-```
-1. User logs in → Supabase Auth
-2. Receives JWT token
-3. Token stored in httpOnly cookie
-4. Proxy validates token on each request
-5. User data attached to request context
-```
-
-### Rate Limiting
-
-**Current**: In-memory store (`lib/rate-limit.ts`). Limits are per process; they do not persist across serverless invocations or multiple instances.
-
-**Production**: Use a shared store (e.g. Redis) so limits are consistent across instances. See [docs/api/RATE_LIMITS.md](api/RATE_LIMITS.md) for implementation notes.
-
-**Limits**:
-- Anonymous: 10 requests/minute
-- Free tier: 100 requests/hour
-- Pro tier: 1000 requests/hour
-- Enterprise: Unlimited
-
-### Error Handling
-
-**Standard Error Response**:
-```json
-{
-  "error": {
-    "code": "RATE_LIMIT_EXCEEDED",
-    "message": "Too many requests",
-    "details": {
-      "limit": 100,
-      "remaining": 0,
-      "resetAt": "2026-02-05T16:00:00Z"
-    }
-  }
-}
-```
-
-## Security Architecture
-
-### 1. Authentication
-
-- **Provider**: Supabase Auth
-- **Method**: JWT tokens
-- **Storage**: httpOnly cookies
-- **Refresh**: Automatic token refresh
-- **MFA**: TOTP-based two-factor authentication using built-in crypto (Node.js `crypto` module) for HMAC-SHA1 generation, replacing external `otplib` dependency. See `lib/auth/mfa.ts`.
-
-### 2. Authorization
-
-- **Model**: Role-based access control (RBAC)
-- **Roles**: User, Pro, Admin
-- **Enforcement**: Proxy + API route guards
-
-### 3. Content Security Policy
-
-**Implemented**: Yes (next.config.mjs)
-
-**Directives**:
-- `default-src 'self'`
-- `script-src 'self' 'unsafe-inline' 'unsafe-eval'`
-- `style-src 'self' 'unsafe-inline'`
-- `img-src 'self' data: https:`
-- `connect-src 'self' https://api.openai.com ...`
-
-### 4. CSRF Protection
-
-**Implemented**: Yes (proxy.ts)
-
-**Method**: Origin header validation
-
-### 5. Input Validation
-
-**Library**: Zod
-**Location**: `lib/validation/`
-
-**Example**:
-```typescript
-const chatMessageSchema = z.object({
-  message: z.string().min(1).max(10000),
-  model: z.enum(['gpt-4', 'claude-3', 'gemini-pro']),
-  temperature: z.number().min(0).max(2).optional(),
-})
-```
-
-## Data Flow
-
-### Chat Message Flow
-
-```
-1. User types message in chat interface
-   ↓
-2. React component validates input
-   ↓
-3. POST /api/chat with message data
-   ↓
-4. Proxy validates authentication
-   ↓
-5. API routes check rate limits
-   ↓
-6. API route validates request body
-   ↓
-7. Select AI provider based on user preference
-   ↓
-8. Call AI provider API
-   ↓
-9. Stream response back to client
-   ↓
-10. Save message to database
-   ↓
-11. Update UI with response
-```
-
-### Payment Flow
-
-```
-1. User selects plan
-   ↓
-2. POST /api/payments/create-checkout
-   ↓
-3. Create Stripe checkout session
-   ↓
-4. Redirect to Stripe
-   ↓
-5. User completes payment
-   ↓
-6. Stripe webhook → /api/webhooks/stripe
-   ↓
-7. Verify webhook signature
-   ↓
-8. Update user subscription in database
-   ↓
-9. Send confirmation email
-```
-
-## Performance Optimization
-
-### 0. Vercel Speed Insights
-
-**Location**: `app/layout.tsx`
-
-Nairi integrates Vercel Speed Insights (`@vercel/speed-insights`) to monitor Core Web Vitals and user-perceived performance. It is imported and enabled in the root layout for client-side performance monitoring without affecting server performance.
-
-### 1. Code Splitting
-
-- **Method**: Next.js automatic code splitting
-- **Dynamic imports**: Used for heavy components
-- **Route-based splitting**: Automatic per page
-
-### 2. Image Optimization
-
-- **Component**: Next.js Image
-- **Formats**: WebP, AVIF
-- **Lazy loading**: Enabled
-- **Responsive**: Multiple sizes
-
-### 3. Caching Strategy
-
-**Static Assets**:
-- Cache-Control: public, max-age=31536000, immutable
-
-**API Responses**:
-- Cache-Control: private, no-cache (for user data)
-- Cache-Control: public, max-age=300 (for public data)
-
-**Database Queries**:
-- Supabase built-in caching
-- In-memory cache: [lib/cache/simple.ts](../lib/cache/simple.ts) is used for read-heavy APIs (e.g. GET /api/marketplace/agents) with a short TTL to reduce DB load.
-- **Redis cache**: When `REDIS_URL` is set, use a Redis-backed cache (or [lib/rate-limit-redis](../lib/rate-limit-redis.ts) for rate limiting) so cache and limits are shared across instances. Keep in-memory fallback for single-instance/dev.
-
-### 4. Bundle Optimization
-
-- **Tree shaking**: Enabled
-- **Minification**: Enabled in production
-- **Compression**: Gzip + Brotli
-- **Icon optimization**: Individual imports (implemented)
-
-## Monitoring & Observability
-
-### 1. Error Tracking
-
-- **Service**: Sentry
-- **Coverage**: Client + Server + Edge
-- **Features**: Error grouping, source maps, user context
-
-### 2. Performance Monitoring
-
-- **Metrics**: Core Web Vitals (LCP, CLS, FID)
-- **Tools**: Vercel Analytics, Sentry Performance (when compatible with Next 16)
-- **Alerts**: Configured for degradation
-- **Bundle**: Heavy routes (builder, studio) use dynamic imports; Sandpack is lazy-loaded. Optional: `@next/bundle-analyzer` for bundle analysis; target fast LCP and minimal blocking JS.
-
-### Analytics and experimentation (Phase 38)
-
-- **RUM:** Vercel Analytics (and Sentry when compatible with Next 16) for Core Web Vitals; document target LCP/CLS/FID in runbooks. Optional: Lighthouse CI in pipeline.
-- **Feature flags:** Env-based flags (e.g. `NEXT_PUBLIC_FEATURE_SIMULATIONS=true`) or a feature-flag service for gradual rollout (e.g. simulations, new marketplace). Optional: `lib/feature-flags.ts` to centralize checks.
-- **A/B testing:** Optional A/B tests for key flows (onboarding, pricing); document in ARCHITECTURE when adopted.
-
-### 3. Health Checks
-
-**Endpoints**:
-- **Liveness / basic**: `GET /api/health` — returns 200 when the app is up.
-- **Readiness (DB-dependent)**: `GET /api/health/readiness` — returns 200 only if database (Supabase) is reachable; use for Kubernetes readiness probes or load balancers. See [production.md](production.md).
-
-**Response** (GET /api/health):
-```json
-{
-  "status": "healthy",
-  "timestamp": "2026-02-05T15:30:00Z",
-  "version": "1.0.0",
-  "uptime": 86400,
-  "environment": "production",
-  "services": {
-    "database": "healthy",
-    "storage": "healthy",
-    "ai_providers": "healthy"
-  }
-}
-```
-
-### 4. Logging
-
-- **Development**: Console logs
-- **Production**: Structured logging to Sentry
-- **Levels**: Error, Warn, Info, Debug
-
-## Deployment Architecture
-
-### Vercel Deployment
-
-```
-GitHub Repository
-       ↓
-   Push to main
-       ↓
-GitHub Actions CI (.github/workflows/ci.yml)
-  (Typecheck, build, unit/integration tests; optional e2e on deploy preview)
-       ↓
-   Vercel Build
-  (Next.js Build)
-       ↓
-Vercel Edge Network
-  (Global CDN)
-       ↓
-   End Users
-```
-
-### Environment Variables
-
-**Required**:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `STRIPE_SECRET_KEY`
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-
-**Optional**:
-- `SENTRY_DSN`
-- `REDIS_URL` — when set, use `checkRateLimitAsync` in API routes so rate limits apply across instances (see [lib/rate-limit-redis.ts](lib/rate-limit-redis.ts); requires optional dependency `ioredis`).
-- `GOOGLE_AI_API_KEY`
-- `GROQ_API_KEY`
-
-## Scalability Considerations
-
-### Current Capacity
-
-- **Concurrent users**: ~1,000
-- **Requests/second**: ~100
-- **Database connections**: 100 (Supabase limit)
-
-### Scaling Strategy
-
-**Horizontal Scaling**:
-- Vercel automatically scales serverless functions
-- No manual intervention needed
-
-**Staging and deployment (Phase 40):** Staging via Vercel preview or dedicated host; env parity, no production secrets in repo. Runbooks: “Deploy to staging” and “Promote to production” in [BACKUP_RECOVERY.md](BACKUP_RECOVERY.md). Optional feature-flag service or env-based flags for phased rollout.
-
-**Database Scaling**:
-- Supabase connection pooling
-- Read replicas for read-heavy operations
-- Caching layer (Redis) for hot data
-
-**AI Provider Scaling**:
-- Multiple API keys for load distribution
-- Fallback providers for redundancy
-- Request queuing for rate limit management
-
-## Audit logging and compliance
-
-- **Table:** `audit_log` (see `scripts/022_create_audit_log.sql`) — columns: user_id, action, resource, metadata (JSONB, no PII), created_at.
-- **Usage:** `lib/audit.ts` — `auditLog(userId, action, resource?, metadata?)`. Use for login, password change, billing actions, data export, delete account.
-- **Retention and access:** Define retention (e.g. 90 days or per compliance); only the owning user or service role can read. Document in SECURITY.md or compliance docs.
-- **Optional:** “Export my data” and “Delete my account” flows for GDPR; call `auditLog` before performing the action.
-
-## Caching and CDN strategy
-
-- **Public assets:** Static files under `public/` and `_next/static` are served with cache headers (Next.js default). For custom static routes, set `Cache-Control: public, max-age=31536000, immutable` where appropriate.
-- **Read-heavy APIs:** Endpoints such as `GET /api/marketplace/agents`, learn courses list, and public catalog data are good candidates for short-lived caching (e.g. `Cache-Control: public, s-maxage=60, stale-while-revalidate`) or optional Redis/edge cache when `REDIS_URL` is set. Do not cache user-specific or mutation responses.
-- **In-memory cache:** [lib/cache/simple.ts](../lib/cache/simple.ts) is wired to `GET /api/marketplace/agents` for anonymous requests (60s TTL); other read-heavy routes can use `get`/`set`/`invalidate` with the same pattern. For multi-instance production, use Redis or edge cache.
-- **Marketing / landing pages:** Consider ISR (Incremental Static Regeneration) for `/`, `/faq`, `/docs` by exporting `revalidate` in page or route segment config.
-- **Vercel:** Deployment on Vercel provides edge caching; use Vercel’s cache headers and Data Cache for server components where applicable.
-
-## Testing Strategy
-
-Testing infrastructure (Vitest, Playwright) is planned; use the [Testing & QA](TESTING.md) checklist for manual verification. When added:
-
-- **Unit**: Vitest — utilities, helpers, business logic
-- **Integration**: Vitest — API routes, DB operations (mock AI providers)
-- **E2E**: Playwright — critical flows, Chromium/Firefox/WebKit
-- **Visual**: Playwright — major pages, desktop/tablet/mobile
-
-## Product scope (simulations)
-
-Simulations (`/simulations`, workspace create card, chat) are **permanently SOON**: no simulation execution API, no removal of SOON from UI or chat. See [PRODUCT_SPEC](PRODUCT_SPEC.md) and [GAP_CLOSURE](GAP_CLOSURE.md).
-
-## Future Enhancements
-
-### Short Term (1-3 months)
-
-1. ~~Redis rate limiting~~ — Implemented: `lib/rate-limit-redis.ts`; chat, builder generate, create, usage use `checkRateLimitAsync`; set `REDIS_URL` for production.
-2. Complete TODO tests
-3. ~~Storybook component library~~ — Added: `.storybook/`, stories for Button and Card in `components/ui/*.stories.tsx`; run `npm run storybook` (port 6006). Design tokens: colors/spacing from Tailwind and `globals.css`.
-4. ~~Load testing infrastructure~~ — Scripts in `scripts/load/` (e.g. k6); runbooks in [BACKUP_RECOVERY.md](BACKUP_RECOVERY.md) (high load, dependency failure).
-5. Mobile app (React Native)
-
-### Medium Term (3-6 months)
-
-1. **Real-time collaboration (Phase 39, optional):** Scope: one high-value flow (e.g. builder project, document, or chat room). Implement presence and optional CRDT/OT or simple lock-and-cursor; use WebSockets (e.g. Supabase Realtime) or a dedicated service; document in ARCHITECTURE when implemented.
-2. Advanced analytics dashboard
-3. Custom AI model training
-4. API marketplace
-5. White-label solution
-
-### Long Term (6-12 months)
-
-1. Multi-tenancy support
-2. Enterprise SSO
-3. On-premise deployment option
-4. Advanced workflow automation
-5. AI model fine-tuning platform
-
-## Maintenance & Operations
-
-### Regular Tasks
-
-**Daily**:
-- Monitor error rates
-- Check API health
-- Review user feedback
-
-**Weekly**:
-- Review performance metrics
-- Update dependencies
-- Deploy bug fixes
-
-**Monthly**:
-- Security audit
-- Performance optimization
-- Feature releases
-
-**Quarterly**:
-- Architecture review
-- Capacity planning
-- Major version updates
-
-## Contact & Support
-
-- **Documentation**: https://docs.nairi.ai
-- **Support**: support@nairi.ai
-- **Status Page**: https://status.nairi.ai
-- **GitHub**: https://github.com/nairi/nairi_v34
+**Method:** read-only investigation (grep/read, no file modifications). Verification runs: `npx tsc --noEmit` → **PASS**; `npx vitest run` → **26 files, 201 tests, 200 pass / 1 fail**. `next build` was **not** run; note `next.config.mjs:10` sets `typescript: { ignoreBuildErrors: true }`, so builds never gate on type errors regardless.
 
 ---
 
-**Last Updated**: March 21, 2026  
-**Version**: 0.34.1  
-**Maintained By**: Nairi Development Team
+## 1. Repository Structure
 
-## Middleware → Proxy (Next.js 16)
+| Area | Size | Notes |
+|---|---|---|
+| `app/` | 298 `ts/tsx` | `160` `route.ts` (all under `app/api/**`), `86` `page.tsx` |
+| `components/` | 240 | Feature-grouped: `chat/*`, `builder/*`, `marketplace/*`, `learn/*`+`nairibook/*`, `studio/*`, `workflow/*`, `checkout/*`, shared UI |
+| `lib/` | 191 | `supabase/*`, `ai/*`, `chat/*`, `nairibook/*`, `builder/*`, `workflows/*`, `marketplace/*`, `security/*`, `auth/*`, `nairi-api/*`, `colab/*`, `api/*`, `image-providers/*`, `rate-limit*.ts`, `features/*`, `webcontainer-provider.ts`, `opencode-wasm-bridge.ts`, `stripe.ts` |
+| `hooks/` | 8 | `use-opencode.ts`, `use-nairi-chat.ts`, chat/files hooks |
+| `scripts/` | 46 numbered SQL migrations (`001_create_profiles.sql`…`046_create_workflows_table.sql`) + `run-migrations.mjs`, `validate-migrations.mjs`, `validate-env.mjs`, `fix-migrations-idempotent.mjs`, deploy/night-run/dns shell scripts, `rollback/` (only `001`, `002`) |
+| `supabase/migrations/` | 3 SQL | `001_enable_rls_all_tables.sql`, `20260501_add_opencode_session.sql`, `20260804_harden_rls_policies.sql` — **manual** SQL-Editor migrations, NOT in the automated pipeline |
+| `__tests__/` | 45 files | 26 Vitest files run; 8 Playwright `e2e/*.spec.ts` + `auth.setup.ts`; 10 `integration/api/*.test.ts` (excluded from Vitest); helpers |
 
-Next.js 16 deprecates the `middleware.ts` file convention in favor of **proxy**. Session, CSRF, and request-size logic have been moved to the new proxy convention.
+**API surface (160 routes)** grouped by feature dir:
+`api/chat/*` (11: main, colab, conversations, folders, share/export, history, search, templates, upload, compare-models) · `api/builder/*` (generate, projects CRUD/fork/collaborators) · `api/generate-image/*` (6) · `api/generate-video/*` (2) · `api/generate-3d/*` (4) · `api/generate-*` (song, music+continue, audio, lyrics, sfx, vocals, world, chart, document, slide-images, avatar, presentation, simulation, project) · `api/learn/*` (notebooks×6, quizzes×3, progress, achievements, ai-mentors×2) · `api/marketplace/*` (agents×4, products×3, purchase, earnings, recommendations, reviews, search) · `api/nairi/*`, `api/nairi-chat/*` (2), `api/nairi-router/*` (4) · `api/workflows/*` (3) · `api/studio/*` (4) · `api/auth/*` (verify-signup, check-fingerprint) · `api/webhooks/stripe` · `api/seed` · `api/rate-limit/usage` · plus health, admin, credits, knowledge, flow, education, debate, research, export, upload, image/video/document/audio-tools, workspace, presentations, search, usage, traces, code-agent, import-document, preview, contact.
 
-- **File:** `proxy.ts` at the project root (same level as `app/`, `lib/`).
-- **Export:** Named function `proxy(request: NextRequest)`; optional `config` with `matcher` for path matching.
-- **Behavior:** Same as before: Supabase session (`updateSession` from `lib/supabase/session`), CSRF via origin validation (`lib/security/request-validator`), request size limits for `/api/` (chat, builder, upload), and security headers on the response.
-- **Docs:** [Next.js proxy convention](https://nextjs.org/docs/messages/middleware-to-proxy), [proxy file reference](https://nextjs.org/docs/app/api-reference/file-conventions/proxy).
+**Migration split (important):** the automated pipeline (`npm run migrate` → `scripts/run-migrations.mjs`) applies only `scripts/*.sql`. All RLS enforcement files (`001_enable_rls_all_tables.sql`, `20260804_harden_rls_policies.sql`) live in `supabase/migrations/` and must be run by hand — a real deployment hazard (see §4 WP6).
 
-## Internationalization (i18n)
+---
 
-Translations live in `lib/i18n/` (e.g. `lib/i18n/translations.ts`, `lib/i18n/translations/en.json`). To support multiple locales: use Next.js i18n (or next-intl) with locale in path or cookie; replace hardcoded strings in key flows (auth, nav, builder, marketplace) with translation keys; add RTL support in Tailwind and layout for `dir="rtl"` if required.
+## 2. Core Features & Data Flow
 
-## TypeScript
+### 2.1 Authentication & anti-abuse
+- Session helpers: `lib/auth.ts` (`getSession`, `getUserIdForApi`; comment declares "No bypass mode"); clients `lib/supabase/{server,client,admin,server-profile}.ts`.
+- Signup defenses: `app/api/auth/verify-signup/route.ts` (hCaptcha via `lib/hcaptcha-verify`, IP signup + tempmail limits via `lib/ip-rate-limiter`); `app/api/auth/check-fingerprint/route.ts` (device fingerprint, 3-accounts-per-device cap via `lib/device-fingerprint`).
+- `lib/auth/{rbac,mfa,session-manager,account-lockout}.ts` — RBAC/MFA/session/lockout primitives. `lib/email-validation.ts` is a placeholder (see §4).
+- OpenCode/WebContainer builder session: `supabase/migrations/20260501_add_opencode_session.sql`.
 
-`next.config.mjs` has `typescript.ignoreBuildErrors: false` so the production build fails on type errors. Run `npx tsc --noEmit` to check types locally; fix errors in `app/api`, `components`, and `lib` as needed.
+### 2.2 Chat (main UI + SSE)
+- `app/api/chat/route.ts` (1605 L): request-size validation, content filters, prompt-injection detection, then **intent detection** (image/video/sound/audio/simulation/document) at lines ~101–319 that routes to the `generate-*` endpoints; otherwise model chat. Backend selection at lines ~9–21: `useColabBackend` / `useOllamaBackend` / `useOpenCodeBackend`.
+- Client: AI SDK `useChat` + `DefaultChatTransport` in `components/chat/chat-interface.tsx:341–350`, body `{conversationId, mode}`.
+- Nairi SSE chat: `app/api/nairi-chat/route.ts` (SSE) consumed by `lib/api/nairi-client.ts` (`healthCheck` 5s timeout, `sendChat` 60s timeout) from `hooks/use-nairi-chat.ts` (has a reconnect TODO, §4).
+- Conversation persistence: `app/api/chat/conversations/**`, folders, history, search, share/export, templates, upload.
 
-**AI SDK**: The `ai` SDK exports `Tool` and `tool()` for defining tools; `CoreTool` is no longer exported. Use `Tool` for type definitions and `tool()` wrapper for tool creation. See `lib/tools/custom-builder.ts` and `lib/tools/registry.ts` for examples.
+### 2.3 AI plumbing
+- `lib/ai/groq-direct.ts` (297 L): `generateWithFallback` / `streamWithFallback` provider chain. Effective priority: `COLAB_AI_BASE_URL` / `NAIRI_AI_BASE_URL` → `NAIRI_ROUTER_BASE_URL` (async job via `lib/nairi-api/router.ts`, result polling with retry/backoff). `lib/ai/client.ts` builds the OpenAI-compatible provider (`createOpenAI`); `lib/ai/circuit-breaker.ts`; `lib/colab/*` (timeout, retry, mutex, health).
+- **Note:** `GROQ_API_KEY` / `OPENROUTER_API_KEY` are documented in `.env.example` as fallbacks and advertised by the health endpoint, but are not consumed anywhere in `lib/ai/groq-direct.ts` — dead env vars (§4 HIGH-7).
+
+### 2.4 Generation endpoints
+- `app/api/generate-image/route.ts` — tiered: Nairi Router → Stability → HuggingFace → Pollinations (free fallback). Variants: `character`, `edit`, `img2img`, `inpaint`, `controlnet`, `enhance-prompt`.
+- Video (`generate-video`, `long-form`), audio (`generate-audio`), song (`generate-song`), music (+`continue`), lyrics, sfx, vocals, 3D (`generate-3d/*`: scene, animate, texture), avatar, chart, world, simulation, slide-images, document.
+- Tools: `image-tools/*` (blend, face-restore), `video-tools/*` (extend, transform, upscale), `audio-tools/*` (+separate), `document-tools`, `export/*`, `export-pptx`, `import-document`.
+- `app/api/studio/*` (generate, image, presentation, gallery) — studio UI generator.
+
+### 2.5 Builder — TWO architectures
+1. **Client-side (primary, in use):** `app/builder/page.tsx` → `hooks/use-opencode.ts` → `lib/opencode-wasm-bridge.ts` → WebContainer (`lib/webcontainer-provider.ts`), generation via `opencode.executeTask` (`app/builder/page.tsx:342`). `hooks/use-opencode.ts` makes **zero** `/api` calls — fully in-browser. Projects persist via `app/api/builder/projects/**` (rate-limited, `assertSameOrigin`). OpenCode permissions are configurable through `use-opencode.ts`.
+2. **Server-side (legacy, effectively dead):** `app/api/builder/generate/route.ts` (2845 L; website fetch, CSS extraction, smart plan, `callFreeLLM`). **No UI component calls it** — its only reference in the codebase is the rate-limit config `lib/features/platform/index.ts:11`. Same for `app/api/generate-presentation` (`index.ts:12`). The route returns 503 without `NAIRI_AI_BASE_URL` (lines ~985–991). See §4 HIGH-6.
+
+### 2.6 NairiBook / Learn — TWO parallel RAG implementations
+1. **Client-side (rich):** `lib/nairibook/*` — `pipeline.ts` parse → chunk → embed (`Xenova/all-MiniLM-L6-v2` via transformers.js, WebGPU/WASM), builds knowledge graph, concepts, exercises, photo-check, zen mode; `retrieval.ts` uses cosine similarity, threshold 0.25, top-k 5. Tests in `__tests__/lib/nairibook/*`.
+2. **Server-side (naive):** `app/api/learn/notebooks/*` persist `learn_notebooks` / `learn_notebook_sources` to Supabase; the chat route `app/api/learn/notebooks/[id]/chat/route.ts:47–50` concatenates source text (`slice(0, 80000)`) directly into the prompt via `generateWithFallback` — **no embeddings, no retrieval**. Behavior divergence between the two paths is a real inconsistency (§4 HIGH-8).
+
+### 2.7 Marketplace & payments
+- Routes: `agents/**` (CRUD, install, reviews), `products/**` (CRUD, purchase), `purchase`, `earnings`, `recommendations`, `reviews`, `search`.
+- Purchase flow (`app/api/marketplace/products/[id]/purchase/route.ts`, 205 L): free → insert purchase record; credits → check `profiles.tokens_balance`, deduct, insert record + `credit_transactions`, credit creator 70% (`line 132`, `floor(creditCost * 0.7)`); else Stripe checkout session (`line 170`). **See §4 HIGH-3/HIGH-4.**
+- Checkout client: `components/checkout/*`, `app/actions/stripe.ts`; webhook `app/api/webhooks/stripe/route.ts` (see §4 HIGH-5).
+
+### 2.8 Workflows
+- `lib/workflows/*` + `app/api/workflows/{route,execute,webhook}`. Execution has a `TODO: Implement credit check` at `app/api/workflows/execute/route.ts:91`. UI under `app/workflows` + `components/workflow/*`.
+
+### 2.9 Education / Debate / Research / Flow
+- `app/api/education/route.ts` — GET lists education tools, POST executes actions via `generateWithFallback`; failure returns HTTP 200 with `success:false, provider:"fallback"` (lines ~217–225).
+- `app/api/debate/[sessionId]/vote`, `app/api/research`, `app/api/flow/route.ts` (+`collections`).
+
+### 2.10 Settings / BYOK
+- `app/settings/page.tsx` stores BYOK / OpenCode-Zen / Pollinations keys in **localStorage** (`lib/image-providers/pollinations-config` `getPollinationsKey`/`setPollinationsKey`); `app/settings/api/page.tsx` surfaces `/api/rate-limit/usage`. Client-held keys + client-side OpenCode = keys never leave the browser (design note, not a bug).
+
+### 2.11 Rate limiting & security
+- `lib/rate-limit.ts` — in-memory `Map` window limiter with `setInterval` cleanup (per-instance, NOT production-safe for serverless); `RATE_LIMITS` config table in `lib/features/*` (`platform/index.ts` maps `/api/builder/generate`, `/api/generate-presentation`, etc.).
+- `lib/rate-limit-redis.ts` (`checkRateLimitAsync`), `lib/rate-limit-helpers.ts`, `lib/ip-rate-limiter.ts`, `app/api/rate-limit/usage`.
+- `lib/security/request-validator.ts` (`validateRequestSize`, `assertSameOrigin`, `sanitizeString`, `detectSuspiciousPatterns`); CSP at build (`lib/security/csp.mjs`); `lib/security/vulnerability-scanner.ts`; `scripts/ssrf-guard` tested in `__tests__/lib/builder/ssrf-guard.test.ts`.
+
+### 2.12 Seed / demo
+- `app/api/seed/route.ts` — POST endpoint seeding sample agents/courses/feed posts/knowledge nodes/creations (auth-gated but callable at runtime; §4 HIGH-9).
+
+---
+
+## 3. Design Patterns & Conventions
+
+1. **Route handler envelope:** `createClient()` → `auth.getUser()` → validate → query → `NextResponse.json({...})` with `try/catch` JSON error responses. Auth reuse via `getUserIdForApi` (`lib/auth.ts`).
+2. **Provider fallback chain:** generation tiers array + `generateWithFallback`/`streamWithFallback`; async job + poll via `lib/nairi-api/router.ts`; circuit breaker.
+3. **Config-driven rate limits:** `RATE_LIMITS` constants in `lib/features/*`, referenced by route handlers and `rate-limit-helpers`.
+4. **RLS-first data access:** Supabase RLS policies are the access boundary; route handlers use user-scoped clients (a convention HIGH-3 violates).
+5. **Migration pipeline:** numbered idempotent SQL in `scripts/`, `run-migrations.mjs` applies in order, `validate-migrations.mjs` enforces rollback parity (`npm run migrate:validate`).
+6. **Contract tests for migrations:** `__tests__/unit/marketplace/rls-contract.test.ts` parses migration SQL strings and asserts policies (drops in 010, hardening in 20260804).
+7. **Testing split:** Vitest unit+route tests (node env, mocked clients) / Playwright e2e (needs real prod DB via `.env.local`, `.auth/e2e-test.json`) / `integration/api` (excluded from Vitest, DB-dependent).
+8. **Dual-layer storage:** browser localStorage for BYOK/generator keys, Supabase for all app data.
+9. **Large single-file route handlers:** `app/api/chat/route.ts` (1605 L), `app/api/builder/generate/route.ts` (2845 L) — both contain most of their feature logic inline.
+
+---
+
+## 4. Defect Inventory (severity-ranked, with evidence)
+
+### HIGH
+- **H1 · OpenCode permissions default to `allow` — failing test + security hole.** `hooks/use-opencode.ts:59–68` initializes `permissions` with `bash/read/edit/write/glob/grep/webfetch/websearch` all `"allow"`; the contract test `__tests__/unit/hooks/use-opencode.test.ts:279` expects `"ask"` → **the only failing test** (201 run, 200 pass). Grants generated code full shell + filesystem access by default.
+- **H2 · Type errors never block builds.** `next.config.mjs:10` `typescript: { ignoreBuildErrors: true }`. A broken `npm run typecheck` (which currently passes) would not fail CI.
+- **H3 · Marketplace purchases are broken by the RLS hardening migration.** The purchase route uses the **user-scoped anon client** (`createClient()`) to insert into `product_purchases` at `app/api/marketplace/products/[id]/purchase/route.ts:54` (free) and `:101` (credits). `supabase/migrations/20260804_harden_rls_policies.sql:37` creates `"Service role can insert purchases" ... FOR INSERT WITH CHECK (false)`, so only service_role (RLS-bypassing) can insert — anon inserts fail. The earlier policy `supabase/migrations/001_enable_rls_all_tables.sql:336` (`"Users can create own purchases"`) contradicts it. The route must use the admin/service client. The contract test `rls-contract.test.ts:103` enshrines the harden policy but **no test asserts the route uses an admin client**, so the runtime break is not caught (route tests mock supabase).
+- **H4 · Non-atomic credit transactions (double-spend / lost update).** `purchase/route.ts:75–95` reads `tokens_balance` then writes it back as an absolute value — no atomic decrement, no row lock; concurrent purchases race. Refund on insert failure restores the stale balance (lost update). `credit_transactions` insert (line 114) and creator-credit update (lines 145–155) are fire-and-forget — partial state if they fail; `purchase_count` increment is read-modify-write (`:62–69`, `:122–129`).
+- **H5 · Stripe subscription lifecycle never propagates.** `app/api/webhooks/stripe/route.ts` reads `subscription.metadata?.userId` for `customer.subscription.updated/deleted` (cancel/downgrade/past_due), but `app/actions/stripe.ts:58–67` sets only **session** metadata at checkout — subscription objects carry no `userId`. Lifecycle events silently no-op; subscription state diverges from reality.
+- **H6 · `/api/builder/generate` (2845 L) and `/api/generate-presentation` are dead code.** No UI calls them — their only references are rate-limit config entries `lib/features/platform/index.ts:11–12`. Builder runs client-side (WebContainer/OpenCode, zero API calls from `hooks/use-opencode.ts`). The server route's `NAIRI_AI_BASE_URL` requirement (`app/api/builder/generate/route.ts:985–991`) and its "smart plan" logic describe a generator the app doesn't use.
+- **H7 · Health endpoint lies about fallback providers.** `app/api/nairi-chat/health/route.ts:9–25` advertises `primary: nairi ? groq : openrouter`; `GROQ_API_KEY` / `OPENROUTER_API_KEY` in `.env.example` as fallbacks — but `lib/ai/groq-direct.ts` never reads those vars (only `NAIRI_AI_BASE_URL`, `COLAB_AI_BASE_URL`, `NAIRI_ROUTER_BASE_URL`). False availability signal + dead env config.
+- **H8 · Two divergent RAG implementations.** Client `lib/nairibook/retrieval.ts` (real embeddings, cosine 0.25, top-k 5) vs server `app/api/learn/notebooks/[id]/chat/route.ts:47–50` (naive 80k-char concatenation, no retrieval). Same "learn" feature, inconsistent quality and behavior depending on entry point.
+- **H9 · Live runtime seed endpoint.** `app/api/seed/route.ts` (sample agents, courses, feed posts, knowledge nodes, creations) is callable in production (POST, auth-gated only). Mistaken trigger pollutes the marketplace/knowledge data with sample content.
+- **H10 · Mock/demo data in production paths.** `app/api/flow/route.ts:9` `mockFlowData` served when the DB is empty (lines 166–209); `components/studio/collaboration-panel.tsx:38–51` renders fake collaborators/versions ("Demonstration mode", `You@example.com`).
+
+### MEDIUM
+- **M1 · Explicit AI stubs.** `lib/ai/image-to-code.ts:58–60, 97, 313` — `analyzeImage` never calls a vision API ("Placeholder response — in production this would call vision API"); `lib/ai/rag/index.ts:27–28` stub RAG returns `[]`; `lib/ai/embedding-service.ts:11–14` returns `embedding: []`; `lib/ai/eval/index.ts:12` stub eval `{model:"stub", passed:true}`; `lib/chat/context-manager.ts:114–125` `generateSummary` counts messages instead of summarizing; `lib/email-validation.ts:741` "return true and rely on domain blacklist".
+- **M2 · Workflow credit check missing.** `app/api/workflows/execute/route.ts:91` `TODO: Implement credit check and consumption`.
+- **M3 · Education route returns HTTP 200 on failure.** `app/api/education/route.ts:217–225` returns `success:false, provider:"fallback"` with status 200 — hides failures from monitoring.
+- **M4 · Migration pipeline gaps.** RLS files in `supabase/migrations/` are outside `npm run migrate`; only 2 rollbacks (`scripts/rollback/001,002`) exist for 46 migrations, so `npm run migrate:validate` (`scripts/validate-migrations.mjs:44–47`) fails for ~44 migrations; `20260501_add_opencode_session.sql` + `20260804_harden_rls_policies.sql` are dated non-sequential with `001_*.sql`.
+- **M5 · In-memory rate limiter in production.** `lib/rate-limit.ts:1–22` `Map` + `setInterval` cleanup — per-instance counters in serverless; `lib/rate-limit-redis.ts` (`checkRateLimitAsync`) exists but is not wired.
+- **M6 · Misleading auth comments.** `lib/auth.ts:4–5` "No bypass mode" vs `app/api/chat/conversations/route.ts:4` comment referencing `BYPASS_AUTH` (dev) — inconsistent security docs; grep confirms no bypass code exists, so this is documentation drift.
+- **M7 · SSE reconnect TODO.** `hooks/use-nairi-chat.ts:74` — "Reconnect SSE via WebContainer after transition"; dropped streams are not recovered.
+- **M8 · Deleted endpoint referenced.** `hooks/use-nairi-chat.ts:75` references deleted `/api/opencode-events`.
+- **M9 · Disabled simulation route duplicated.** `app/api/generate-simulation/` and `app/api/generate-simulation_disabled/` both present.
+
+### LOW / INFORMATIONAL
+- Generation prompts in `app/api/generate/route.ts` instruct "sample data" / placeholder colors — by design for scaffolding, but no user-facing flag.
+- Client-side BYOK keys (OpenCode-Zen, Pollinations) live in `localStorage` (`app/settings/page.tsx:82–87`) — acceptable given fully client-side OpenCode, but worth documenting as the trust boundary.
+- No `.env.example` parity check with `lib/features/*` env usage — env var sprawl (e.g., `COLAB_AI_BASE_URL` vs `NAIRI_AI_BASE_URL` both accepted).
+
+---
+
+## 5. Test Coverage Matrix
+
+**Vitest: 26 files / 201 tests — 200 pass, 1 fail (`use-opencode.test.ts:279`, H1).**
+
+Covered routes/libraries:
+| Group | Tests |
+|---|---|
+| API routes (8 of 160) | `auth/callback`, `builder/projects`, `chat/colab`, `chat/route`, `health`, `nairi-chat`, `nairi/chat`, `v1/health` |
+| Builder lib | `code-cleaner`, `json-normalizers`, `ssrf-guard` |
+| NairiBook lib | `core`, `exercises`, `photo-check`, `problem`, `retrieval` |
+| Hooks | `use-opencode` (failing) |
+| Auth/RBAC | `rbac`, `session-manager` |
+| Security/limiting | `rate-limit`, `rate-limit/monitoring`, `validation/sanitize`, `errors/handler` |
+| OpenCode bridge | `opencode-bridge`, `opencode-client` |
+| Migrations | `marketplace/rls-contract` |
+
+**Gaps (zero direct coverage):** ~150 API routes — notably marketplace `products/[id]/purchase`, `purchase`, `earnings`, `agents/install`; all `generate-image/video/audio/song/music/sfx/vocals/3d/avatar/world/chart/document`; `learn/notebooks/**` and `learn/notebooks/[id]/chat`; `workflows/{execute,webhook}`; `credits/*`; `webhooks/stripe`; `seed`; `studio/*`; `flow/*`; `knowledge/*`; `education`; `research`; `export/*`; `upload`; `image/video/document/audio-tools`; `nairi-router/*`; `admin/users`; `chat/{share,export,folders,history,search,templates,upload}`; `builder/generate`.
+
+**Not run by Vitest:** `integration/api/*` (10 files, excluded by `vitest.config.ts`, need DB) and `e2e/*` (Playwright: `auth`, `builder`, `chat`, `chat-flow`, `learn`, `marketplace`, `routes`, `workspace.simulations`; requires real prod DB via `.env.local` + `.auth/e2e-test.json`).
+
+**Coverage hazards to fix first:**
+1. `rls-contract.test.ts` verifies the hardening policy but nothing verifies the *route* satisfies it → H3 shipped undetected.
+2. No test asserts credit/purchase atomicity → H4.
+3. No test covers Stripe webhook subscription metadata handling → H5.
+4. `use-opencode` contract test fails on permissions → H1 (test already catches it; fix the code, not the test).
+
+---
+
+## 6. Prioritized Work Packages (non-overlapping)
+
+- **WP1 · Security hardening (H1, H2, H3, M5):** change `hooks/use-opencode.ts:59–68` defaults to `"ask"` for bash/fs and add explicit prompt-time consent (fixes the failing test); remove `typescript.ignoreBuildErrors` (`next.config.mjs:10`) or add a real CI type gate; switch `product_purchases` inserts in `app/api/marketplace/products/[id]/purchase/route.ts` to the admin/service client and add a route-level test asserting it; wire `checkRateLimitAsync` (`lib/rate-limit-redis.ts`).
+- **WP2 · Marketplace correctness (H4):** atomic `tokens_balance` decrement (single UPDATE with guard `tokens_balance >= cost`), atomic `purchase_count` increment, transactional rollback for `credit_transactions`/creator credit, duplicate-purchase idempotency. Files: `app/api/marketplace/products/[id]/purchase/route.ts`, `app/api/marketplace/purchase/route.ts`, related `credits/*`.
+- **WP3 · Stripe lifecycle (H5):** add `userId` to subscription `metadata` at checkout (`app/actions/stripe.ts:58–67`) and/or resolve via `customer_email`; handle `customer.subscription.*` events to update profile state; add webhook handler tests.
+- **WP4 · Dead code & demo data (H6, H10, M8, M9):** either wire the server builder or delete `app/api/builder/generate` + `/api/generate-presentation` (and their `RATE_LIMITS` entries at `lib/features/platform/index.ts:11–12`); gate or remove `mockFlowData` (`app/api/flow/route.ts:9`) and collaboration-panel mock data; remove `generate-simulation_disabled`, stale endpoint comments.
+- **WP5 · AI plumbing honesty (H7, M1, M3):** fix `nairi-chat/health` to report real provider availability; implement or explicitly disable `analyzeImage`, `lib/ai/rag`, `embedding-service`, `eval`, `context-manager` summary, `email-validation`; return non-200 on education failure.
+- **WP6 · Learn RAG unification (H8, M7):** route server notebook chat through `lib/nairibook/retrieval.ts` (or embed via `embedding-service`) instead of 80k concatenation; wire SSE reconnect in `use-nairi-chat`.
+- **WP7 · Migration hygiene (M4):** move/merge `supabase/migrations/*.sql` into the automated pipeline (or document manual-run order), generate rollbacks for all 46 migrations, renumber dated files, make `migrate:validate` green.
+- **WP8 · Test coverage (gap matrix in §5):** prioritize route tests for marketplace purchase + webhooks + workflows execute + learn notebook chat + generate-image tiers; add a route-vs-migration RLS contract test that fails when the route uses a client without INSERT rights.
+- **WP9 · Seed hardening (H9):** gate `/api/seed` behind `NODE_ENV !== "production"` (or an explicit `ALLOW_SEED` flag) and remove sample content from production paths.
+
+---
+
+### Headline numbers for quick reference
+- `160` API routes · `86` pages · `240` components · `191` lib files · `46` numbered SQL migrations (+3 manual RLS) · `26` Vitest files / `201` tests (`200` pass, `1` fail) · `tsc --noEmit` clean · `next build` **not** run, type gate disabled.

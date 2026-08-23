@@ -1,11 +1,13 @@
 # Nairi Factory — Project Status
 
+> Snapshot 2026-08-23; current status is maintained in CHANGELOG_AGENTS.md.
+
 ## ✅ Production Ready
 
 ### Build Status
-- **TypeScript**: 0 errors (was 17)
-- **Tests**: 73 passing, 0 failing (was 10 failing)
-- **Build**: Successful (`npm run build` passes)
+- **TypeScript**: 0 errors
+- **Tests**: 388 passing, 0 failing (54 files, vitest)
+- **Build**: Successful (`npm run build` passes with type checking enabled)
 
 ### Files Modified (Total: 19)
 
@@ -65,6 +67,6 @@ Multimedia (video/image/audio/song):
 ## Key Metrics
 - **API Routes**: 100+ (all with auth + rate limiting where needed)
 - **TypeScript**: 100% clean
-- **Test Coverage**: 73 tests passing
+- **Test Coverage**: 388 tests passing
 - **Build**: Clean
 - **Security**: Rate limiting on all write endpoints, input validation, content filters
