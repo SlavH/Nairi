@@ -9,12 +9,16 @@ import { getUserIdForApi } from "@/lib/auth";
 import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, forbiddenError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit";
+import { assertSameOrigin } from "@/lib/security/request-validator";
 import { createClient } from "@/lib/supabase/server";
 
 
+// "owner" is reserved for the project's user_id; collaborators may only be
+// editors or viewers.
 const addCollaboratorSchema = z.object({
   userId: z.string().uuid(),
-  role: z.enum(["owner", "editor", "viewer"]),
+  role: z.enum(["editor", "viewer"]),
 });
 
 export const GET = withLogging(async (
@@ -44,10 +48,12 @@ export const GET = withLogging(async (
       return handleError(forbiddenError("Access denied"));
     }
 
-    // Get collaborators
+    // Get collaborators. Email is deliberately excluded: anyone who can view
+    // a public project may list collaborators, and email addresses must not
+    // be disclosed to them (F16).
     const { data: collaborators, error } = await supabase
       .from("builder_project_collaborators")
-      .select("*, profiles:user_id(id, email, full_name)")
+      .select("*, profiles:user_id(id, full_name)")
       .eq("project_id", params.id);
 
     if (error) throw error;
@@ -64,10 +70,22 @@ export const POST = withLogging(async (
 ) => {
   const params = context.params;
   try {
+    const originGuard = assertSameOrigin(req);
+    if (originGuard) return originGuard;
+
     const supabase = await createClient();
     const userId = await getUserIdForApi(() => supabase.auth.getUser());
     if (!userId) {
       return handleError(unauthorizedError("Authentication required"));
+    }
+
+    const clientId = getClientIdentifier(req);
+    const rateLimitResult = checkRateLimit(`collab:${clientId}`, RATE_LIMITS.create);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down.", retryAfter: rateLimitResult.retryAfter },
+        { status: 429, headers: { "Retry-After": String(rateLimitResult.retryAfter) } }
+      );
     }
 
     // Check if user is project owner
