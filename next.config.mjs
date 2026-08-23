@@ -3,9 +3,10 @@
 const nextConfig = {
   output: "standalone",
 
-  // TypeScript: ignore type errors during build for deployment
+  // TypeScript: type errors fail the build (F43). `tsc --noEmit` is clean;
+  // hiding build-time type errors let real bugs reach production.
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   
 

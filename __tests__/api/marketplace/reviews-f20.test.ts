@@ -9,6 +9,8 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 
 const { createClient } = await import("@/lib/supabase/server")
 
+type Result = { data: unknown; error: unknown }
+
 function makeClient(opts: {
   purchase?: Result
   existingReview?: Result
@@ -16,7 +18,6 @@ function makeClient(opts: {
   reviewsForStats?: Array<{ rating: number }>
   rpcError?: unknown
 }) {
-  type Result = { data: unknown; error: unknown }
   const from = vi.fn((table: string) => {
     if (table === "product_purchases") {
       return {
