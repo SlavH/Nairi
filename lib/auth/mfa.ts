@@ -1,8 +1,16 @@
 /**
  * Multi-Factor Authentication Manager (Phase 4)
  * Handles TOTP, SMS, and Email MFA
+ *
+ * F28 notes (docs/AUDIT_TRIAGE.md):
+ * - The TOTP secret is stored encrypted (AES-256-GCM), not hashed: TOTP
+ *   verification needs the original secret, so a one-way hash made every
+ *   verification fail forever. Hashing remains correct for backup codes.
+ * - QR codes are no longer generated through api.qrserver.com, which leaked
+ *   the otpauth secret to a third party. Callers get the otpauth:// URL and
+ *   can render the QR locally (or offer manual entry).
  */
-import { createHash, randomBytes, createHmac } from "crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, createHmac } from "crypto";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,7 +30,12 @@ function generateBase32Secret(length: number = 20): string {
   let secret = "";
   const bytes = randomBytes(length);
   for (let i = 0; i < length; i++) {
-    secret += chars[bytes[i] % chars.length];
+    // Rejection sampling to avoid modulo bias.
+    let byte = bytes[i];
+    while (byte >= 256 - (256 % chars.length)) {
+      byte = randomBytes(1)[0];
+    }
+    secret += chars[byte % chars.length];
   }
   return secret;
 }
@@ -45,22 +58,65 @@ function base32ToHex(base32: string): string {
   return hex;
 }
 
+/**
+ * AES-256-GCM key derived from MFA_ENCRYPTION_KEY. Required to enable TOTP:
+ * without it the secret could only be stored plaintext or unrecoverably
+ * hashed, and both options are unacceptable.
+ */
+function getEncryptionKey(): Buffer {
+  const raw = process.env.MFA_ENCRYPTION_KEY;
+  if (!raw || raw.length < 32) {
+    throw new Error(
+      "MFA_ENCRYPTION_KEY must be set (>= 32 chars) before enabling TOTP MFA."
+    );
+  }
+  return createHash("sha256").update(raw).digest();
+}
+
+function encryptSecret(secret: string): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
+  const enc = Buffer.concat([cipher.update(secret, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return [iv.toString("base64"), enc.toString("base64"), tag.toString("base64")].join(":");
+}
+
+function decryptSecret(payload: string): string | null {
+  try {
+    const [ivB64, dataB64, tagB64] = payload.split(":");
+    if (!ivB64 || !dataB64 || !tagB64) return null;
+    const decipher = createDecipheriv(
+      "aes-256-gcm",
+      getEncryptionKey(),
+      Buffer.from(ivB64, "base64")
+    );
+    decipher.setAuthTag(Buffer.from(tagB64, "base64"));
+    const dec = Buffer.concat([
+      decipher.update(Buffer.from(dataB64, "base64")),
+      decipher.final(),
+    ]);
+    return dec.toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
 export class MFAManager {
   /**
-   * Generate TOTP secret and QR code URL
+   * Generate TOTP secret and its otpauth:// provisioning URL.
+   * Render the QR code client-side from this URL; never send the secret to a
+   * third-party QR service.
    */
   static generateTOTPSecret(userId: string, email: string): {
     secret: string;
-    qrCodeUrl: string;
+    otpauthUrl: string;
   } {
+    void userId;
     const secret = generateBase32Secret();
     const serviceName = "Nairi";
-    const otpAuthUrl = `otpauth://totp/${encodeURIComponent(serviceName)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(serviceName)}&digits=6&period=30`;
+    const otpauthUrl = `otpauth://totp/${encodeURIComponent(serviceName)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(serviceName)}&digits=6&period=30`;
 
-    return {
-      secret,
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpAuthUrl)}`,
-    };
+    return { secret, otpauthUrl };
   }
 
   /**
@@ -71,7 +127,7 @@ export class MFAManager {
       if (!/^\d{6}$/.test(token)) return false;
       const time = Math.floor(Date.now() / 30000);
       for (let i = -1; i <= 1; i++) {
-        const expectedToken = this.generateHOTP(secret, time + i);
+        const expectedToken = MFAManager.generateHOTP(secret, time + i);
         if (expectedToken === token) return true;
       }
       return false;
@@ -80,7 +136,8 @@ export class MFAManager {
     }
   }
 
-  private static generateHOTP(secret: string, counter: number): string {
+  /** Internal: RFC4226 HOTP derivation, exposed for tests. */
+  static generateHOTP(secret: string, counter: number): string {
     const counterBytes = Buffer.alloc(8);
     counterBytes.writeBigInt64BE(BigInt(counter), 0);
     const secretHex = base32ToHex(secret);
@@ -113,18 +170,19 @@ export class MFAManager {
   ): Promise<void> {
     const supabase = await createClient();
 
-    // Hash secret if provided
-    const hashedSecret = secret ? this.hashSecret(secret) : null;
+    // Encrypt the TOTP secret (reversible, unlike the previous sha256 which
+    // made verification impossible). Throws if MFA_ENCRYPTION_KEY is absent.
+    const encryptedSecret = secret ? encryptSecret(secret) : null;
 
-    // Hash backup codes
+    // Backup codes are one-use challenges: hashing is correct here.
     const hashedBackupCodes = options?.backupCodes?.map((code) =>
-      this.hashSecret(code)
+      MFAManager.hashBackupCode(code)
     );
 
     const { error } = await supabase.from("mfa_settings").upsert({
       user_id: userId,
       method,
-      secret: hashedSecret,
+      secret: encryptedSecret,
       phone_number: options?.phoneNumber,
       email: options?.email,
       is_enabled: true,
@@ -195,11 +253,17 @@ export class MFAManager {
     if (error || !data) return false;
 
     if (method === "totp" && data.secret) {
-      return this.verifyTOTP(data.secret, code);
+      const secret = decryptSecret(data.secret);
+      if (!secret) return false;
+      return MFAManager.verifyTOTP(secret, code);
+    }
+
+    if (method !== "totp" && Array.isArray(data.backup_codes) && data.backup_codes.length > 0) {
+      const hashed = MFAManager.hashBackupCode(code);
+      return data.backup_codes.includes(hashed);
     }
 
     // SMS and Email verification would be handled separately
-    // This is a placeholder
     return false;
   }
 
@@ -228,23 +292,26 @@ export class MFAManager {
   }
 
   /**
-   * Generate backup codes
+   * Generate backup codes (cryptographically random)
    */
   static generateBackupCodes(count: number = 10): string[] {
     const codes: string[] = [];
-    for (let i = 0; i < count; i++) {
-      codes.push(
-        Math.random().toString(36).substring(2, 10).toUpperCase() +
-          Math.random().toString(36).substring(2, 10).toUpperCase()
-      );
+    while (codes.length < count) {
+      const bytes = randomBytes(10);
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 10; i++) {
+        code += alphabet[bytes[i] % alphabet.length];
+      }
+      if (!codes.includes(code)) codes.push(code);
     }
     return codes;
   }
 
   /**
-   * Hash a secret for storage
+   * Hash a backup code for storage
    */
-  private static hashSecret(secret: string): string {
-    return createHash("sha256").update(secret).digest("hex");
+  private static hashBackupCode(code: string): string {
+    return createHash("sha256").update(code.trim().toUpperCase()).digest("hex");
   }
 }

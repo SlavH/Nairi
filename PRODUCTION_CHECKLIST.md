@@ -112,6 +112,7 @@ SEARXNG_BASE_URL=https://your-searxng            # Web search for chat
 REPLICATE_API_TOKEN=xxx                          # Video/image fallback
 REDIS_URL=redis://xxx                            # Shared rate limiting (recommended in prod)
 ALLOWED_ORIGINS=https://app.nairi.ai,https://nairi-seven.vercel.app  # CSRF allowlist
+MFA_ENCRYPTION_KEY=<random 32+ chars>        # Required for TOTP MFA (secrets stored AES-256-GCM encrypted)
 STRIPE_SECRET_KEY=sk_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 ```
