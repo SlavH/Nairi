@@ -16,14 +16,7 @@ export async function GET(req: Request) {
 
     const { data: reviews, error } = await supabase
       .from("product_reviews")
-      .select(`
-        *,
-        user:user_id (
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
+      .select("id, product_id, user_id, rating, review_text, is_verified_purchase, helpful_count, created_at, updated_at")
       .eq("product_id", productId)
       .order("created_at", { ascending: false })
       .limit(limit)
@@ -31,6 +24,24 @@ export async function GET(req: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // user_id references auth.users (no FK to profiles) — embed profiles in
+    // code instead (F20). Email is never exposed.
+    const userIds = [...new Set((reviews ?? []).map((r) => r.user_id))]
+    const authors = new Map<string, { full_name: string | null; avatar_url: string | null }>()
+    if (userIds.length > 0) {
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .in("id", userIds)
+      for (const p of profileRows ?? []) {
+        authors.set(p.id, { full_name: p.full_name, avatar_url: p.avatar_url })
+      }
+    }
+    const enrichedReviews = (reviews ?? []).map((r) => ({
+      ...r,
+      author: authors.get(r.user_id) ?? { full_name: null, avatar_url: null },
+    }))
 
     // Calculate review stats
     const { data: stats } = await supabase
@@ -53,7 +64,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({
-      reviews: reviews || [],
+      reviews: enrichedReviews,
       stats: reviewStats
     })
 
@@ -87,7 +98,15 @@ export async function POST(req: Request) {
       .eq("product_id", productId)
       .single()
 
-    const isVerifiedPurchase = !!purchase
+    // Only verified purchasers may review (F20): previously the flag was
+    // merely recorded and non-purchasers could inflate ratings.
+    if (!purchase) {
+      return NextResponse.json(
+        { error: "Only verified purchasers can review this product" },
+        { status: 403 }
+      )
+    }
+    const isVerifiedPurchase = true
 
     // Check for existing review
     const { data: existingReview } = await supabase
@@ -171,23 +190,15 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Review ID required" }, { status: 400 })
     }
 
-    // Increment helpful count
+    // Increment helpful count via the RPC only (F20): the previous direct
+    // fallback update let any user inflate helpful_count without bound.
     const { error } = await supabase.rpc("increment_helpful_count", { review_id: reviewId })
 
     if (error) {
-      // If RPC doesn't exist, do a direct update
-      const { data: review } = await supabase
-        .from("product_reviews")
-        .select("helpful_count")
-        .eq("id", reviewId)
-        .single()
-      
-      if (review) {
-        await supabase
-          .from("product_reviews")
-          .update({ helpful_count: (review.helpful_count || 0) + 1 })
-          .eq("id", reviewId)
-      }
+      return NextResponse.json(
+        { error: "Helpful voting is not available right now" },
+        { status: 501 }
+      )
     }
 
     return NextResponse.json({ success: true })
