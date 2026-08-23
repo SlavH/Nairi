@@ -24,7 +24,10 @@ describe("ProviderHealthMonitor.checkHealth (F26)", () => {
   })
 
   it("reports healthy when failures are rare", async () => {
-    mockLogs([{ success: true }, { success: true }, { success: true }, { success: false }])
+    mockLogs([
+      { success: true }, { success: true }, { success: true },
+      { success: true }, { success: true }, { success: false },
+    ])
     const health = await ProviderHealthMonitor.checkHealth("p-healthy")
     expect(health.status).toBe("healthy")
   })
