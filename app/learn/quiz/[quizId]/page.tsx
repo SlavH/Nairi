@@ -4,7 +4,7 @@ import { redirect, notFound } from "next/navigation"
 
 import { QuizTaker } from "@/components/learn/quiz-taker"
 import { getSession } from "@/lib/auth"
-import { getQuizWithQuestions } from "@/lib/learn/quizzes"
+import { getQuizWithQuestions, stripQuizAnswers } from "@/lib/learn/quizzes"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function QuizPage({
@@ -29,7 +29,7 @@ export default async function QuizPage({
         <ChevronLeft className="h-4 w-4" />
         Back to Learn
       </Link>
-      <QuizTaker quiz={quiz} questions={questions} />
+      <QuizTaker quiz={quiz} questions={stripQuizAnswers(questions)} />
     </div>
   )
 }

@@ -16,8 +16,6 @@ type QuizQuestion = {
   question: string
   question_type: string
   options: string[] | Record<string, unknown> | null
-  correct_answer: string | null
-  explanation: string | null
   order_index: number
 }
 

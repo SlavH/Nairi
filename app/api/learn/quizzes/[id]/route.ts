@@ -4,7 +4,7 @@
 import { NextResponse } from "next/server"
 
 import { handleError } from "@/lib/errors/handler"
-import { getQuizWithQuestions } from "@/lib/learn/quizzes"
+import { getQuizWithQuestions, stripQuizAnswers } from "@/lib/learn/quizzes"
 import { createClient } from "@/lib/supabase/server"
 
 export async function GET(
@@ -20,7 +20,7 @@ export async function GET(
     const { quiz, questions } = await getQuizWithQuestions(id)
     if (!quiz) return NextResponse.json({ error: "Quiz not found" }, { status: 404 })
 
-    return NextResponse.json({ quiz, questions })
+    return NextResponse.json({ quiz, questions: stripQuizAnswers(questions) })
   } catch (error) {
     return handleError(error)
   }

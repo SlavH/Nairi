@@ -30,6 +30,17 @@ export interface QuizQuestion {
   order_index: number
 }
 
+/**
+ * Client-safe question shape: grading inputs (correct_answer, explanation)
+ * must never cross the server→client boundary, otherwise anyone can read the
+ * answers from the RSC payload / network tab before submitting.
+ */
+export type ClientSafeQuizQuestion = Omit<QuizQuestion, "correct_answer" | "explanation">
+
+export function stripQuizAnswers(questions: QuizQuestion[]): ClientSafeQuizQuestion[] {
+  return questions.map(({ correct_answer: _ca, explanation: _ex, ...rest }) => rest)
+}
+
 export interface QuizAttempt {
   id: string
   user_id: string
