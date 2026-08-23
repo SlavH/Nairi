@@ -51,19 +51,16 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    const { error: insertError } = await supabase
-      .from("contact_submissions")
-      .insert({
-        name: name.trim(),
-        email: email.trim(),
-        reason: reason || "general",
-        subject: subject.trim(),
-        message: message.trim(),
-        user_id: user?.id || null,
-        status: "new",
-      })
+    // Submit through the SECURITY DEFINER RPC: anonymous visitors can file a
+    // ticket while direct table access stays denied by RLS (F27).
+    const { error: insertError } = await supabase.rpc("submit_contact_submission", {
+      p_name: name.trim(),
+      p_email: email.trim(),
+      p_reason: reason || "general",
+      p_subject: subject.trim(),
+      p_message: message.trim(),
+    })
 
     if (insertError) {
       console.error("Contact submission error:", insertError)
