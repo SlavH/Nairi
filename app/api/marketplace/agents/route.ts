@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       if (cached) return NextResponse.json(cached)
     }
 
-    let query = supabase.from('agents').select('id, name, description, category, price_cents, icon, capabilities, is_featured, is_free, usage_count, rating, image_url, created_at, updated_at')
+    let query = supabase.from('agents').select('id, name, description, category, price_cents, icon, capabilities, is_featured, is_free, usage_count, rating, image_url, created_at, updated_at').eq('is_published', true)
 
     if (category && category !== 'all') {
       query = query.eq('category', category)

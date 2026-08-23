@@ -29,6 +29,12 @@ export async function GET(
       return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
     }
 
+    // Drafts are visible only to their creator (F19).
+    const isOwner = !!user && agent.creator_id === user.id
+    if (!agent.is_published && !isOwner) {
+      return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
+    }
+
     let owned = false
     if (user) {
       const { data: purchase } = await supabase
@@ -40,7 +46,10 @@ export async function GET(
       owned = !!purchase
     }
 
-    return NextResponse.json({ ...agent, owned })
+    // system_prompt is creator-private; strip it for non-owners (F19).
+    const safeAgent = isOwner ? agent : (() => { const { system_prompt, ...rest } = agent as Record<string, unknown> & { system_prompt?: unknown }; void system_prompt; return rest })()
+
+    return NextResponse.json({ ...safeAgent, owned })
   } catch (err) {
     console.error('Marketplace agent detail error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

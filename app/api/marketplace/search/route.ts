@@ -23,6 +23,7 @@ export async function GET(req: Request) {
       let agentQuery = supabase
         .from("agents")
         .select("*, id, name, description, category, price_cents, rating, usage_count, is_featured, is_free, capabilities")
+        .eq("is_published", true)
       
       if (query) {
         agentQuery = agentQuery.or(`name.ilike.%${query}%,description.ilike.%${query}%`)

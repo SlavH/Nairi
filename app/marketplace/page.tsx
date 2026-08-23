@@ -64,7 +64,7 @@ export default async function MarketplacePage({
   }
 
   // --- Agents ---
-  let agentsQuery = supabase.from("agents").select("*")
+  let agentsQuery = supabase.from("agents").select("*").eq("is_published", true)
   if (params.category && params.category !== "all") agentsQuery = agentsQuery.eq("category", params.category)
   if (params.q) agentsQuery = agentsQuery.or(`name.ilike.%${params.q}%,description.ilike.%${params.q}%`)
   switch (params.sort) {
