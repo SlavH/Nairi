@@ -16,6 +16,10 @@ const MAX_DAILY_REWARDS: Record<string, number> = {
   streak: 100,    // Can only earn once per day
 }
 
+// Must stay in sync with the CASE in public.earn_daily_reward (migration
+// 20260823_f25_atomic_rewards_and_referrals.sql).
+const CLAIMABLE_REWARD_TYPES = new Set(["watch", "activity", "streak"])
+
 export async function POST(req: NextRequest) {
   const originGuard = assertSameOrigin(req)
   if (originGuard) return originGuard
@@ -23,114 +27,67 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    
-    const { rewardType, metadata } = await req.json()
-    
-    if (!rewardType || !REWARD_AMOUNTS.hasOwnProperty(rewardType)) {
+
+    let body: { rewardType?: unknown; metadata?: unknown }
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
+
+    const rewardType = body.rewardType
+    if (!rewardType || !CLAIMABLE_REWARD_TYPES.has(String(rewardType))) {
       return NextResponse.json({ error: "Invalid reward type" }, { status: 400 })
     }
-    
-    const today = new Date().toISOString().split("T")[0]
-    
-    // Check if already claimed today
-    const { data: existingReward } = await supabase
-      .from("daily_rewards")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("reward_type", rewardType)
-      .eq("reward_date", today)
-      .single()
-    
-    if (existingReward) {
-      return NextResponse.json({ 
+
+    // Cap unverified client-supplied metadata before persisting it.
+    let metadata = {}
+    if (body.metadata != null && typeof body.metadata === "object") {
+      const serialized = JSON.stringify(body.metadata)
+      if (serialized.length <= 2048) metadata = body.metadata
+    }
+
+    // Single atomic RPC: unique-constrained insert + balance increment +
+    // transaction log. No check-then-write races.
+    const { data, error } = await supabase.rpc("earn_daily_reward", {
+      p_user_id: user.id,
+      p_reward_type: String(rewardType),
+      p_metadata: metadata,
+    })
+
+    if (error) {
+      console.error("Earn credits error:", error)
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+
+    const result = data as {
+      ok?: boolean
+      already_claimed?: boolean
+      credits_earned?: number
+      new_balance?: number
+      streak?: number
+    }
+
+    if (!result?.ok) {
+      return NextResponse.json({ error: "Invalid reward type" }, { status: 400 })
+    }
+
+    if (result.already_claimed) {
+      return NextResponse.json({
         error: "Already claimed this reward today",
         alreadyClaimed: true
       }, { status: 400 })
     }
-    
-    const creditsToEarn = REWARD_AMOUNTS[rewardType]
-    
-    if (creditsToEarn <= 0) {
-      return NextResponse.json({ error: "No credits for this reward type" }, { status: 400 })
-    }
-    
-    // Update activity streak
-    await supabase.rpc("update_activity_streak", { p_user_id: user.id })
-    
-    // Award credits
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        tokens_balance: supabase.rpc("", {}), // Will be handled below
-        total_credits_earned: supabase.rpc("", {})
-      })
-      .eq("id", user.id)
-    
-    // Direct update for credits
-    await supabase.rpc("consume_credits", {
-      p_user_id: user.id,
-      p_amount: -creditsToEarn, // Negative to add credits
-      p_category: rewardType,
-      p_description: `Earned from ${rewardType} reward`
-    })
-    
-    // Actually let's do a proper update
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("tokens_balance, total_credits_earned")
-      .eq("id", user.id)
-      .single()
-    
-    await supabase
-      .from("profiles")
-      .update({
-        tokens_balance: (profile?.tokens_balance || 0) + creditsToEarn,
-        total_credits_earned: (profile?.total_credits_earned || 0) + creditsToEarn
-      })
-      .eq("id", user.id)
-    
-    // Log the reward
-    const { error: rewardError } = await supabase
-      .from("daily_rewards")
-      .insert({
-        user_id: user.id,
-        reward_type: rewardType,
-        credits_earned: creditsToEarn,
-        reward_date: today,
-        metadata: metadata || {}
-      })
-    
-    if (rewardError) {
-      console.error("Failed to log reward:", rewardError)
-    }
-    
-    // Log transaction
-    await supabase
-      .from("credit_transactions")
-      .insert({
-        user_id: user.id,
-        amount: creditsToEarn,
-        type: "earned",
-        category: rewardType,
-        description: `Daily ${rewardType} reward`
-      })
-    
-    // Get updated balance
-    const { data: updatedProfile } = await supabase
-      .from("profiles")
-      .select("tokens_balance, streak_days")
-      .eq("id", user.id)
-      .single()
-    
+
     return NextResponse.json({
       success: true,
-      creditsEarned: creditsToEarn,
-      newBalance: updatedProfile?.tokens_balance,
-      streak: updatedProfile?.streak_days
+      creditsEarned: result.credits_earned ?? REWARD_AMOUNTS[String(rewardType)],
+      newBalance: result.new_balance,
+      streak: result.streak
     })
   } catch (error) {
     console.error("Earn credits error:", error)
@@ -143,22 +100,22 @@ export async function GET() {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    
+
     const today = new Date().toISOString().split("T")[0]
-    
+
     // Get claimed rewards for today
     const { data: claimedRewards } = await supabase
       .from("daily_rewards")
       .select("reward_type, credits_earned")
       .eq("user_id", user.id)
       .eq("reward_date", today)
-    
+
     const claimedTypes = new Set(claimedRewards?.map(r => r.reward_type) || [])
-    
+
     const availableRewards = Object.entries(REWARD_AMOUNTS)
       .filter(([type]) => type !== "marketplace") // Marketplace is special
       .map(([type, amount]) => ({
@@ -167,9 +124,9 @@ export async function GET() {
         claimed: claimedTypes.has(type),
         maxDaily: MAX_DAILY_REWARDS[type]
       }))
-    
+
     const totalEarnedToday = claimedRewards?.reduce((sum, r) => sum + r.credits_earned, 0) || 0
-    
+
     return NextResponse.json({
       rewards: availableRewards,
       totalEarnedToday,

@@ -69,58 +69,44 @@ export async function POST(req: Request) {
     }
     
     const { referralCode } = await req.json()
-    
-    if (!referralCode) {
+
+    if (!referralCode || typeof referralCode !== "string") {
       return NextResponse.json({ error: "Referral code required" }, { status: 400 })
     }
-    
-    // Check if referral code is valid
-    const { data: referrer } = await supabase
-      .from("profiles")
-      .select("id, full_name")
-      .eq("referral_code", referralCode)
-      .single()
-    
-    if (!referrer) {
-      return NextResponse.json({ error: "Invalid referral code" }, { status: 404 })
+
+    // Single atomic RPC: validates the code, blocks self-referral and
+    // duplicates, inserts the referral as 'pending' and pays both parties.
+    // (Previously the row was inserted as 'completed' so award_referral_credits,
+    // which only matches 'pending', never awarded anything.)
+    const { data, error } = await supabase.rpc("claim_referral", {
+      p_referred_id: user.id,
+      p_referral_code: referralCode
+    })
+
+    if (error) {
+      console.error("Process referral error:", error)
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
-    
-    if (referrer.id === user.id) {
-      return NextResponse.json({ error: "Cannot refer yourself" }, { status: 400 })
+
+    const result = data as { ok?: boolean; error?: string }
+    if (!result?.ok) {
+      switch (result?.error) {
+        case "referral_code_required":
+          return NextResponse.json({ error: "Referral code required" }, { status: 400 })
+        case "invalid_code":
+          return NextResponse.json({ error: "Invalid referral code" }, { status: 404 })
+        case "self_referral":
+          return NextResponse.json({ error: "Cannot refer yourself" }, { status: 400 })
+        case "already_referred":
+          return NextResponse.json({ error: "Already have a referral" }, { status: 400 })
+        default:
+          return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+      }
     }
-    
-    // Check if user was already referred
-    const { data: existingReferral } = await supabase
-      .from("referrals")
-      .select("id")
-      .eq("referred_id", user.id)
-      .single()
-    
-    if (existingReferral) {
-      return NextResponse.json({ error: "Already have a referral" }, { status: 400 })
-    }
-    
-    // Create referral record and award credits
-    const { error: referralError } = await supabase
-      .from("referrals")
-      .insert({
-        referrer_id: referrer.id,
-        referred_id: user.id,
-        status: "completed",
-        completed_at: new Date().toISOString()
-      })
-    
-    if (referralError) {
-      return NextResponse.json({ error: referralError.message }, { status: 500 })
-    }
-    
-    // Award credits to both parties using the database function
-    await supabase.rpc("award_referral_credits", { p_referred_id: user.id })
-    
+
     return NextResponse.json({
       success: true,
-      message: "Referral bonus applied! You both received 500 credits.",
-      referredBy: referrer.full_name || "A Nairi user"
+      message: "Referral bonus applied! You both received 500 credits."
     })
   } catch (error) {
     console.error("Process referral error:", error)
