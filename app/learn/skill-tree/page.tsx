@@ -15,9 +15,9 @@ export default async function SkillTreePage() {
   const [treesResult, userSkillsResult] = await Promise.all([
     supabase
       .from("skill_trees")
-      .select("*, skill_nodes(*)")
-      .eq("is_published", true)
-      .order("order_index", { ascending: true }),
+      .select("*, skills(*)")
+      .eq("is_public", true)
+      .order("name", { ascending: true }),
     supabase.from("user_skills").select("*").eq("user_id", user.id),
   ])
 

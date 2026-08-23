@@ -2,35 +2,38 @@
 
 import { ChevronLeft, Lock, CheckCircle2, Sparkles, Zap } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
-interface SkillNode {
+// Shapes mirror the real schema (scripts/008_create_education_tables.sql):
+// skill_trees / skills / user_skills. F23 fixed the previously fictional
+// skill_nodes + wrong user_skills column names.
+interface Skill {
   id: string
   name: string
-  description: string
-  icon: string
+  description: string | null
+  level: number
   xp_required: number
   prerequisites: string[]
-  order_index: number
 }
 
 interface SkillTree {
   id: string
   name: string
-  description: string
-  icon: string
-  skill_nodes: SkillNode[]
+  description: string | null
+  skills: Skill[]
 }
 
 interface UserSkill {
-  skill_node_id: string
-  proficiency_level: number
-  xp_earned: number
+  skill_id: string
+  current_xp: number
+  mastery_level: number
   unlocked: boolean
 }
 
@@ -42,26 +45,44 @@ interface SkillTreeViewProps {
 
 export function SkillTreeView({ skillTrees, userSkills, userId }: SkillTreeViewProps) {
   const [selectedTree, setSelectedTree] = useState<SkillTree | null>(skillTrees[0] || null)
+  const [unlockingId, setUnlockingId] = useState<string | null>(null)
+  const router = useRouter()
 
   const isSkillUnlocked = (skillId: string) => {
-    return userSkills.some((s) => s.skill_node_id === skillId && s.unlocked)
+    return userSkills.some((s) => s.skill_id === skillId && s.unlocked)
   }
 
-  const getSkillProgress = (skillId: string) => {
-    return userSkills.find((s) => s.skill_node_id === skillId)?.proficiency_level || 0
+  const getSkillMastery = (skillId: string) => {
+    return userSkills.find((s) => s.skill_id === skillId)?.mastery_level || 0
   }
 
   const getSkillXP = (skillId: string) => {
-    return userSkills.find((s) => s.skill_node_id === skillId)?.xp_earned || 0
+    return userSkills.find((s) => s.skill_id === skillId)?.current_xp || 0
   }
 
-  const canUnlockSkill = (skill: SkillNode) => {
+  const canUnlockSkill = (skill: Skill) => {
     if (isSkillUnlocked(skill.id)) return false
     if (!skill.prerequisites || skill.prerequisites.length === 0) return true
     return skill.prerequisites.every((prereqId) => isSkillUnlocked(prereqId))
   }
 
-  const totalXP = userSkills.reduce((sum, skill) => sum + skill.xp_earned, 0)
+  const totalXP = userSkills.reduce((sum, skill) => sum + (skill.current_xp || 0), 0)
+
+  const unlockSkill = async (skill: Skill) => {
+    if (unlockingId) return
+    setUnlockingId(skill.id)
+    try {
+      const res = await fetch(`/api/learn/skills/${skill.id}/unlock`, { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data?.error ?? "Unlock failed")
+      toast.success(`Unlocked ${skill.name}`)
+      router.refresh()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to unlock skill")
+    } finally {
+      setUnlockingId(null)
+    }
+  }
 
   return (
     <div className="flex h-full flex-col min-h-0 overflow-hidden">
@@ -110,7 +131,7 @@ export function SkillTreeView({ skillTrees, userSkills, userId }: SkillTreeViewP
                     </div>
                     <div>
                       <h3 className="font-medium">{tree.name}</h3>
-                      <p className="text-xs text-muted-foreground">{tree.skill_nodes?.length || 0} skills</p>
+                      <p className="text-xs text-muted-foreground">{tree.skills?.length || 0} skills</p>
                     </div>
                   </div>
                 </CardContent>
@@ -136,11 +157,11 @@ export function SkillTreeView({ skillTrees, userSkills, userId }: SkillTreeViewP
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {selectedTree.skill_nodes
-                      ?.sort((a, b) => a.order_index - b.order_index)
+                    {[...(selectedTree.skills ?? [])]
+                      .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name))
                       .map((skill) => {
                         const unlocked = isSkillUnlocked(skill.id)
-                        const progress = getSkillProgress(skill.id)
+                        const mastery = getSkillMastery(skill.id)
                         const xp = getSkillXP(skill.id)
                         const canUnlock = canUnlockSkill(skill)
 
@@ -184,10 +205,10 @@ export function SkillTreeView({ skillTrees, userSkills, userId }: SkillTreeViewP
                               {unlocked && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between text-sm">
-                                    <span>Proficiency</span>
-                                    <span>{progress}%</span>
+                                    <span>Mastery</span>
+                                    <span>{mastery}/5</span>
                                   </div>
-                                  <Progress value={progress} className="h-2" />
+                                  <Progress value={(mastery / 5) * 100} className="h-2" />
                                   <p className="text-xs text-muted-foreground text-right">{xp} XP earned</p>
                                 </div>
                               )}
@@ -195,8 +216,10 @@ export function SkillTreeView({ skillTrees, userSkills, userId }: SkillTreeViewP
                                 <Button
                                   className="w-full bg-gradient-to-r from-[#e052a0] to-[#00c9c8] hover:opacity-90"
                                   size="sm"
+                                  disabled={unlockingId === skill.id}
+                                  onClick={() => unlockSkill(skill)}
                                 >
-                                  Unlock Skill
+                                  {unlockingId === skill.id ? "Unlocking…" : "Unlock Skill"}
                                 </Button>
                               )}
                               {!unlocked && !canUnlock && skill.prerequisites?.length > 0 && (
@@ -209,7 +232,7 @@ export function SkillTreeView({ skillTrees, userSkills, userId }: SkillTreeViewP
                         )
                       })}
                   </div>
-                  {(!selectedTree.skill_nodes || selectedTree.skill_nodes.length === 0) && (
+                  {(!selectedTree.skills || selectedTree.skills.length === 0) && (
                     <div className="text-center py-12">
                       <Sparkles className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                       <p className="text-muted-foreground">No skills in this category yet</p>
