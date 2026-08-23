@@ -144,16 +144,20 @@ export async function generateWithFallback(opts: {
   temperature?: number
   maxOutputTokens?: number
   fast?: boolean
+  model?: string
 }): Promise<{ text: string; model: string }> {
+  // Requested model (e.g. model comparison) overrides the default primary
+  // model; fallbacks keep their own defaults and report what served.
+  const primaryModel = opts.model ?? NAIRI_AI_MODEL
   // NAIRI_AI_BASE_URL takes priority over old async router
   if (useNairiAiProvider()) {
     requireNairiAiConfig()
-    if (isCircuitOpen(NAIRI_AI_MODEL)) {
-      throw new Error(`Nairi AI model ${NAIRI_AI_MODEL}: circuit open (temporarily unavailable)`)
+    if (isCircuitOpen(primaryModel)) {
+      throw new Error(`Nairi AI model ${primaryModel}: circuit open (temporarily unavailable)`)
     }
     try {
       const result = await generateText({
-        model: nairiAiProvider(NAIRI_AI_MODEL),
+        model: nairiAiProvider(primaryModel),
         system: opts.system,
         ...(opts.messages
           ? { messages: opts.messages }
@@ -161,10 +165,10 @@ export async function generateWithFallback(opts: {
         temperature: opts.temperature ?? 0.7,
         maxOutputTokens: opts.maxOutputTokens ?? 4096,
       })
-      recordSuccess(NAIRI_AI_MODEL)
-      return { text: result.text, model: NAIRI_AI_MODEL }
+      recordSuccess(primaryModel)
+      return { text: result.text, model: primaryModel }
     } catch (error) {
-      recordFailure(NAIRI_AI_MODEL)
+      recordFailure(primaryModel)
       throw error
     }
   }
@@ -177,12 +181,12 @@ export async function generateWithFallback(opts: {
     return { text, model: "nairi-router" }
   }
   requireNairiAiConfig()
-  if (isCircuitOpen(NAIRI_AI_MODEL)) {
-    throw new Error(`Nairi AI model ${NAIRI_AI_MODEL}: circuit open (temporarily unavailable)`)
+  if (isCircuitOpen(primaryModel)) {
+    throw new Error(`Nairi AI model ${primaryModel}: circuit open (temporarily unavailable)`)
   }
   try {
     const result = await generateText({
-      model: nairiAiProvider(NAIRI_AI_MODEL),
+      model: nairiAiProvider(primaryModel),
       system: opts.system,
       ...(opts.messages
         ? { messages: opts.messages }
@@ -190,10 +194,10 @@ export async function generateWithFallback(opts: {
       temperature: opts.temperature ?? 0.7,
       maxOutputTokens: opts.maxOutputTokens ?? 4096,
     })
-    recordSuccess(NAIRI_AI_MODEL)
-    return { text: result.text, model: NAIRI_AI_MODEL }
+    recordSuccess(primaryModel)
+    return { text: result.text, model: primaryModel }
   } catch (error) {
-    recordFailure(NAIRI_AI_MODEL)
+    recordFailure(primaryModel)
     throw error
   }
 }
