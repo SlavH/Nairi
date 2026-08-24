@@ -36,7 +36,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -79,6 +79,16 @@ import { versionControl } from '@/lib/workflows/version-control'
 // Main Workflow Builder Page
 // ============================================================================
 
+interface SavedWorkflowRow {
+  id: string
+  name: string
+  description?: string | null
+  status?: string
+  version?: string
+  created_at?: string
+  updated_at?: string
+}
+
 export default function WorkflowsPage() {
   const {
     currentWorkflow,
@@ -106,6 +116,115 @@ export default function WorkflowsPage() {
   const [newWorkflowName, setNewWorkflowName] = useState('')
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const [importJson, setImportJson] = useState('')
+  const [savedWorkflows, setSavedWorkflows] = useState<SavedWorkflowRow[]>([])
+  const [savingToServer, setSavingToServer] = useState(false)
+  const serverIdsRef = useRef<Map<string, string>>(new Map())
+
+  const refreshSavedWorkflows = useCallback(async () => {
+    try {
+      const res = await fetch('/api/workflows')
+      if (!res.ok) return
+      const rows = await res.json()
+      if (Array.isArray(rows)) setSavedWorkflows(rows)
+    } catch {
+      // offline / not signed in — local-only mode
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshSavedWorkflows()
+  }, [refreshSavedWorkflows])
+
+  const serializeWorkflow = (wf: NonNullable<typeof currentWorkflow>) => ({
+    name: wf.name,
+    description: wf.description || '',
+    nodes: wf.nodes,
+    edges: wf.edges,
+    variables: wf.variables,
+    settings: wf.settings,
+    triggers: wf.triggers,
+  })
+
+  // Save workflow to server (create or update), keeps local version history too
+  const handleSaveWorkflow = async () => {
+    if (!currentWorkflow || savingToServer) return
+    setSavingToServer(true)
+    try {
+      versionControl.saveVersion(currentWorkflow, 'Manual save')
+      const payload = serializeWorkflow(currentWorkflow)
+      const existingId = serverIdsRef.current.get(currentWorkflow.id)
+
+      let res: Response
+      if (existingId) {
+        res = await fetch('/api/workflows', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: existingId, ...payload }),
+        })
+      } else {
+        res = await fetch('/api/workflows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) {
+          const row = await res.json()
+          serverIdsRef.current.set(currentWorkflow.id, row.id)
+        }
+      }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        toast.error(err.error || 'Failed to save workflow')
+        return
+      }
+
+      void refreshSavedWorkflows()
+      toast.success('Workflow saved')
+    } catch {
+      toast.error('Network error while saving')
+    } finally {
+      setSavingToServer(false)
+    }
+  }
+
+  const handleOpenSavedWorkflow = async (row: SavedWorkflowRow) => {
+    try {
+      if (serverIdsRef.current.has(row.id)) {
+        // already open in this session — just select it
+        const local = workflows.find((w) => serverIdsRef.current.get(w.id) === row.id)
+        if (local) {
+          setCurrentWorkflow(local)
+          return
+        }
+      }
+      const res = await fetch(`/api/workflows?id=${encodeURIComponent(row.id)}`)
+      if (!res.ok) {
+        toast.error('Failed to load workflow')
+        return
+      }
+      const data = await res.json()
+      const wf: import('@/lib/workflows/types').Workflow = {
+        id: data.id,
+        name: data.name || 'Untitled Workflow',
+        description: data.description || '',
+        version: data.version || '1.0.0',
+        status: data.status || 'draft',
+        nodes: data.nodes || [],
+        edges: data.edges || [],
+        variables: data.variables || [],
+        settings: data.settings || {},
+        triggers: data.triggers || [],
+        createdAt: new Date(data.created_at || Date.now()),
+        updatedAt: new Date(data.updated_at || Date.now()),
+      }
+      serverIdsRef.current.set(wf.id, row.id)
+      setCurrentWorkflow(wf)
+      toast.success(`Opened "${wf.name}"`)
+    } catch {
+      toast.error('Network error while loading')
+    }
+  }
 
   // Create new workflow
   const handleCreateWorkflow = () => {
@@ -170,13 +289,6 @@ export default function WorkflowsPage() {
     }
   }
 
-  // Save workflow
-  const handleSaveWorkflow = () => {
-    if (!currentWorkflow) return
-    versionControl.saveVersion(currentWorkflow, 'Manual save')
-    toast.success('Workflow saved')
-  }
-
   // Export workflow
   const handleExportWorkflow = () => {
     if (!currentWorkflow) return
@@ -238,7 +350,23 @@ export default function WorkflowsPage() {
                 New Workflow
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {workflows.length > 0 ? (
+              {savedWorkflows.length > 0 ? (
+                savedWorkflows.map((row) => (
+                  <DropdownMenuItem
+                    key={row.id}
+                    onClick={() => void handleOpenSavedWorkflow(row)}
+                    className={cn(
+                      currentWorkflow && serverIdsRef.current.get(currentWorkflow.id) === row.id && 'bg-muted'
+                    )}
+                  >
+                    <Boxes className="h-4 w-4 mr-2" />
+                    <span className="truncate">{row.name}</span>
+                    <Badge variant="outline" className="ml-auto text-[10px]">
+                      {row.status || 'draft'}
+                    </Badge>
+                  </DropdownMenuItem>
+                ))
+              ) : workflows.length > 0 ? (
                 workflows.map((workflow) => (
                   <DropdownMenuItem
                     key={workflow.id}
@@ -295,11 +423,11 @@ export default function WorkflowsPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleSaveWorkflow}
-            disabled={!currentWorkflow}
+            onClick={() => void handleSaveWorkflow()}
+            disabled={!currentWorkflow || savingToServer}
           >
             <Save className="h-4 w-4 mr-2" />
-            Save
+            {savingToServer ? 'Saving...' : 'Save'}
           </Button>
 
           {/* More Actions */}
@@ -331,10 +459,23 @@ export default function WorkflowsPage() {
               <DropdownMenuItem
                 className="text-destructive"
                 disabled={!currentWorkflow}
-                onClick={() => {
-                  if (currentWorkflow) {
+                onClick={async () => {
+                  if (!currentWorkflow) return
+                  const serverId = serverIdsRef.current.get(currentWorkflow.id)
+                  try {
+                    if (serverId) {
+                      const res = await fetch(`/api/workflows?id=${encodeURIComponent(serverId)}`, { method: 'DELETE' })
+                      if (!res.ok) {
+                        toast.error('Failed to delete on server')
+                        return
+                      }
+                      serverIdsRef.current.delete(currentWorkflow.id)
+                      void refreshSavedWorkflows()
+                    }
                     deleteWorkflow(currentWorkflow.id)
                     toast.success('Workflow deleted')
+                  } catch {
+                    toast.error('Network error while deleting')
                   }
                 }}
               >

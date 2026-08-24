@@ -26,17 +26,10 @@ export function LimitsSection() {
               </div>
 
               <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-[#e879f9]/10 to-[#22d3ee]/10 border border-border">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
                   <span className="text-sm font-medium">{t.limits.dailyCredits}</span>
                   <span className="text-sm text-muted-foreground">{t.limits.creditsUsed}</span>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#e879f9] to-[#22d3ee] rounded-full transition-all"
-                    style={{ width: "0%" }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">{t.limits.resetsIn}</p>
               </div>
             </div>
 
