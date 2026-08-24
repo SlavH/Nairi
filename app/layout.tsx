@@ -6,7 +6,6 @@ import { Toaster } from "sonner"
 
 import "./globals.css"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { NavOverlayWrapper } from "@/components/nav-overlay-wrapper"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TopProgressBar } from "@/components/top-progress-bar"
 import { I18nProvider } from "@/lib/i18n/context"
