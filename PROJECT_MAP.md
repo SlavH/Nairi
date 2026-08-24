@@ -1,35 +1,46 @@
-# PROJECT_MAP.md — Nairi (github.com/SlavH/Nairi)
+# Nairi — Project Map
 
-Обновлено: цикл 1, агент-Researcher.
+Post-cleanup map (2026-08). Every entry is reachable from a live route.
 
-## Стек
-- Next.js 16 (App Router) + React 19 + TypeScript 5
-- Supabase (Postgres + RLS + auth), Stripe, ioredis (rate-limit)
-- Vitest (unit/integration), Playwright (e2e), ESLint 9 flat config
-- AI: OpenAI-совместимые бэкенды через fallback-цепочку (NAIRI_AI_BASE_URL → Groq → OpenRouter); Zen (opencode.ai) в NairiBook; WebContainers в Builder
+## Pages
 
-## Точки входа
-- `app/` — ~46 маршрутов страниц; `app/api/` — 100+ API routes
-- `lib/nairibook/` — NairiBook pipeline (chunking → concepts → graph → embeddings → SRS)
-- `scripts/` — SQL-миграции Supabase (001–025+)
-- CI: `.github/workflows/ci.yml` = tsc --noEmit → next build → vitest → playwright e2e
+| Area | Routes |
+|---|---|
+| Marketing | `/`, `/about`, `/pricing`, `/faq`, `/how-it-works`, `/capabilities`, `/security`, `/blog`, `/careers`, `/contact`, legal (`/privacy` `/terms` `/cookies`), `/docs/*` |
+| Auth | `/auth/login|sign-up|forgot-password|reset-password|callback…`, `/onboarding` |
+| Chat | `/chat`, `/chat/[id]`, `/share/chat/[slug]` |
+| Builder | `/builder` (client-side OpenCode + Sandpack) |
+| Learn | `/learn`, courses, skill-tree, quizzes, mentors, notebooks |
+| Flow (social) | `/flow` |
+| Studio | `/studio`, `/studio/presentation` |
+| Documents | `/documents` |
+| Simulations | `/simulations` |
+| Marketplace | listing, detail, product, create/edit, creator dashboard & badges |
+| Dashboard | `/dashboard` + activity/traces/notifications/billing/credits/settings |
+| Account | `/profile`, `/settings`, `/checkout/[id]`, `/checkout/plan/[id]` |
+| Hub | `/nav`, `/community/*`, `/search`, `/workspace{,/all,/[id],/create}` |
 
-## Документация-источники истины
-- CONSTITUTION.md — принципы (тесты обязательны для каждой фичи)
-- docs/AUDIT_TRIAGE.md — F1–F47: Priority 1 (F1–F10, заявлено исправлено), P2 (F11–F28), P3 (F29–F47)
-- tasks.json — все задачи стримов A–I помечены done (требует выборочной верификации)
-- PROGRESS.md / AUDIT_SUMMARY.md / PRODUCTION_CHECKLIST.md — заявлено: typecheck чистый, тесты зелёные
+Redirects: `/billing /credits /activity /execution-traces /notifications → /dashboard/*`; `/presentations → /studio/presentation`.
 
-## Фактическое состояние (проверено запуском, не по описанию)
-- ✅ `npx tsc --noEmit` — 0 ошибок
-- ❌ `npm run test` — 2 FAIL из 324: `__tests__/lib/nairibook/core.test.ts`
-  - Причина: тесты "creates a DAG..." и "detects and breaks a cyclic graph" вызывают
-    `buildGraph()` → `callZen()` → реальный fetch на https://opencode.ai/zen/v1 без мока.
-  - Соседние тесты (exercises/problem/photo-check) мокают `@/lib/nairibook/zen` — конвенция нарушена только здесь.
-- ⏳ lint, build, e2e — ещё не прогнаны в этом цикле
+## Backend groups (74 route files)
 
-## Известные открытые вопросы
-- Статус F11–F28 (Priority 2 аудита) не подтверждён коммитами/тестами
-- Критерий «100% готово» пользователем явно не определён; рабочая трактовка оркестратора:
-  CI полностью зелёный (typecheck/build/test/lint) + находки аудита F1–F47 исправлены
-  или документированно отложены + расхождений план/код нет.
+chat · nairi-chat · nairi · builder/projects · flow(+likes/comments/follow) ·
+workflows · create · studio · generate-{image,video,audio,document,presentation,
+slide-images,world} · learn/* · marketplace/{products,purchase,reviews} ·
+users/badges · credits · activity/traces/notifications · search · profile ·
+auth/verify-signup · contact · upload · export{,-pptx}/import-document · health ·
+rate-limit · v1 · webhooks/stripe. See `docs/API_DOCUMENTATION.md`.
+
+## Libraries that matter
+
+- `lib/ai/groq-direct.ts` — provider fallback chain for all text generation
+- `lib/nairibook/*` — parsers → concepts → graph → RAG (WebGPU embeddings)
+- `lib/supabase/*` — server/client/admin clients; `lib/auth.ts` session helpers
+- `lib/security/request-validator.ts`, `lib/rate-limit*.ts` — request hygiene
+- `lib/workflows/{store,executor}.ts` — node-graph engine
+- `lib/opencode-wasm-bridge.ts` + `lib/webcontainer-provider.ts` — Builder agent
+
+## Migrations
+
+`npm run migrate` applies `scripts/001…048_*.sql`. RLS hardening lives in
+`supabase/migrations/*.sql` (manual step on fresh projects).

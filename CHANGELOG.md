@@ -1,7 +1,29 @@
 # Changelog
 
-All notable changes to Nairi v34 will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+All notable changes to Nairi are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.35.0] — 2026-08-24 — Showcase cleanup
+
+### Removed
+- 94 dead UI files (~22k LOC): orphaned components/hooks, unrendered nav-overlay system, junk artifacts
+- 74 dead lib modules (~10k LOC): lib/ai Phase-X graveyard, duplicate validation/i18n layers, retired provider clients
+- ~100 API route files without live consumers (tools suites, media long-tail, superseded REST layers)
+- Routes: /debate (subsumed by chat mode), /studio/document, top-level dashboard duplicates (now permanent redirects), /api/seed (security), workflows/webhook (unauthenticated)
+- 16 unused npm dependencies (gsap, zustand, otplib, @dnd-kit/*, react-hook-form stack, recharts, cmdk, embla-carousel, vaul, react-day-picker, input-otp, fake-indexeddb, @storybook/test)
+
+### Added
+- Flow social feed: posts, likes, comments, follows (scripts/048_flow_social.sql + /api/flow rewrite + new UI)
+- /workflows server persistence via previously-unused /api/workflows CRUD
+
+### Fixed
+- /workspace/create: native form POST (guaranteed 500) replaced with JSON fetch; type picker trimmed to supported types
+- /nav hub broken links (/dashboard/profile -> /profile, /dashboard/creations -> /workspace)
+- Landing page fake credit meter removed; honest daily-allowance copy
+- studio/generate route verified clean (audit false positive)
+
+### Docs
+- README rewritten to match reality; .env.example reduced to actually-read variables
+- Audit/historical documents moved to docs/archive/
 ## [Unreleased]
 
 ### AMD GPU Integration

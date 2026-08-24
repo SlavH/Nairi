@@ -1,62 +1,95 @@
-# Nairi: The AI Ecosystem
+# Nairi
 
-[![Nairi](https://nairi-seven.vercel.app/og.png)](https://nairi-seven.vercel.app/)
+**Nairi** is an open, modular AI platform: chat with multiple backends, generate apps from prompts, learn with AI notebooks, publish creations to a marketplace, and share results on a social feed.
 
-Nairi is an advanced, modular AI assistant platform designed to bridge human knowledge and digital transformation. It provides a comprehensive, scalable interface for interacting with multiple AI providers, building custom agents, and managing complex AI-powered workflows.
-
----
-
-## 🚀 Core Pillars
-
-### 1. NairiBook: Generative Knowledge Engine
-NairiBook is the heart of the ecosystem, designed for **Generative Knowledge Expedition**. We believe that static, linear PDF documentation belongs to the past.
-- **Knowledge-to-Space Mapping**: Transforms dense, unstructured document data into interactive, explorable 3D knowledge worlds.
-- **Interactive Expedition**: Enables users to "walk through" technical documentation, making abstract concepts tangible via AI-driven simulations and 3D visualization.
-- **Deep Research**: Provides personalized AI mentorship on specific domains using Retrieval-Augmented Generation (RAG).
-
-### 2. Intelligent Agent Infrastructure
-Nairi provides a robust framework for building and deploying autonomous agents capable of:
-- **Workflow Automation**: Manage multi-step tasks across different AI models.
-- **Model Agnostic Routing**: Seamlessly switch between top-tier AI providers to optimize for cost, speed, or reasoning capabilities.
-- **Context-Aware Memory**: Persist knowledge across sessions to ensure deep, consistent interactions.
+> Status: feature-complete demo build. Not production-hardened — see [Roadmap notes](#roadmap-notes).
 
 ---
 
-## 🏗️ Architecture & Integration
+## What's inside
 
-The Nairi ecosystem is built with a decoupled architecture ensuring scalability and flexibility:
+| Pillar | Route | What it does |
+|---|---|---|
+| **Chat** | `/chat` | Streaming AI chat with modes (reasoning, tutor, research…), conversation history, folders, file uploads, artifacts |
+| **Builder** | `/builder` | Prompt-to-app IDE: agent-driven codegen in-browser (OpenCode + WebContainers), Sandpack live preview, project versions |
+| **Learn / NairiBook** | `/learn` | Courses, skill trees, quizzes, AI mentors, and **NairiBook notebooks**: turn documents into concept graphs with local RAG (WebGPU embeddings) |
+| **Flow** | `/flow` | Social feed: post creations, like, comment, follow people, remix posts into chats |
+| **Studio** | `/studio`, `/studio/presentation` | Keyless-capable image/video/audio generators and a full slide editor with PPTX export |
+| **Marketplace** | `/marketplace` | Publish agents & creations, reviews, Stripe checkout, creator dashboard |
+| **Dashboard** | `/dashboard` | Activity log, execution traces, notifications, credits, billing |
 
-- **Frontend**: Next.js 16 + React 19 + TypeScript for a blazing-fast, type-safe user experience.
-- **Engine**: Modular backend powered by FastAPI, capable of running specialized engines like NairiBook.
-- **Data Layer**: Vector storage for RAG and structured knowledge graphs for semantic relationships.
+## Works without any API keys
 
-### NairiBook Integration
-NairiBook plugs directly into the core Nairi platform, treating the knowledge base as a dynamic asset. For technical implementation details, refer to the [NairiBook Integration Guide](docs/NAIRIBOOK_INTEGRATION.md).
+Clone, install, run — these features work out of the box:
 
----
+- **Builder codegen** via free OpenCode Zen models (browser WebContainers)
+- **Image generation** via Pollinations fallback tier
+- **Text-to-speech** via Streamlabs Polly fallback
+- **PPTX export / document import** (pure client/server-side processing)
+- All Supabase-backed CRUD once you configure a free Supabase project
 
-## 📑 Project Documentation
-- [NairiBook Integration Guide](docs/NAIRIBOOK_INTEGRATION.md): How the knowledge engine plugs into the platform.
-- [Architecture Overview](docs/ARCHITECTURE.md): System design, data flow, and infrastructure.
-- [Product Specifications](docs/PRODUCT_SPEC.md): Feature roadmap and long-term vision.
-- [Development Workflow](docs/DEVELOPMENT.md): Guidelines for contributors and ecosystem integrators.
+AI chat and text generation need any OpenAI-compatible endpoint (`NAIRI_AI_BASE_URL`) — vLLM on an AMD MI300X, Ollama locally, or Groq's free tier all work.
 
----
+## Quick start
 
-## 🌐 Get Started
-Explore the ecosystem in action:
-- **Live Demo**: [Nairi Website](https://nairi-seven.vercel.app/)
-- **Core Repository**: [Nairi GitHub](https://github.com/SlavH/Nairi)
-- **Knowledge Engine**: [NairiBook GitHub](https://github.com/SlavH/NairiBook)
+```bash
+git clone https://github.com/SlavH/Nairi && cd Nairi
+npm ci
+cp .env.example .env.local   # add Supabase URL+keys (free tier is fine)
+npm run dev                  # http://localhost:3000
+```
 
----
+Optional extras:
 
-## 🛠️ Built with
-- [Next.js 16](https://nextjs.org/)
-- [React 19](https://react.dev/)
-- [FastAPI](https://fastapi.tiangolo.com/)
-- [LangChain](https://www.langchain.com/)
-- [vLLM](https://github.com/vllm-project/vllm)
+```bash
+npm run migrate          # apply SQL migrations from scripts/*.sql
+npm test                 # vitest unit/integration suite
+npm run test:e2e         # Playwright (needs a running dev server)
+```
+
+## Architecture
+
+Single Next.js 16 App Router application (React 19, TypeScript strict):
+
+```
+app/
+  page.tsx            landing
+  chat/ builder/ learn/ flow/ studio/ marketplace/ dashboard/ ...
+  api/                route handlers (chat streaming, generation, CRUD)
+components/           UI (shadcn/radix-based design system)
+lib/
+  ai/groq-direct.ts   provider fallback chain (AI backend → Colab → Router)
+  supabase/           auth + DB clients (server/client/service roles)
+  nairibook/          document parsing → concepts → graph → RAG pipeline
+  workflows/          node-graph engine (executor flag-gated)
+scripts/              numbered SQL migrations (001–048), seed & ops scripts
+supabase/migrations/  RLS hardening policies
+e2e/ __tests__/       Playwright + Vitest suites
+```
+
+Key decisions:
+
+- **No separate backend service.** Route handlers call providers directly; heavy media generation goes through an optional async HF-Space router.
+- **Graceful degradation.** Every paid provider tier has a keyless or cheaper fallback where feasible; routes fail honestly (503) when no path exists.
+- **RLS-first data access.** Pages read Supabase directly under row-level-security; REST endpoints exist only where logic must run server-side.
+
+## Testing & quality gates
+
+- `npx tsc --noEmit` — zero errors, enforced at build time
+- `npm test` — Vitest suite covering API auth/validation paths and core libs
+- `npm run lint` — ESLint (flat config)
+
+## Roadmap notes
+
+Known gaps, intentionally documented instead of hidden:
+
+- Rate limiting is per-instance unless `REDIS_URL` is set
+- Workflow execution is disabled by default (`NAIRI_ENABLE_WORKFLOW_EXEC=true` opts in)
+- Some media tiers (video quality, avatars) require paid provider keys
+- No CI-deployed preview environment yet
+
+## Links
+
+- Live demo: https://nairi-seven.vercel.app/
 
 *Bridging human knowledge and digital transformation.*
-
