@@ -1,7 +1,11 @@
 // Cache bust: 2026-08-13-csp-nonce-middleware
 /** @type {import('next').NextConfig} */
+
+// `standalone` output is for self-hosted Docker images only (see Dockerfile).
+// On Vercel it must stay off: building standalone there breaks the
+// output-file-tracing finalization step (ENOENT .next/next-server.js.nft.json).
 const nextConfig = {
-  output: "standalone",
+  output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
 
   // TypeScript: type errors fail the build (F43). `tsc --noEmit` is clean;
   // hiding build-time type errors let real bugs reach production.

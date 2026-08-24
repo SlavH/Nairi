@@ -1,6 +1,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 ENV NODE_OPTIONS="--max-old-space-size=512"
+# Opt in to standalone server output for the self-hosted image
+ENV NEXT_OUTPUT=standalone
 COPY package.json package-lock.json* ./
 RUN npm install --legacy-peer-deps
 COPY . .
