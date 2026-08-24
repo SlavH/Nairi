@@ -2,6 +2,13 @@
 
 All notable changes to Nairi are documented here. Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+### Cleanliness round 2
+- Assets: removed ~46MB unreferenced media (public/models glb, avatar PNG layers/video dups, browser-extension sources)
+- Tests: removed zombie suites (top-level e2e/ never executed by playwright config; excluded __tests__/integration), i18n en.json orphan
+- Tooling: Storybook removed (.storybook/, stories, devDeps); personal-infra ops scripts removed (oracle/duckdns/night-run/k6/rollback)
+- Docs: CONSTITUTION.md / DECISIONS.md / PRODUCTION_CHECKLIST.md removed (unreferenced process artifacts)
+- Deps: pako dropped; @testing-library/dom pinned explicitly (peer of @testing-library/react)
+
 ## [0.35.0] — 2026-08-24 — Showcase cleanup
 
 ### Removed
