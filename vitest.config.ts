@@ -16,7 +16,6 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "**/e2e/**",
-      "**/__tests__/integration/api/**",
     ],
     coverage: {
       provider: "v8",

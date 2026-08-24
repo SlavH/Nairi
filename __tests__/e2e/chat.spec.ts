@@ -18,7 +18,7 @@ test.describe("Chat (logged in preferred)", () => {
   })
 
   test("execution traces page loads", async ({ page }) => {
-    await page.goto("/execution-traces", { waitUntil: "domcontentloaded" })
+    await page.goto("/dashboard/traces", { waitUntil: "domcontentloaded" })
     await expect(page.locator("body")).toBeVisible()
     await page.waitForTimeout(1500)
     if (!page.url().includes("/auth/login")) {
