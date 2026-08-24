@@ -18,6 +18,7 @@ import {
   Zap,
   Gift,
   Presentation,
+  FileText,
   Code,
   GitBranch,
 } from "lucide-react"
@@ -49,6 +50,7 @@ function useNavItems() {
     { href: "/dashboard", icon: Home, label: t.nav.dashboard },
     { href: "/chat", icon: MessageSquare, label: t.nav.chat },
     { href: "/presentations", icon: Presentation, label: "Presentations" },
+    { href: "/documents", icon: FileText, label: "Documents" },
     { href: "/workspace", icon: FolderOpen, label: t.dashboard.workspace },
     { href: "/builder", icon: Code, label: t.dashboard.builder },
     { href: "/learn", icon: GraduationCap, label: t.nav.learn },

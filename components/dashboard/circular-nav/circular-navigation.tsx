@@ -96,7 +96,7 @@ const MIN_CIRCLE_GAP = 12 // Minimum gap between circle edges so they don't cove
 // Sub-circle configs: items only (positions are computed on parent's side as top/down/right)
 function getUserSubCircles(t: { nav: { profile: string; settings: string; billing: string; logout: string } }) {
   return [
-    { icon: UserCircle, label: t.nav.profile, href: "/dashboard/profile" },
+    { icon: UserCircle, label: t.nav.profile, href: "/profile" },
     { icon: Settings, label: t.nav.settings, href: "/dashboard/settings" },
     { icon: CreditCard, label: t.nav.billing, href: "/dashboard/billing" },
     { icon: LogOut, label: t.nav.logout, isLogout: true },
@@ -128,7 +128,7 @@ function getActivitySubCircles(t: { nav: { activity: string; traces: string; not
 }
 function getWorkspaceSubCircles(t: { nav: { creations: string; workspace: string } }) {
   return [
-    { icon: FolderOpen, label: t.nav.creations, href: "/dashboard/creations" },
+    { icon: FolderOpen, label: t.nav.creations, href: "/workspace" },
     { icon: FolderOpen, label: t.nav.workspace, href: "/workspace" },
   ]
 }

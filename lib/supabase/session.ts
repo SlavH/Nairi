@@ -60,21 +60,14 @@ export async function updateSession(request: NextRequest) {
     "/knowledge",
     "/flow",
     "/learn",
-    "/debate",
     "/workspace",
     "/workflows",
     "/simulations",
     "/settings",
     "/profile",
-    "/billing",
-    "/admin",
     "/checkout",
     "/onboarding",
-    "/notifications",
-    "/execution-traces",
     "/documents",
-    "/activity",
-    "/credits",
   ]
   
   const isProtectedRoute = protectedRoutes.some(route => 

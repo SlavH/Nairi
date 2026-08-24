@@ -40,7 +40,7 @@ export default function PresentationsDocPage() {
             </Button>
           </div>
           <Button asChild>
-            <Link href="/presentations">
+            <Link href="/studio/presentation">
               <Presentation className="h-4 w-4 mr-2" />
               Try It Now
             </Link>
@@ -88,7 +88,7 @@ export default function PresentationsDocPage() {
               <div>
                 <p className="font-medium">Navigate to the Presentation Generator</p>
                 <p className="text-sm text-muted-foreground">
-                  Go to <Link href="/presentations" className="text-primary hover:underline">/presentations</Link> or click "Try It Now" above
+                  Go to <Link href="/studio/presentation" className="text-primary hover:underline">/presentations</Link> or click "Try It Now" above
                 </p>
               </div>
             </div>
@@ -482,7 +482,7 @@ export default function PresentationsDocPage() {
               Generate professional slide decks in seconds with AI-powered content
             </p>
             <Button asChild size="lg">
-              <Link href="/presentations">
+              <Link href="/studio/presentation">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Start Creating
               </Link>

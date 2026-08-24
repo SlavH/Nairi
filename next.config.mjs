@@ -102,6 +102,17 @@ const nextConfig = {
   
   // Recommended: Enable React strict mode for better error detection
   reactStrictMode: true,
+
+  // Legacy top-level routes consolidated into /dashboard/* equivalents
+  async redirects() {
+    return [
+      { source: "/billing", destination: "/dashboard/billing", permanent: true },
+      { source: "/credits", destination: "/dashboard/credits", permanent: true },
+      { source: "/activity", destination: "/dashboard/activity", permanent: true },
+      { source: "/execution-traces", destination: "/dashboard/traces", permanent: true },
+      { source: "/notifications", destination: "/dashboard/notifications", permanent: true },
+    ]
+  },
 }
 
 export default nextConfig
