@@ -1,265 +1,428 @@
 "use client"
 
 import { formatDistanceToNow } from "date-fns"
-import { Heart, RefreshCw, ExternalLink, Copy, Play, Image, Globe, Code2, Video, Sparkles, MoreHorizontal, Check } from "lucide-react"
+import {
+  Heart,
+  RefreshCw,
+  MessageCircle,
+  Link2,
+  Check,
+  Copy,
+  Globe,
+  Code2,
+  Video,
+  Sparkles,
+  UserPlus,
+  UserCheck,
+  Trash2,
+  Send,
+  Loader2,
+} from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
-
-export type FlowCardType = "image" | "website" | "code" | "video" | "simulation"
+export type FlowCardType = "image" | "website" | "code" | "video" | "simulation" | "text"
 
 export interface FlowCardData {
   id: string
-  prompt: string
-  result: string
-  type: FlowCardType
-  metadata?: {
-    remix_count?: number
-    likes_count?: number
-    views_count?: number
-    created_at?: string
-    user_name?: string
-    user_avatar?: string
-    title?: string
-  }
+  content: string
+  title?: string | null
+  media_url?: string | null
+  media_type: FlowCardType
+  tags?: string[]
+  created_at: string
+  user_id: string
+  user_name: string
+  user_avatar: string | null
+  likes_count: number
+  comments_count: number
+  shares_count: number
+  is_liked?: boolean
+  is_own?: boolean
 }
 
-interface FlowCardProps {
-  data: FlowCardData
-  onRemix?: (prompt: string) => void
-  onLike?: (id: string) => void
-  onRunAgain?: (id: string) => void
-  onOpenInChat?: (id: string) => void
-  isLiked?: boolean
+interface FlowComment {
+  id: string
+  content: string
+  created_at: string
+  user_id: string
+  user_name: string
+  user_avatar: string | null
 }
 
-const typeConfig = {
-  image: { icon: Image, label: "Image", gradient: "from-purple-500 to-pink-500" },
+const typeConfig: Record<FlowCardType, { icon: typeof Sparkles; label: string; gradient: string } | null> = {
+  image: { icon: Sparkles, label: "Image", gradient: "from-purple-500 to-pink-500" },
   website: { icon: Globe, label: "Website", gradient: "from-cyan-500 to-blue-500" },
   code: { icon: Code2, label: "Code", gradient: "from-green-500 to-emerald-500" },
   video: { icon: Video, label: "Video", gradient: "from-red-500 to-orange-500" },
   simulation: { icon: Sparkles, label: "Simulation", gradient: "from-yellow-500 to-amber-500" },
+  text: null,
 }
 
-function ImagePreview({ src, alt }: { src: string; alt: string }) {
-  const [loaded, setLoaded] = useState(false)
+function MediaPreview({ url, type }: { url: string; type: FlowCardType }) {
+  if (type === "video") {
+    return (
+      <div className="relative rounded-xl overflow-hidden bg-white/5">
+        <video src={url} controls preload="metadata" className="w-full max-h-[420px] object-contain bg-black/40" />
+      </div>
+    )
+  }
+  if (type === "code") {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-black/30 hover:border-white/20 transition-colors">
+        <Code2 className="h-5 w-5 text-green-400 shrink-0" />
+        <span className="text-sm text-white/70 truncate">{url}</span>
+      </a>
+    )
+  }
   return (
-    <div className="relative aspect-video bg-white/5 rounded-xl overflow-hidden">
-      {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-white/20 border-t-[#e052a0] rounded-full animate-spin" />
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block relative rounded-xl overflow-hidden bg-white/5 group/media">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt="Post media"
+        loading="lazy"
+        className="w-full max-h-[480px] object-cover transition-transform duration-300 group-hover/media:scale-[1.02]"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
+      />
+    </a>
+  )
+}
+
+interface PostCommentsProps {
+  postId: string
+  open: boolean
+  onClose: () => void
+  canComment: boolean
+  onCountChange: (delta: number) => void
+}
+
+function PostComments({ postId, open, canComment, onCountChange }: PostCommentsProps) {
+  const [comments, setComments] = useState<FlowComment[]>([])
+  const [loaded, setLoaded] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [draft, setDraft] = useState("")
+  const [sending, setSending] = useState(false)
+
+  const load = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/flow/${postId}/comments`)
+      const data = await res.json()
+      setComments(data.comments || [])
+    } catch {
+      /* keep empty */
+    } finally {
+      setLoading(false)
+      setLoaded(true)
+    }
+  }
+
+  if (!loaded && !loading) void load()
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!draft.trim() || sending) return
+    setSending(true)
+    try {
+      const res = await fetch(`/api/flow/${postId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: draft.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Failed to comment")
+        return
+      }
+      setComments((prev) => [...prev, data.comment])
+      onCountChange(1)
+      setDraft("")
+    } catch {
+      toast.error("Network error")
+    } finally {
+      setSending(false)
+    }
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="border-t border-white/10 px-4 py-3 space-y-3 bg-black/20">
+      {loading && !loaded ? (
+        <div className="flex justify-center py-3">
+          <Loader2 className="h-5 w-5 animate-spin text-white/40" />
+        </div>
+      ) : comments.length === 0 ? (
+        <p className="text-sm text-white/30 py-1">No comments yet. Be the first.</p>
+      ) : (
+        <ul className="space-y-3">
+          {comments.map((c) => (
+            <li key={c.id} className="flex items-start gap-2.5">
+              <Avatar className="h-7 w-7 shrink-0">
+                <AvatarImage src={c.user_avatar || undefined} alt={c.user_name} />
+                <AvatarFallback className="bg-white/10 text-white text-xs">{c.user_name.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="rounded-xl bg-white/5 px-3 py-2">
+                  <span className="text-xs font-medium text-white/80">{c.user_name}</span>
+                  <p className="text-sm text-white/70 break-words">{c.content}</p>
+                </div>
+                <span className="text-[11px] text-white/25 ml-1">
+                  {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {canComment && (
+        <form onSubmit={submit} className="flex items-center gap-2 pt-1">
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Write a comment..."
+            maxLength={1000}
+            className="h-9 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+          />
+          <Button type="submit" size="icon" disabled={sending || !draft.trim()} className="h-9 w-9 shrink-0 bg-gradient-to-r from-[#e052a0] to-[#00c9c8] text-white border-0">
+            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </Button>
+        </form>
+      )}
+    </div>
+  )
+}
+
+interface FlowCardProps {
+  data: FlowCardData
+  isFollowing?: boolean
+  onFollowChange?: (userId: string, following: boolean) => void
+  onDeleted?: (id: string) => void
+}
+
+export function FlowCard({ data, isFollowing = false, onFollowChange, onDeleted }: FlowCardProps) {
+  const [liked, setLiked] = useState(Boolean(data.is_liked))
+  const [likesCount, setLikesCount] = useState(data.likes_count)
+  const [commentsCount, setCommentsCount] = useState(data.comments_count)
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [following, setFollowing] = useState(isFollowing)
+  const [followBusy, setFollowBusy] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [deleted, setDeleted] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const config = typeConfig[data.media_type]
+
+  const handleLike = async () => {
+    const nextLiked = !liked
+    // optimistic
+    setLiked(nextLiked)
+    setLikesCount((n) => n + (nextLiked ? 1 : -1))
+    try {
+      const res = await fetch(`/api/flow/${data.id}/like`, { method: "POST" })
+      if (!res.ok) throw new Error()
+    } catch {
+      // revert on failure
+      setLiked(!nextLiked)
+      setLikesCount((n) => n + (nextLiked ? -1 : 1))
+      toast.error("Could not update like")
+    }
+  }
+
+  const handleFollow = async () => {
+    setFollowBusy(true)
+    try {
+      const res = await fetch("/api/flow/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: data.user_id }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error || "Action failed")
+        return
+      }
+      setFollowing(Boolean(json.following))
+      onFollowChange?.(data.user_id, Boolean(json.following))
+      toast.success(json.following ? `Following ${data.user_name}` : `Unfollowed ${data.user_name}`)
+    } catch {
+      toast.error("Network error")
+    } finally {
+      setFollowBusy(false)
+    }
+  }
+
+  const handleRemix = () => {
+    navigator.clipboard.writeText(data.content.slice(0, 500)).catch(() => {})
+    window.location.href = `/chat?prompt=${encodeURIComponent(data.content.slice(0, 300))}`
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/flow?post=${data.id}`)
+      setCopied(true)
+      toast.success("Link copied")
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error("Could not copy link")
+    }
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/flow/${data.id}`, { method: "DELETE" })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        toast.error(j.error || "Failed to delete")
+        return
+      }
+      setDeleted(true)
+      onDeleted?.(data.id)
+      toast.success("Post deleted")
+    } catch {
+      toast.error("Network error")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (deleted) return null
+
+  return (
+    <article className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:border-white/20 hover:shadow-xl hover:shadow-black/20">
+      {/* author row */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={data.user_avatar || undefined} alt={data.user_name} />
+          <AvatarFallback className="bg-gradient-to-br from-[#e052a0]/40 to-[#00c9c8]/40 text-white">
+            {data.user_name.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-white truncate">{data.user_name}</span>
+            {!data.is_own && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleFollow}
+                disabled={followBusy}
+                className={cn(
+                  "h-6 px-2 text-[11px] gap-1 rounded-full",
+                  following
+                    ? "text-emerald-400 hover:text-emerald-300 bg-transparent"
+                    : "text-[#00c9c8] hover:bg-white/10"
+                )}
+              >
+                {following ? <UserCheck className="h-3 w-3" /> : <UserPlus className="h-3 w-3" />}
+                {following ? "Following" : "Follow"}
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-white/30">
+            {formatDistanceToNow(new Date(data.created_at), { addSuffix: true })}
+          </p>
+        </div>
+        {config && (
+          <Badge className={cn("gap-1 bg-gradient-to-r text-white border-0 shadow-lg shrink-0", config.gradient)}>
+            <config.icon className="h-3 w-3" />
+            {config.label}
+          </Badge>
+        )}
+        {data.is_own && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="h-8 w-8 shrink-0 text-white/30 hover:text-red-400 hover:bg-red-500/10"
+            aria-label="Delete post"
+          >
+            {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+          </Button>
+        )}
+      </div>
+
+      {/* content */}
+      <div className="px-4 pb-3 space-y-2">
+        {data.title && <h3 className="font-semibold text-white leading-snug">{data.title}</h3>}
+        <p className="text-sm text-white/85 whitespace-pre-wrap break-words">{data.content}</p>
+        {data.tags && data.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {data.tags.map((tag) => (
+              <span key={tag} className="text-xs text-[#00c9c8]">#{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* media */}
+      {data.media_url && data.media_type !== "text" && (
+        <div className="px-4 pb-3">
+          <MediaPreview url={data.media_url} type={data.media_type} />
         </div>
       )}
-      <img
-        src={src}
-        alt={alt}
-        className={cn("w-full h-full object-cover transition-opacity duration-300", loaded ? "opacity-100" : "opacity-0")}
-        onLoad={() => setLoaded(true)}
-      />
-    </div>
-  )
-}
 
-function WebsitePreview({ url }: { url: string }) {
-  return (
-    <div className="relative aspect-video bg-white/5 rounded-xl overflow-hidden">
-      <iframe
-        src={url}
-        className="w-full h-full border-0"
-        sandbox="allow-scripts allow-same-origin"
-        loading="lazy"
-        title="Website preview"
-      />
-    </div>
-  )
-}
+      {/* actions */}
+      <div className="flex items-center gap-1 px-2 py-1.5 border-t border-white/10">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLike}
+          className={cn("gap-1.5 h-8 px-2.5 rounded-lg", liked ? "text-red-500 hover:text-red-400 hover:bg-red-500/10" : "text-white/50 hover:text-white hover:bg-white/10")}
+        >
+          <Heart className={cn("h-4 w-4", liked && "fill-current")} />
+          {likesCount > 0 && <span className="text-xs">{likesCount}</span>}
+        </Button>
 
-function CodePreview({ code }: { code: string }) {
-  const [copied, setCopied] = useState(false)
-  
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(code)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-  
-  return (
-    <div className="relative bg-[#0d0d0d] rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
-        <span className="text-xs text-muted-foreground">Code Output</span>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopy}>
-          {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCommentsOpen((v) => !v)}
+          className={cn("gap-1.5 h-8 px-2.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10", commentsOpen && "text-white bg-white/10")}
+        >
+          <MessageCircle className="h-4 w-4" />
+          {commentsCount > 0 && <span className="text-xs">{commentsCount}</span>}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRemix}
+          className="gap-1.5 h-8 px-2.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 ml-auto"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Remix
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleCopyLink}
+          className="h-8 w-8 rounded-lg text-white/50 hover:text-white hover:bg-white/10"
+          aria-label="Copy link"
+        >
+          {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Link2 className="h-4 w-4" />}
         </Button>
       </div>
-      <pre className="p-4 overflow-x-auto text-sm text-white/80 max-h-[300px] overflow-y-auto">
-        <code>{code}</code>
-      </pre>
-    </div>
-  )
-}
 
-function VideoPreview({ url }: { url: string }) {
-  return (
-    <div className="relative aspect-video bg-white/5 rounded-xl overflow-hidden">
-      <video
-        src={url}
-        controls
-        className="w-full h-full object-contain"
-        preload="metadata"
+      {/* comments */}
+      <PostComments
+        postId={data.id}
+        open={commentsOpen}
+        canComment
+        onClose={() => setCommentsOpen(false)}
+        onCountChange={(delta) => setCommentsCount((n) => Math.max(0, n + delta))}
       />
-    </div>
-  )
-}
-
-function SimulationPreview({ content }: { content: string }) {
-  return (
-    <div className="relative aspect-video bg-white/5 rounded-xl overflow-hidden flex items-center justify-center">
-      <div className="text-center">
-        <Sparkles className="h-12 w-12 mx-auto text-[#e052a0] mb-2" />
-        <p className="text-sm text-muted-foreground">{content}</p>
-      </div>
-    </div>
-  )
-}
-
-export function FlowCard({ data, onRemix, onLike, onRunAgain, onOpenInChat, isLiked = false }: FlowCardProps) {
-  const [liked, setLiked] = useState(isLiked)
-  const [likesCount, setLikesCount] = useState(data.metadata?.likes_count || 0)
-  const [isHovered, setIsHovered] = useState(false)
-  
-  const config = typeConfig[data.type]
-  const Icon = config.icon
-  
-  const handleLike = async () => {
-    setLiked(!liked)
-    setLikesCount(prev => liked ? prev - 1 : prev + 1)
-    onLike?.(data.id)
-  }
-  
-  const handleRemix = () => {
-    if (onRemix) {
-      onRemix(data.prompt)
-    } else {
-      navigator.clipboard.writeText(data.prompt)
-      window.location.href = `/chat`
-    }
-  }
-  
-  const renderPreview = () => {
-    switch (data.type) {
-      case "image":
-        return <ImagePreview src={data.result} alt={data.prompt} />
-      case "website":
-        return <WebsitePreview url={data.result} />
-      case "code":
-        return <CodePreview code={data.result} />
-      case "video":
-        return <VideoPreview url={data.result} />
-      case "simulation":
-        return <SimulationPreview content={data.result} />
-      default:
-        return (
-          <div className="aspect-video bg-white/5 rounded-xl flex items-center justify-center">
-            <Icon className="h-12 w-12 text-muted-foreground" />
-          </div>
-        )
-    }
-  }
-  
-  return (
-    <div
-      className={cn(
-        "group relative bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl overflow-hidden transition-all duration-300",
-        isHovered && "border-white/30 shadow-xl shadow-black/20 scale-[1.01]"
-      )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Badge
-        className={cn(
-          "absolute top-3 left-3 z-10 gap-1.5 bg-gradient-to-r",
-          config.gradient,
-          "text-white border-0 shadow-lg"
-        )}
-      >
-        <Icon className="h-3.5 w-3.5" />
-        {config.label}
-      </Badge>
-      
-      {data.metadata?.remix_count && data.metadata.remix_count > 0 && (
-        <Badge
-          variant="secondary"
-          className="absolute top-3 right-3 z-10 bg-white/10 backdrop-blur-md border-white/20"
-        >
-          <RefreshCw className="h-3 w-3 mr-1" />
-          {data.metadata.remix_count} remixes
-        </Badge>
-      )}
-      
-      <div className="p-4">
-        <p className="text-sm text-white/90 font-medium mb-2 line-clamp-2">{data.prompt}</p>
-        {data.metadata?.title && (
-          <p className="text-xs text-muted-foreground mb-2">{data.metadata.title}</p>
-        )}
-      </div>
-      
-      <div className="px-4 pb-4">
-        {renderPreview()}
-      </div>
-      
-      <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-white/5">
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-9 w-9 rounded-lg transition-all",
-              liked && "text-red-500 bg-red-500/10"
-            )}
-            onClick={handleLike}
-          >
-            <Heart className={cn("h-5 w-5", liked && "fill-current")} />
-          </Button>
-          <span className="text-xs text-muted-foreground ml-1">{likesCount}</span>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-9 px-3 gap-1.5 bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20"
-            onClick={handleRemix}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Remix
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20"
-            onClick={() => onOpenInChat?.(data.id)}
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-lg bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20"
-            onClick={() => onRunAgain?.(data.id)}
-          >
-            <Play className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {data.metadata?.created_at && (
-        <div className="px-4 pb-3 text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(data.metadata.created_at), { addSuffix: true })}
-        </div>
-      )}
-    </div>
+    </article>
   )
 }
