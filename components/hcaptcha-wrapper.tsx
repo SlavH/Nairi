@@ -16,11 +16,6 @@ declare global {
 }
 
 export function HCaptcha({ sitekey, onVerify, onError, onExpire }: HCaptchaProps) {
-  // Disabled in development — captcha is bypassed via dev-test-token on the server.
-  if (process.env.NODE_ENV === 'development') {
-    return null
-  }
-
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const scriptLoadedRef = useRef<boolean>(false)
@@ -35,7 +30,11 @@ export function HCaptcha({ sitekey, onVerify, onError, onExpire }: HCaptchaProps
     onExpireRef.current = onExpire
   }, [onVerify, onError, onExpire])
 
+  // Disabled in development — captcha is bypassed via dev-test-token on the server.
   useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      return
+    }
     // Prevent multiple script loads
     if (scriptLoadedRef.current) return
     
@@ -97,5 +96,8 @@ export function HCaptcha({ sitekey, onVerify, onError, onExpire }: HCaptchaProps
     }
   }, [sitekey]) // Only depend on sitekey, not callbacks
 
+  if (process.env.NODE_ENV === 'development') {
+    return null
+  }
   return <div ref={containerRef} className="flex justify-center my-4" />
 }

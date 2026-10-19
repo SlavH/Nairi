@@ -5,18 +5,18 @@ import { createUIMessageStream, createUIMessageStreamResponse } from "ai"
 import { NextRequest } from "next/server"
 
 
-/** Use Colab POST /chat when this env is set AND NAIRI_AI_BASE_URL is not set. */
-function useColabBackend(): boolean {
+/** Check Colab POST /chat backend. */
+function isColabBackend(): boolean {
   return !!process.env.COLAB_AI_BASE_URL?.trim() && !process.env.NAIRI_AI_BASE_URL?.trim()
 }
 
-/** Use Ollama-compatible API when OLLAMA_BASE_URL is set AND NAIRI_AI_BASE_URL is not set. */
-function useOllamaBackend(): boolean {
+/** Check Ollama-compatible API backend. */
+function isOllamaBackend(): boolean {
   return isOllamaConfigured() && !process.env.NAIRI_AI_BASE_URL?.trim()
 }
 
 /** Use OpenCode backend when OPENCODE_API_URL is set. */
-function useOpenCodeBackend(): boolean {
+function isOpenCodeBackend(): boolean {
   return !!process.env.OPENCODE_API_URL?.trim()
 }
 import { filterInput, filterOutput } from "@/lib/ai/content-filters"
@@ -1243,7 +1243,7 @@ The website should be production-ready and visually appealing.`
     const routerResult = routeForChat("latency")
 
     // Colab backend (POST /chat): use Colab client and return a single-message stream
-    if (useColabBackend()) {
+    if (isColabBackend()) {
       try {
         const colabMessages = [
           { role: "system" as const, content: systemPrompt },
@@ -1286,7 +1286,7 @@ The website should be production-ready and visually appealing.`
     }
 
     // Ollama backend (OpenAI-compatible API): use Ollama client with streaming support
-    if (useOllamaBackend()) {
+    if (isOllamaBackend()) {
       try {
         const ollamaMessages = [
           { role: "system" as const, content: NAIRI_OLLAMA_SYSTEM_PROMPT },
@@ -1343,7 +1343,7 @@ The website should be production-ready and visually appealing.`
     }
 
         // OpenCode backend (opencode API): use when OPENCODE_API_URL is set
-    if (useOpenCodeBackend()) {
+    if (isOpenCodeBackend()) {
       try {
         let sessionId: string | null = null
 

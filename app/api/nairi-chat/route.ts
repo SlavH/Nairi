@@ -16,7 +16,7 @@ export interface NairiChatSource {
   snippet?: string
 }
 
-function useOpenCodeBackend(): boolean {
+function isOpenCodeBackend(): boolean {
   return !!(process.env.OPENCODE_API_URL?.trim())
 }
 
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   const meta: { web_ms: number; plan_ms: number; answer_ms: number } = { web_ms: 0, plan_ms: 0, answer_ms: 0 }
 
   // Use OpenCode backend if configured
-  if (useOpenCodeBackend()) {
+  if (isOpenCodeBackend()) {
     const answerStart = Date.now()
     try {
       // Create session
