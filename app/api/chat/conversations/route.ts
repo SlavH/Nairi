@@ -7,6 +7,7 @@
 import { NextResponse } from "next/server"
 
 import { getUserIdForApi } from "@/lib/auth"
+import { isConversationFolderOwned } from "@/lib/features/chat"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -78,7 +79,13 @@ export async function POST(req: Request) {
       title: "New Conversation",
     }
     if (folderId !== undefined) {
-      insertPayload.folder_id = folderId === null || folderId === "" ? null : folderId
+      const target = folderId === null || folderId === "" ? null : folderId
+      if (target !== null) {
+        if (typeof target !== "string" || !(await isConversationFolderOwned(target, userId))) {
+          return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
+        }
+      }
+      insertPayload.folder_id = target
     }
     const { data, error } = await client
       .from("conversations")

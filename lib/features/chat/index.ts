@@ -88,30 +88,48 @@ export async function createConversationFolder(userId: string, name: string): Pr
   return error ? null : data?.id ?? null
 }
 
+export type FolderMutationOutcome = "ok" | "not_found" | "error"
+
 export async function updateConversationFolder(
   folderId: string,
   userId: string,
   name: string
-): Promise<boolean> {
-  if (!CONVERSATION_FOLDERS_ENABLED) return false
+): Promise<FolderMutationOutcome> {
+  if (!CONVERSATION_FOLDERS_ENABLED) return "error"
   const supabase = await createClient()
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("conversation_folders")
     .update({ name })
     .eq("id", folderId)
     .eq("user_id", userId)
-  return !error
+    .select("id")
+  if (error) return "error"
+  return (data?.length ?? 0) > 0 ? "ok" : "not_found"
 }
 
-export async function deleteConversationFolder(folderId: string, userId: string): Promise<boolean> {
-  if (!CONVERSATION_FOLDERS_ENABLED) return false
+export async function deleteConversationFolder(folderId: string, userId: string): Promise<FolderMutationOutcome> {
+  if (!CONVERSATION_FOLDERS_ENABLED) return "error"
   const supabase = await createClient()
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("conversation_folders")
     .delete()
     .eq("id", folderId)
     .eq("user_id", userId)
-  return !error
+    .select("id")
+  if (error) return "error"
+  return (data?.length ?? 0) > 0 ? "ok" : "not_found"
+}
+
+export async function isConversationFolderOwned(folderId: string, userId: string): Promise<boolean> {
+  if (!CONVERSATION_FOLDERS_ENABLED) return false
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("conversation_folders")
+    .select("id")
+    .eq("id", folderId)
+    .eq("user_id", userId)
+    .maybeSingle()
+  return Boolean(data)
 }
 
 export async function setConversationFolder(conversationId: string, userId: string, folderId: string | null): Promise<boolean> {

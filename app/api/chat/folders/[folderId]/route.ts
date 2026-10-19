@@ -18,8 +18,9 @@ export async function PATCH(
   if (typeof name !== "string" || !name.trim()) {
     return NextResponse.json({ error: "name (non-empty string) required" }, { status: 400 })
   }
-  const ok = await updateConversationFolder(folderId, userId, name.trim())
-  if (!ok) return NextResponse.json({ error: "Failed to update folder" }, { status: 500 })
+  const outcome = await updateConversationFolder(folderId, userId, name.trim())
+  if (outcome === "not_found") return NextResponse.json({ error: "Folder not found" }, { status: 404 })
+  if (outcome !== "ok") return NextResponse.json({ error: "Failed to update folder" }, { status: 500 })
   return NextResponse.json({ ok: true, name: name.trim() })
 }
 
@@ -32,7 +33,8 @@ export async function DELETE(
   const supabase = await createClient()
   const userId = await getUserIdForApi(() => supabase.auth.getUser())
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const ok = await deleteConversationFolder(folderId, userId)
-  if (!ok) return NextResponse.json({ error: "Failed to delete folder" }, { status: 500 })
+  const outcome = await deleteConversationFolder(folderId, userId)
+  if (outcome === "not_found") return NextResponse.json({ error: "Folder not found" }, { status: 404 })
+  if (outcome !== "ok") return NextResponse.json({ error: "Failed to delete folder" }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

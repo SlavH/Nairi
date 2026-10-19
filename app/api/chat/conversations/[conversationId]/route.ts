@@ -7,6 +7,7 @@
 import { NextResponse } from "next/server"
 
 import { getUserIdForApi } from "@/lib/auth"
+import { isConversationFolderOwned } from "@/lib/features/chat"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -115,7 +116,11 @@ export async function PATCH(
     updates.pinned_at = isPinned ? new Date().toISOString() : null
   }
   if (hasFolder) {
-    updates.folder_id = folderId === null || folderId === "" ? null : folderId
+    const target = folderId === null || folderId === "" ? null : folderId
+    if (target !== null && (typeof target !== "string" || !(await isConversationFolderOwned(target, userId)))) {
+      return NextResponse.json({ error: "Invalid folder" }, { status: 400 })
+    }
+    updates.folder_id = target
   }
   if (hasTitle) {
     updates.title = title || "New Conversation"
