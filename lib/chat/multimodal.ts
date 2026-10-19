@@ -3,6 +3,7 @@
  * Handles image, file, and voice input in chat
  */
 import { createClient } from "@/lib/supabase/server";
+import { removeControlChars, sanitizePath } from "@/lib/validation/sanitize";
 
 export interface MultimodalInput {
   type: "text" | "image" | "file" | "voice";
@@ -13,6 +14,20 @@ export interface MultimodalInput {
     duration?: number; // For audio
     dimensions?: { width: number; height: number }; // For images
   };
+}
+
+/**
+ * Build the Supabase Storage object name for a chat upload
+ */
+export function buildStorageObjectName(
+  userId: string,
+  fileName: string,
+  timestamp: number = Date.now()
+): string {
+  const rawExt = fileName.split(".").pop() ?? "";
+  const fileExt = rawExt.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 16) || "bin";
+  const owner = sanitizePath(removeControlChars(userId)) || "user";
+  return `${owner}/${timestamp}.${fileExt}`;
 }
 
 export class MultimodalHandler {
@@ -76,8 +91,7 @@ export class MultimodalHandler {
     const supabase = await createClient();
 
     // Upload to Supabase Storage
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+    const fileName = buildStorageObjectName(userId, file.name);
 
     const { data, error } = await supabase.storage
       .from("chat-attachments")
