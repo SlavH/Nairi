@@ -51,32 +51,32 @@ F29 chat export header injection; F30 chat upload filename traversal; F31 chat c
 All P2 findings are now FIXED: F11–F28 closed in commits
 `b48070f` (F11) and `3ce414f`..`df7fa48` (agent pass, see CHANGELOG_AGENTS.md).
 
-### Priority 3 disposition (2026-08-23)
+### Priority 3 status (verified 2026-10-19, cycle 3)
 
-- **F40** (`"assitant"` typo) — CLOSED: no occurrences remain in the codebase.
-- **F43** (`ignoreBuildErrors`) — CLOSED: `next.config.mjs` now fails builds on type errors.
-- **F29 chat export header injection** — DEFERRED: needs output-encoding review of export headers; low traffic endpoint.
-- **F30 chat upload filename traversal** — DEFERRED: requires storage-path redesign; uploads already auth-gated.
-- **F31 conversation folder ownership** — DEFERRED: RLS policy audit for folders scheduled with next migration batch.
-- **F32 colab mutex global serialization** — DEFERRED: single-instance deployment today; revisit when horizontally scaled.
-- **F33 rate-limit x-forwarded-for spoofing** — DEFERRED: correct fix depends on final proxy topology (Cloudflare vs direct); wrong choice breaks limiting entirely.
-- **F34 builder dead code cleanup** — DEFERRED: cosmetic; dedicated cleanup pass to avoid churn.
-- **F35 builder error leak to client** — PARTIALLY ADDRESSED by error-handler standardization; full sweep deferred.
-- **F36 purchase double-spend atomicity** — DEFERRED: needs DB-level transaction redesign (RPC); payments not live yet.
-- **F37 recommendation invalid PostgREST syntax** — DEFERRED: recommendation feature behind flag; fix with its activation.
-- **F38 chunking overlap offsets** — DEFERRED: quality nit in NairiBook retrieval; batch with retrieval tuning.
-- **F39 embeddings WebGPU fallback** — DEFERRED: device-guard banners (D5) already mitigate; tuning needs real-device matrix.
-- **F41 migration 025 duplicate numbering** — DEFERRED: renaming risks divergence with already-applied databases; document-only fix.
-- **F42 workflow webhook dead endpoint** — CLOSED per earlier triage decision (remove dead endpoint) — removal scheduled with F34 cleanup pass.
-- **F44 docker socket mount** — DEFERRED: docker-build.yml is failing at GitHub billing level; socket never mounted in app runtime.
-- **F45 session raw refresh token storage** — DEFERRED: Supabase SSR cookie handling owns this; upgrade @supabase/ssr instead of hand-rolling.
-- **F46 traces module-global state** — DEFERRED: observability refactor planned; no correctness impact today.
-- **F47 circuit-breaker TTL** — DEFERRED: constants tuning without production metrics is guesswork; revisit with load data.
+Closed in cycle 3 (commits in CHANGELOG_AGENTS.md):
 
-Legacy notes:
+- **F29 chat export header injection** — CLOSED: `sanitizeFilename()` strips CR/LF, quotes, path separators.
+- **F30 chat upload filename traversal** — CLOSED: filename/extension sanitized; no `..`/separators.
+- **F31 conversation folder ownership** — CLOSED: folders scoped to owner; 404 on miss.
+- **F34 builder dead code cleanup** — CLOSED: removed `lib/features/builder` + 2 unreferenced components.
+- **F35 builder error leak to client** — CLOSED: internal errors no longer returned to clients.
+- **F36 purchase double-spend atomicity** — CLOSED: atomic idempotent `purchase_agent_atomic` RPC (049).
+- **F37 recommendation invalid PostgREST syntax** — CLOSED: `.not("id","in", [...])` array form.
+- **F38 chunking overlap offsets** — CLOSED: correct `start_offset`/`end_offset` bookkeeping.
+- **F40** (`"assitant"` typo) — CLOSED (no occurrences).
+- **F42 workflow webhook dead endpoint** — CLOSED: endpoint removed.
+- **F43** (`ignoreBuildErrors`) — CLOSED (`next.config.mjs` fails builds on type errors).
+- **F44 docker socket mount** — CLOSED: verified no socket is mounted anywhere at runtime.
+- **F45 session raw refresh token storage** — CLOSED: raw token no longer persisted (048 + rollback).
+- **F46 traces module-global state** — CLOSED: unused module removed.
 
-- F35's remove of `handleOpenExternal` button UX — will keep feature but sandbox it (no behavior loss).
-- Deleting `lib/features/builder` and other dead modules — defer to a dedicated cleanup pass to avoid churn alongside security fixes.
+Still deferred (need external inputs / decisions):
+
+- **F32 colab mutex global serialization** — single-instance deployment today; correct fix is a distributed lock when horizontally scaled.
+- **F33 rate-limit x-forwarded-for spoofing** — correct fix depends on final proxy topology (Vercel/Cloudflare vs direct).
+- **F39 embeddings WebGPU fallback** — tuning needs a real device matrix.
+- **F41 migration 025 duplicate numbering** — intentional; `run-migrations.mjs` special-cases `025_create_migration_tracking.sql`, so renaming breaks the runner. Document-only fix.
+- **F47 circuit-breaker TTL** — constants tuning without production metrics is guesswork.
 
 ## How fixes are executed
 
