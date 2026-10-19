@@ -1418,13 +1418,10 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
           } = {}
 
           if (!llmSuccess || !responseContent) {
-            const errorReason = lastLlmError
-              ? String(lastLlmError)
-              : "AI generation failed. Please try again."
-            const msg = `AI generation failed. Preview shows the error below.`
+            console.error("Builder LLM generation failed:", lastLlmError)
+            const msg = `AI generation failed. Please try again.`
             send({ type: "message", content: msg })
             send({ type: "task-update", taskId: lastTaskId, status: "completed" })
-            send({ type: "message", content: `Preview error: ${errorReason}` })
             parsedResponse = { message: msg }
           } else {
           send({ type: "task-update", taskId: lastTaskId, status: "completed" })
@@ -1976,7 +1973,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
 
         } catch (error) {
           console.error("Generation error:", error)
-          const errorContent = error instanceof Error ? error.message : "Unknown error"
+          const errorContent = "Generation failed. Please try again."
           send({ type: "error", content: errorContent })
           send({ type: "message", content: `Error: ${errorContent}` })
           if (taskPlanForError.length > 0) {
@@ -1998,10 +1995,7 @@ ${mindBlownLine}${jsonFormatLine}Generate the code as a JSON response.
 
   } catch (error) {
     console.error("API error:", error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 

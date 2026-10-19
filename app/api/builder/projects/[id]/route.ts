@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: "Project not found" }, { status: 404 })
     }
     console.error("Builder project get error:", error)
-    return NextResponse.json({ error: error?.message ?? "Not found" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
   const versions = Array.isArray(data.versions) ? data.versions : []
   return NextResponse.json({ ...data, versions })
@@ -101,7 +101,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Project not found" }, { status: 404 })
     }
     console.error("Builder project update error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
   const versions = Array.isArray(data?.versions) ? data.versions : []
   return NextResponse.json({ ...data, versions })
@@ -124,7 +124,7 @@ export async function DELETE(
     .eq("user_id", userId)
   if (error) {
     console.error("Builder project delete error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
   return NextResponse.json({ ok: true })
 }

@@ -36,7 +36,7 @@ export async function GET(req: Request) {
       .order("updated_at", { ascending: false })
     if (error) {
       console.error("Builder projects list error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
     return NextResponse.json(data ?? [])
   } catch (err) {
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       .single()
     if (error) {
       console.error("Builder project create error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 })
     }
     return NextResponse.json(data)
   } catch (err) {
