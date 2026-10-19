@@ -44,7 +44,7 @@ export class RecommendationEngine {
       .order("usage_count", { ascending: false })
       .limit(limit * 2);
     if (installedIds.size > 0) {
-      query = query.not("id", "in", `(${Array.from(installedIds).join(",")})`);
+      query = query.not("id", "in", Array.from(installedIds));
     }
     let trendingResult = await query.eq("is_published", true);
     if (trendingResult.error && (trendingResult.error.code === "PGRST204" || String(trendingResult.error.message || "").includes("is_published"))) {
