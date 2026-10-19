@@ -1,5 +1,21 @@
 # CHANGELOG_AGENTS.md — журнал работы мультиагентной команды
 
+## Цикл 3 — 2026-10-19 (верификация + закрытие P3)
+
+### Входная верификация (Node 20 и Node 22, локально)
+- `tsc --noEmit`: ✅ 0 ошибок (оба Node)
+- `npm run test`: ✅ 388 passed / 2 skipped (54 файла) до правок
+- `next build`: ✅ успешен (оба Node, `ignoreBuildErrors: false`)
+- `npm run lint`: ❌ 1392 проблемы (1329 errors / 63 warnings) — вне CI-гейта
+- `npm run migrate:validate`: ❌ нет rollback-скриптов; дубль номера 25 (F41)
+- e2e: ⏳ требует Supabase anon/service keys + тестового пользователя
+- Обнаружен дублирующий набор e2e: `e2e/` не подключён (`testDir: ./__tests__/e2e`)
+
+### Закрытые находки P3
+| Finding | Коммит | Суть |
+|---|---|---|
+| F29 | — | Content-Disposition в `/api/chat/export`: `sanitizeFilename()` чистит CRLF/кавычки/разделители пути |
+
 ## Цикл 2 — 2026-08-23 (аудит-закрытие)
 
 ### Решения человека (зафиксированы)

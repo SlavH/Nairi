@@ -1,6 +1,6 @@
 # PROJECT_MAP.md — Nairi (github.com/SlavH/Nairi)
 
-Обновлено: цикл 1, агент-Researcher.
+Обновлено: цикл 3, локальная верификация (Node 20 + Node 22).
 
 ## Стек
 - Next.js 16 (App Router) + React 19 + TypeScript 5
@@ -20,13 +20,19 @@
 - tasks.json — все задачи стримов A–I помечены done (требует выборочной верификации)
 - PROGRESS.md / AUDIT_SUMMARY.md / PRODUCTION_CHECKLIST.md — заявлено: typecheck чистый, тесты зелёные
 
-## Фактическое состояние (проверено запуском, не по описанию)
-- ✅ `npx tsc --noEmit` — 0 ошибок
-- ❌ `npm run test` — 2 FAIL из 324: `__tests__/lib/nairibook/core.test.ts`
-  - Причина: тесты "creates a DAG..." и "detects and breaks a cyclic graph" вызывают
-    `buildGraph()` → `callZen()` → реальный fetch на https://opencode.ai/zen/v1 без мока.
-  - Соседние тесты (exercises/problem/photo-check) мокают `@/lib/nairibook/zen` — конвенция нарушена только здесь.
-- ⏳ lint, build, e2e — ещё не прогнаны в этом цикле
+## Фактическое состояние (проверено запуском, цикл 3, не по описанию)
+- ✅ `npx tsc --noEmit` — 0 ошибок (Node 20 и Node 22)
+- ✅ `npm run test` — 388 passed / 2 skipped (54 файла) на Node 20 и Node 22.
+  Прежние 2 FAIL из цикла 1 закрыты коммитом `3ce414f` (mock `@/lib/nairibook/zen`).
+- ✅ `npm run build` — успешен (Node 20 и Node 22, `ignoreBuildErrors: false`)
+- ❌ `npm run lint` — 1392 проблемы (1329 errors / 63 warnings), вне CI-гейта.
+  Доминируют `no-unused-vars` (674), `no-explicit-any` (458); реальные баги —
+  `rules-of-hooks` (25), `set-state-in-effect` (33), `purity` (22), `immutability` (11).
+- ❌ `npm run migrate:validate` — нет rollback-скриптов для многих миграций;
+  дубль номера 25 (F41).
+- ⏳ e2e — не прогнан (нужны Supabase anon/service keys + тестовый пользователь).
+  Обнаружен дублирующий набор специй: `e2e/` (11 файлов) не подключён,
+  `playwright.config.ts` указывает `testDir: ./__tests__/e2e`.
 
 ## Известные открытые вопросы
 - Статус F11–F28 (Priority 2 аудита) не подтверждён коммитами/тестами
