@@ -81,6 +81,20 @@ describe("SessionManager", () => {
       expect(insertCall.refresh_token_hash).toBeTruthy();
       expect(insertCall.refresh_token_hash).not.toBe("refresh-token-abc");
     });
+
+    it("should not persist the raw refresh token", async () => {
+      mockSupabase.single.mockResolvedValue({
+        data: { id: "session-123" },
+        error: null,
+      });
+
+      await SessionManager.createSession("user-123", "refresh-token-abc");
+
+      const insertCall = (mockSupabase.insert.mock.calls[0] as any)[0];
+      expect(insertCall).not.toHaveProperty("refresh_token");
+      expect(insertCall.refresh_token_hash).toBeTruthy();
+      expect(Object.keys(insertCall)).not.toContain("refresh_token");
+    });
   });
 
   describe("verifyAndRotateToken", () => {
@@ -106,6 +120,31 @@ describe("SessionManager", () => {
       expect(result?.sessionId).toBe("session-123");
       expect(result?.newRefreshToken).toBeTruthy();
       expect(mockSupabase.update).toHaveBeenCalled();
+    });
+
+    it("should not persist the raw rotated refresh token", async () => {
+      const mockSession = {
+        id: "session-123",
+        user_id: "user-123",
+        refresh_token_hash: "hashed-token",
+        expires_at: new Date(Date.now() + 1000000).toISOString(),
+      };
+
+      mockSupabase.single.mockResolvedValueOnce({
+        data: mockSession,
+        error: null,
+      });
+      mockSupabase.eq.mockReturnValue(mockSupabase);
+      mockSupabase.gt.mockReturnValue(mockSupabase);
+      mockSupabase.update.mockReturnValue(mockSupabase);
+
+      const result = await SessionManager.verifyAndRotateToken("old-token");
+
+      expect(result).toBeTruthy();
+      const updateCall = (mockSupabase.update.mock.calls[0] as any)[0];
+      expect(updateCall).not.toHaveProperty("refresh_token");
+      expect(updateCall.refresh_token_hash).toBeTruthy();
+      expect(Object.keys(updateCall)).not.toContain("refresh_token");
     });
 
     it("should return null for invalid token", async () => {

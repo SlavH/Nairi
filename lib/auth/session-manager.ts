@@ -41,7 +41,6 @@ export class SessionManager {
       .from("sessions")
       .insert({
         user_id: userId,
-        refresh_token: refreshToken,
         refresh_token_hash: refreshTokenHash,
         device_info: options?.deviceInfo,
         ip_address: options?.ipAddress,
@@ -87,7 +86,6 @@ export class SessionManager {
     const { error: updateError } = await supabase
       .from("sessions")
       .update({
-        refresh_token: newRefreshToken,
         refresh_token_hash: newTokenHash,
         last_used_at: new Date().toISOString(),
         ip_address: options?.ipAddress,
