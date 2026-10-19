@@ -28,14 +28,15 @@ export function chunkDocument(doc: ParsedDocument, bookId: string): Chunk[] {
     const flush = (text: string, start: number) => {
       const trimmed = text.trim()
       if (trimmed.length === 0) return
+      const lead = text.indexOf(trimmed)
       chunks.push({
         id: `c-${chapter.index}-${chunks.length}`,
         book_id: bookId,
         chapter_index: chapter.index,
         chapter_title: chapter.title,
         position: globalPosition++,
-        start_offset: start,
-        end_offset: start + text.length,
+        start_offset: start + lead,
+        end_offset: start + lead + trimmed.length,
         text: trimmed,
       })
     }
@@ -45,8 +46,8 @@ export function chunkDocument(doc: ParsedDocument, bookId: string): Chunk[] {
         flush(current, startOffset)
         // Begin the next chunk with an overlap from the tail of the previous one.
         const overlap = current.slice(Math.max(0, current.length - OVERLAP_CHARS))
-        current = overlap
         startOffset = startOffset + current.length - overlap.length
+        current = overlap
       }
       current += sentence
     }
