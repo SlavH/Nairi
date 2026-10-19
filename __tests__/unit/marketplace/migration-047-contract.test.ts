@@ -6,10 +6,11 @@
  * rls-contract.test.ts. Guards against the credit-transactions CHECK constraint
  * silently losing the marketplace types the purchase route inserts.
  */
-import { describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 

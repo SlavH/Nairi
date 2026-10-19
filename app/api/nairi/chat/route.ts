@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
-import { createClient } from "@/lib/supabase/server"
 import { getUserIdForApi } from "@/lib/auth"
 import {
   getNairiChatUrl,
@@ -15,6 +14,7 @@ import {
 } from "@/lib/nairi-api/config"
 import type { NairiMessage } from "@/lib/nairi-api/types"
 import { isNairiChatResponse } from "@/lib/nairi-api/types"
+import { createClient } from "@/lib/supabase/server"
 
 function toNairiMessages(messages: unknown): NairiMessage[] {
   if (!Array.isArray(messages)) return []

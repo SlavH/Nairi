@@ -3,8 +3,8 @@
  * Aligns with DB: lesson_progress (scripts 008, 038, 044), learning_analytics (038).
  * Course → lessons via course_modules (no direct lessons.course_id); progress uses lesson_progress.completed.
  */
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export interface LearningProgress {
   courseId: string;

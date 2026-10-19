@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest"
+
 import { validateFetchTarget } from "@/lib/builder/utils/fetch-target"
 
 describe("validateFetchTarget - SSRF guard", () => {

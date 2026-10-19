@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest"
 import { NextRequest } from "next/server"
+import { describe, it, expect, vi, afterEach } from "vitest"
 
 import {
   validateOrigin,

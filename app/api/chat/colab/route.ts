@@ -7,10 +7,10 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
-import { createClient } from "@/lib/supabase/server"
 import { getUserIdForApi } from "@/lib/auth"
 import { colabChat } from "@/lib/colab"
 import type { ColabMessage } from "@/lib/colab"
+import { createClient } from "@/lib/supabase/server"
 
 function toColabMessages(messages: unknown): ColabMessage[] {
   if (!Array.isArray(messages)) return []

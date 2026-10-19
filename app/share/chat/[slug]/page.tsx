@@ -1,8 +1,8 @@
+import { Bot, User } from "lucide-react"
+import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
 
-import { Bot, User } from "lucide-react"
 
 import { getSharedConversation } from "@/lib/features/chat"
 

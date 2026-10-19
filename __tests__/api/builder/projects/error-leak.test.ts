@@ -1,12 +1,12 @@
 import { NextRequest } from "next/server"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-import { GET as listProjects, POST as createProject } from "@/app/api/builder/projects/route"
 import {
   GET as getProject,
   PATCH as patchProject,
   DELETE as deleteProject,
 } from "@/app/api/builder/projects/[id]/route"
+import { GET as listProjects, POST as createProject } from "@/app/api/builder/projects/route"
 
 const userId = "00000000-0000-0000-0000-000000000001"
 const projectId = "11111111-1111-1111-1111-111111111111"

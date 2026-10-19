@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-import { GET, POST } from "@/app/api/builder/projects/route"
 import { PATCH } from "@/app/api/builder/projects/[id]/route"
+import { GET, POST } from "@/app/api/builder/projects/route"
 
 const userId = "00000000-0000-0000-0000-000000000001"
 

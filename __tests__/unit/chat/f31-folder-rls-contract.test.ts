@@ -6,8 +6,8 @@
  * conversation_folders. String/content assertions — no DB in CI.
  */
 import { readdirSync, readFileSync } from "node:fs"
-import { fileURLToPath } from "node:url"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import { describe, expect, it } from "vitest"
 

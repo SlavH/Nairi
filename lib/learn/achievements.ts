@@ -1,8 +1,8 @@
 /**
  * Achievements System (Phase 46)
  */
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export interface Achievement {
   id: string;

@@ -35,8 +35,8 @@ vi.mock("@/lib/stripe", () => ({
 
 const { createClient } = await import("@/lib/supabase/server")
 
-import { POST as purchasePost } from "@/app/api/marketplace/purchase/route"
 import { POST as installPost } from "@/app/api/marketplace/agents/[agentId]/install/route"
+import { POST as purchasePost } from "@/app/api/marketplace/purchase/route"
 
 const rpcMock = vi.fn()
 

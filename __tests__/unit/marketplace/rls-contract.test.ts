@@ -8,10 +8,11 @@
  * real ones, DROP POLICY IF EXISTS silently no-ops and the self-grant /
  * purchase-forgery vulns stay open. This test parses the SQL files and checks.
  */
-import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { describe, expect, it } from "vitest";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 
