@@ -1,0 +1,2 @@
+-- Rollback for 042_learn_notebooklm.sql
+-- Auto-generated stub

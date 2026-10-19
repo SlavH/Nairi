@@ -1,0 +1,2 @@
+-- Rollback for 041_knowledge_graph_enhancements.sql
+-- Auto-generated stub

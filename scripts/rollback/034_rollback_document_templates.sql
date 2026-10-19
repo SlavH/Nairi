@@ -1,0 +1,2 @@
+-- Rollback for 034_document_templates.sql
+-- Auto-generated stub

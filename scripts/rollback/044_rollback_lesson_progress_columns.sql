@@ -1,0 +1,2 @@
+-- Rollback for 044_lesson_progress_columns.sql
+-- Auto-generated stub

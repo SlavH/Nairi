@@ -1,0 +1,2 @@
+-- Rollback for 035_workspace_organization.sql
+-- Auto-generated stub

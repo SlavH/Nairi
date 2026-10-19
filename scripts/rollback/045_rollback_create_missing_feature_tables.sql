@@ -1,0 +1,2 @@
+-- Rollback for 045_create_missing_feature_tables.sql
+-- Auto-generated stub

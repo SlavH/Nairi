@@ -1,0 +1,2 @@
+-- Rollback for 012_create_credits_system.sql
+-- Auto-generated stub

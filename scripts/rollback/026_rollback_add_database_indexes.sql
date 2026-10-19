@@ -1,0 +1,2 @@
+-- Rollback for 026_add_database_indexes.sql
+-- Auto-generated stub

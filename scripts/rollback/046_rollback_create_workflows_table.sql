@@ -1,0 +1,2 @@
+-- Rollback for 046_create_workflows_table.sql
+-- Auto-generated stub

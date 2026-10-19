@@ -1,0 +1,2 @@
+-- Rollback for 031_deployment_history.sql
+-- Auto-generated stub

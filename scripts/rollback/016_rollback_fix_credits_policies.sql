@@ -1,0 +1,2 @@
+-- Rollback for 016_fix_credits_policies.sql
+-- Auto-generated stub

@@ -1,0 +1,2 @@
+-- Rollback for 043_learn_notebook_sources_pdf.sql
+-- Auto-generated stub

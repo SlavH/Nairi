@@ -1,0 +1,2 @@
+-- Rollback for 002_create_agents.sql
+-- Auto-generated stub

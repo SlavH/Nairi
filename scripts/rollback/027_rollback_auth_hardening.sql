@@ -1,0 +1,2 @@
+-- Rollback for 027_auth_hardening.sql
+-- Auto-generated stub

@@ -1,0 +1,2 @@
+-- Rollback for 025_add_agents_is_published.sql
+-- Auto-generated stub

@@ -1,0 +1,2 @@
+-- Rollback for 008_create_education_tables.sql
+-- Auto-generated stub

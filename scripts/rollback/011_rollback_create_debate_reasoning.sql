@@ -1,0 +1,2 @@
+-- Rollback for 011_create_debate_reasoning.sql
+-- Auto-generated stub

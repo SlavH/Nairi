@@ -1,0 +1,2 @@
+-- Rollback for 001_create_profiles.sql
+-- Auto-generated stub

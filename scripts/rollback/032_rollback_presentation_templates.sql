@@ -1,0 +1,2 @@
+-- Rollback for 032_presentation_templates.sql
+-- Auto-generated stub

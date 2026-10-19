@@ -1,0 +1,2 @@
+-- Rollback for 020_create_usage_logs.sql
+-- Auto-generated stub

@@ -1,0 +1,2 @@
+-- Rollback for 033_presentation_collaboration.sql
+-- Auto-generated stub

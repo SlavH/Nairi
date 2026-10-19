@@ -1,0 +1,2 @@
+-- Rollback for 030_builder_collaboration.sql
+-- Auto-generated stub

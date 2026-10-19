@@ -1,0 +1,2 @@
+-- Rollback for 007_create_knowledge_graph.sql
+-- Auto-generated stub

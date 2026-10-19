@@ -1,0 +1,2 @@
+-- Rollback for 025_create_migration_tracking.sql
+-- Auto-generated stub

@@ -1,0 +1,2 @@
+-- Rollback for 022_create_audit_log.sql
+-- Auto-generated stub

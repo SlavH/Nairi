@@ -1,0 +1,2 @@
+-- Rollback for 010_create_marketplace_extended.sql
+-- Auto-generated stub

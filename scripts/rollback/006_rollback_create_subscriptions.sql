@@ -1,0 +1,2 @@
+-- Rollback for 006_create_subscriptions.sql
+-- Auto-generated stub

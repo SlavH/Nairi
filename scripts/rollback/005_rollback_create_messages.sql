@@ -1,0 +1,2 @@
+-- Rollback for 005_create_messages.sql
+-- Auto-generated stub

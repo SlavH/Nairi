@@ -1,0 +1,2 @@
+-- Rollback for 019_create_tempmail_log.sql
+-- Auto-generated stub

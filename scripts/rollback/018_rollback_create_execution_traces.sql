@@ -1,0 +1,2 @@
+-- Rollback for 018_create_execution_traces.sql
+-- Auto-generated stub

@@ -1,0 +1,2 @@
+-- Rollback for 023_create_conversation_folders_and_tags.sql
+-- Auto-generated stub

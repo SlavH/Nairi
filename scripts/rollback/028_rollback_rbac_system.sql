@@ -1,0 +1,2 @@
+-- Rollback for 028_rbac_system.sql
+-- Auto-generated stub

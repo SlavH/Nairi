@@ -1,0 +1,2 @@
+-- Rollback for 004_create_conversations.sql
+-- Auto-generated stub

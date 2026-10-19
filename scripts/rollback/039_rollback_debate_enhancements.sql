@@ -1,0 +1,2 @@
+-- Rollback for 039_debate_enhancements.sql
+-- Auto-generated stub

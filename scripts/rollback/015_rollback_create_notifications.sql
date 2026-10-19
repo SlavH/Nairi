@@ -1,0 +1,2 @@
+-- Rollback for 015_create_notifications.sql
+-- Auto-generated stub

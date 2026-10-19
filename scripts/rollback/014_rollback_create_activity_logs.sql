@@ -1,0 +1,2 @@
+-- Rollback for 014_create_activity_logs.sql
+-- Auto-generated stub

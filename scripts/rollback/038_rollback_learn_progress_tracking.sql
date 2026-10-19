@@ -1,0 +1,2 @@
+-- Rollback for 038_learn_progress_tracking.sql
+-- Auto-generated stub

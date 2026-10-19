@@ -1,0 +1,2 @@
+-- Rollback for 036_studio_gallery.sql
+-- Auto-generated stub

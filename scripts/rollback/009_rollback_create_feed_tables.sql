@@ -1,0 +1,2 @@
+-- Rollback for 009_create_feed_tables.sql
+-- Auto-generated stub

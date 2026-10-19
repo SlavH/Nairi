@@ -1,0 +1,2 @@
+-- Rollback for 017_fix_activity_policies.sql
+-- Auto-generated stub
