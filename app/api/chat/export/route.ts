@@ -9,6 +9,7 @@ import { handleError } from "@/lib/errors/handler";
 import { unauthorizedError, validationError } from "@/lib/errors/types";
 import { withLogging } from "@/lib/logging/middleware";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeFilename } from "@/lib/validation/sanitize";
 
 export const GET = withLogging(async (req: NextRequest) => {
   try {
@@ -46,6 +47,8 @@ export const GET = withLogging(async (req: NextRequest) => {
 
     if (msgError) throw msgError;
 
+    const filename = sanitizeFilename(conversation.title || "conversation");
+
     // Format based on requested format
     switch (format) {
       case "markdown": {
@@ -61,7 +64,7 @@ export const GET = withLogging(async (req: NextRequest) => {
         return new NextResponse(markdown, {
           headers: {
             "Content-Type": "text/markdown",
-            "Content-Disposition": `attachment; filename="${conversation.title || "conversation"}.md"`,
+            "Content-Disposition": `attachment; filename="${filename}.md"`,
           },
         });
       }
@@ -83,7 +86,7 @@ export const GET = withLogging(async (req: NextRequest) => {
 
         return NextResponse.json(exportData, {
           headers: {
-            "Content-Disposition": `attachment; filename="${conversation.title || "conversation"}.json"`,
+            "Content-Disposition": `attachment; filename="${filename}.json"`,
           },
         });
       }
@@ -102,7 +105,7 @@ export const GET = withLogging(async (req: NextRequest) => {
         return new NextResponse(markdown, {
           headers: {
             "Content-Type": "text/markdown",
-            "Content-Disposition": `attachment; filename="${conversation.title || "conversation"}.md"`,
+            "Content-Disposition": `attachment; filename="${filename}.md"`,
           },
         });
       }

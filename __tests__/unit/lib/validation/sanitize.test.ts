@@ -10,6 +10,7 @@ import {
   sanitizePath,
   sanitizeEmail,
   sanitizeUrl,
+  sanitizeFilename,
 } from "@/lib/validation/sanitize";
 
 describe("Sanitization Utilities", () => {
@@ -53,6 +54,32 @@ describe("Sanitization Utilities", () => {
       expect(sanitizeUrl("https://example.com")).toBe("https://example.com/");
       expect(sanitizeUrl("javascript:alert('xss')")).toBe("");
       expect(sanitizeUrl("http://example.com")).toBe("http://example.com/");
+    });
+  });
+
+  describe("sanitizeFilename", () => {
+    it("strips CR/LF to prevent header injection", () => {
+      expect(sanitizeFilename('ok"\r\nSet-Cookie: evil=1')).toBe(
+        "okSet-Cookie evil=1"
+      );
+      expect(sanitizeFilename("a\nb\tc")).toBe("abc");
+    });
+
+    it("strips quotes, backslashes and path separators", () => {
+      expect(sanitizeFilename('a"b\\c/d:e*f?g<h>i|j')).toBe("abcdefghij");
+    });
+
+    it("collapses whitespace and trims trailing dots", () => {
+      expect(sanitizeFilename("  hello   world...  ")).toBe("hello world");
+    });
+
+    it("falls back when the result is empty", () => {
+      expect(sanitizeFilename('""')).toBe("download");
+      expect(sanitizeFilename("", "conversation")).toBe("conversation");
+    });
+
+    it("caps length at 100 characters", () => {
+      expect(sanitizeFilename("x".repeat(500)).length).toBe(100);
     });
   });
 });

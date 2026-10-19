@@ -91,3 +91,18 @@ export function truncate(input: string, maxLength: number): string {
   if (input.length <= maxLength) return input;
   return input.substring(0, maxLength - 3) + "...";
 }
+
+/**
+ * Sanitize an untrusted value for use as a Content-Disposition filename.
+ * Strips control characters (including CR/LF, preventing header injection),
+ * path separators and other reserved characters, and collapses whitespace.
+ */
+export function sanitizeFilename(input: string, fallback = "download"): string {
+  const cleaned = removeControlChars(String(input ?? ""))
+    .replace(/[\\/:*?"<>|]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\.+$/, "");
+  if (!cleaned) return fallback;
+  return cleaned.slice(0, 100);
+}
