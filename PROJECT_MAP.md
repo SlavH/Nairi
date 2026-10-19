@@ -25,14 +25,14 @@
 - ✅ `npm run test` — 388 passed / 2 skipped (54 файла) на Node 20 и Node 22.
   Прежние 2 FAIL из цикла 1 закрыты коммитом `3ce414f` (mock `@/lib/nairibook/zen`).
 - ✅ `npm run build` — успешен (Node 20 и Node 22, `ignoreBuildErrors: false`)
-- ❌ `npm run lint` — 1392 проблемы (1329 errors / 63 warnings), вне CI-гейта.
-  Доминируют `no-unused-vars` (674), `no-explicit-any` (458); реальные баги —
+- ❌ `npm run lint` — ~1356 errors / 63 warnings, вне CI-гейта.
+  Доминируют `no-unused-vars` (673), `no-explicit-any` (479); реальные баги —
   `rules-of-hooks` (25), `set-state-in-effect` (33), `purity` (22), `immutability` (11).
 - ❌ `npm run migrate:validate` — нет rollback-скриптов для многих миграций;
   дубль номера 25 (F41).
 - ⏳ e2e — не прогнан (нужны Supabase anon/service keys + тестовый пользователь).
-  Обнаружен дублирующий набор специй: `e2e/` (11 файлов) не подключён,
-  `playwright.config.ts` указывает `testDir: ./__tests__/e2e`.
+  Мёртвый дублирующий набор `e2e/` (11 файлов) удалён в цикле 3;
+  канонический набор — `__tests__/e2e/` (`playwright.config.ts` → `testDir: ./__tests__/e2e`).
 
 ## Известные открытые вопросы
 - Статус F11–F28 (Priority 2 аудита) не подтверждён коммитами/тестами
