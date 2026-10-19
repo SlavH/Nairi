@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { handleError } from "@/lib/errors/handler"
+import { purchaseAgentAtomic } from "@/lib/marketplace/purchase-atomic"
 import { stripe } from "@/lib/stripe"
 import { createClient } from "@/lib/supabase/server"
 
@@ -31,140 +32,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 })
     }
 
-    // Check if already owned
-    const { data: existingPurchase } = await supabase
-      .from("user_agents")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("agent_id", agentId)
-      .single()
+    // Free grants and credit purchases go through a single SECURITY DEFINER
+    // RPC (scripts/049_atomic_agent_purchase.sql): ownership check, credit
+    // deduction, purchase record, and creator payout happen in one atomic,
+    // idempotent transaction. No check-then-insert in the route (F36).
+    const isFree = agent.is_free || agent.price_cents === 0
 
-    if (existingPurchase) {
-      return NextResponse.json({ error: "You already own this agent" }, { status: 400 })
-    }
+    if (isFree || useCredits) {
+      const result = await purchaseAgentAtomic(supabase, user.id, agentId, !isFree)
 
-    // Free agents - just add to user
-    if (agent.is_free || agent.price_cents === 0) {
-      const { error: insertError } = await supabase
-        .from("user_agents")
-        .insert({
-          user_id: user.id,
-          agent_id: agentId,
-          purchased_at: new Date().toISOString()
-        })
-
-      if (insertError) {
-        return NextResponse.json({ error: "Failed to add agent" }, { status: 500 })
+      if (!result.ok) {
+        return NextResponse.json(result.body, { status: result.status })
       }
 
-      // Update agent usage count
-      await supabase
-        .from("agents")
-        .update({ usage_count: (agent.usage_count || 0) + 1 })
-        .eq("id", agentId)
-
-      return NextResponse.json({ 
-        success: true, 
-        message: "Agent added successfully",
-        agent 
-      })
-    }
-
-    // Handle credit purchase
-    if (useCredits) {
-      const creditCost = Math.ceil(agent.price_cents / 10) // 10 cents = 1 credit
-
-      // Check user's credit balance
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("tokens_balance")
-        .eq("id", user.id)
-        .single()
-
-      if (!profile || (profile.tokens_balance || 0) < creditCost) {
-        return NextResponse.json({ 
-          error: "Insufficient credits",
-          required: creditCost,
-          available: profile?.tokens_balance || 0
-        }, { status: 400 })
-      }
-
-      // Deduct credits and add agent in a transaction-like manner
-      const { error: deductError } = await supabase
-        .from("profiles")
-        .update({ 
-          tokens_balance: (profile.tokens_balance || 0) - creditCost,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", user.id)
-
-      if (deductError) {
-        return NextResponse.json({ error: "Failed to deduct credits" }, { status: 500 })
-      }
-
-      const { error: insertError } = await supabase
-        .from("user_agents")
-        .insert({
-          user_id: user.id,
-          agent_id: agentId,
-          purchased_at: new Date().toISOString(),
-          purchase_type: "credits",
-          credits_spent: creditCost
-        })
-
-      if (insertError) {
-        // Refund credits if agent add fails
-        await supabase
-          .from("profiles")
-          .update({ tokens_balance: profile.tokens_balance })
-          .eq("id", user.id)
-        
-        return NextResponse.json({ error: "Failed to add agent" }, { status: 500 })
-      }
-
-      // Record credit transaction
-      await supabase.from("credit_transactions").insert({
-        user_id: user.id,
-        amount: -creditCost,
-        type: "marketplace_purchase",
-        description: `Purchased agent: ${agent.name}`,
-        metadata: { agentId, agentName: agent.name }
-      })
-
-      // Update agent usage count
-      await supabase
-        .from("agents")
-        .update({ usage_count: (agent.usage_count || 0) + 1 })
-        .eq("id", agentId)
-
-      // Credit the creator (if not a system agent)
-      if (agent.creator_id) {
-        const creatorShare = Math.floor(creditCost * 0.7) // 70% to creator
-        const { data: creatorProfile } = await supabase
-          .from("profiles")
-          .select("tokens_balance")
-          .eq("id", agent.creator_id)
-          .single()
-        const newBalance = (creatorProfile?.tokens_balance ?? 0) + creatorShare
-        await supabase
-          .from("profiles")
-          .update({ tokens_balance: newBalance, updated_at: new Date().toISOString() })
-          .eq("id", agent.creator_id)
-
-        await supabase.from("credit_transactions").insert({
-          user_id: agent.creator_id,
-          amount: creatorShare,
-          type: "marketplace_sale",
-          description: `Sale of agent: ${agent.name}`,
-          metadata: { agentId, buyerId: user.id }
-        })
-      }
-
-      return NextResponse.json({ 
-        success: true, 
-        message: "Agent purchased with credits",
-        creditsSpent: creditCost,
-        agent 
+      return NextResponse.json({
+        success: true,
+        message: result.creditsSpent > 0 ? "Agent purchased with credits" : "Agent added successfully",
+        creditsSpent: result.creditsSpent,
+        newBalance: result.newBalance,
+        agent: result.agent ?? agent
       })
     }
 
