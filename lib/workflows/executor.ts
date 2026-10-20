@@ -77,11 +77,9 @@ export class WorkflowExecutor {
       throw new Error('Workflow execution disabled. Set NAIRI_ENABLE_WORKFLOW_EXEC=true to enable.')
     }
 
-    // Optional admin check - only allow execution if user has admin role
-    const triggerData = this.execution.triggerData
-    if (triggerData && triggerData.user && !triggerData.user.isAdmin && triggerData.user.role !== 'admin') {
-      throw new Error('Workflow execution requires admin privileges')
-    }
+    // NOTE: Authorization must be enforced at the API layer before
+    // constructing WorkflowExecutor. The executor does not trust
+    // client-supplied triggerData.user.role for access control.
 
     this.execution.status = 'running'
     this.execution.startTime = new Date()
@@ -461,8 +459,11 @@ export class WorkflowExecutor {
     const { language, code } = config
 
     if (language === 'javascript') {
-      // SECURITY: Use Node.js vm module for sandboxed execution
-      // new Function runs in global scope with access to process/require/fetch
+      // SECURITY NOTE: Node.js `vm` module is NOT a security boundary.
+      // Per Node.js docs, vm does not provide isolation from the host process.
+      // Code execution is gated behind NAIRI_ENABLE_WORKFLOW_EXEC and should
+      // only be enabled for trusted workflows. Consider running untrusted code
+      // in a separate sandboxed process or WebWorker instead.
       const { createContext, runInContext } = await import('vm')
       
       // Create a limited sandbox context

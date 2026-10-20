@@ -93,18 +93,18 @@ export function Artifact({ type, title, content, language = "javascript", onClos
     }
 
     if (type === "svg" && showPreview) {
-      // SECURITY: Sanitize SVG content before rendering
-      // Remove script tags, event handlers, and javascript: URLs
-      const sanitizedSvg = content
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
-        .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '') // Remove event handlers (onclick, onload, etc.)
-        .replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"') // Neutralize javascript: URLs
-        .replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src=""') // Neutralize javascript: in src
+      // SECURITY: Render SVG as an image via data URL instead of
+      // dangerouslySetInnerHTML. This prevents script execution,
+      // event handlers, and javascript: URLs from running in the page context.
+      const svgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(content)))}`
       
       return (
-        <div 
-          className="w-full h-full min-h-[200px] flex items-center justify-center bg-white rounded p-4"
-          dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
+        <img
+          src={svgDataUrl}
+          alt={title}
+          className="w-full h-full min-h-[200px] flex items-center justify-center bg-white rounded p-4 object-contain"
+          referrerPolicy="no-referrer"
+          loading="lazy"
         />
       )
     }
