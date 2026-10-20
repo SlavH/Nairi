@@ -81,6 +81,13 @@ export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+  // Auth bypass for development — return stub client so all pages work
+  // without needing valid Supabase credentials
+  if (process.env.DISABLE_AUTH === "true") {
+    browserClient = createStubClient() as unknown as ReturnType<typeof createBrowserClient>
+    return browserClient
+  }
+
   if (!url || !anonKey) {
     browserClient = createStubClient() as unknown as ReturnType<typeof createBrowserClient>
     return browserClient

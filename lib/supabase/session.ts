@@ -11,6 +11,9 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Auth bypass for development — skip auth checks and return a dev user
+  const authBypass = process.env.DISABLE_AUTH === "true"
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -45,9 +48,14 @@ export async function updateSession(request: NextRequest) {
       }, SESSION_TIMEOUT_MS)
     ),
   ])
-  const {
+  let {
     data: { user },
   } = userResult
+
+  // If auth bypass is enabled, force a dev user so protected routes are accessible
+  if (authBypass && !user) {
+    user = { id: "11111111-1111-1111-1111-111111111111", email: "dev@nairi.local" } as any
+  }
 
   // Protected routes - require authentication.
   const protectedRoutes = [

@@ -80,7 +80,7 @@ function applyAuthBypass(client: SupabaseClient): SupabaseClient {
 }
 
 export async function createClient(): Promise<SupabaseClient> {
-  if (AUTH_BYPASS_ENABLED && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+  if (AUTH_BYPASS_ENABLED) {
     return createStubClient()
   }
 
