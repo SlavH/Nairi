@@ -184,7 +184,7 @@ CREATE POLICY "Users can view own workspace folders" ON workspace_folders FOR SE
 CREATE POLICY "Users can manage own workspace folders" ON workspace_folders FOR ALL USING (auth.uid() = user_id);
 
 -- workspace_shares
-CREATE POLICY "Users can view own workspace shares" ON workspace_shares FOR SELECT USING (auth.uid() = user_id OR auth.uid() = shared_with_user_id);
+CREATE POLICY "Users can view own workspace shares" ON workspace_shares FOR SELECT USING (auth.uid() = shared_by OR auth.uid() = shared_with);
 CREATE POLICY "Users can create own workspace shares" ON workspace_shares FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- credit_transactions

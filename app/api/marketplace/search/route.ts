@@ -69,7 +69,21 @@ export async function GET(req: Request) {
       let productQuery = supabase
         .from("marketplace_products")
         .select(`
-          *,
+          id,
+          creator_id,
+          title,
+          description,
+          product_type,
+          price_cents,
+          category,
+          tags,
+          preview_content,
+          is_published,
+          purchase_count,
+          rating,
+          review_count,
+          created_at,
+          updated_at,
           creator:creator_id (
             display_name,
             avatar_url,

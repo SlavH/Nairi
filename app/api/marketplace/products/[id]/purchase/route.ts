@@ -109,7 +109,7 @@ export async function POST(
       await atomicIncrementCount(admin, productId)
 
       if (product.creator_id) {
-        const creatorShare = Math.floor(creditCost * 0.7)
+        const creatorShare = Math.floor(creditCost * 0.9)
         const { data: creatorProfile } = await supabase
           .from("creator_profiles")
           .select("user_id")

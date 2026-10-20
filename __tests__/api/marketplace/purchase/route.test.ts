@@ -172,7 +172,7 @@ describe("POST /api/marketplace/products/[id]/purchase", () => {
     expect(admin.tables.marketplace_products.updateValues).toHaveLength(5)
   })
 
-  it("credits purchase: debits balance, records transaction, credits creator 70%, increments count", async () => {
+  it("credits purchase: debits balance, records transaction, credits creator 90%, increments count", async () => {
     const { admin } = setup({ product: PRODUCT })
     const res = await POST(makeRequest({ useCredits: true }), {
       params: Promise.resolve({ id: PRODUCT_ID }),
@@ -198,11 +198,11 @@ describe("POST /api/marketplace/products/[id]/purchase", () => {
       type: "marketplace_purchase",
     })
 
-    // Creator gets floor(100 * 0.7) = 70 (starting from balance 0)
-    expect(balanceUpdates[1]).toMatchObject({ tokens_balance: 70 })
+    // Creator gets floor(100 * 0.9) = 90 (starting from balance 0)
+    expect(balanceUpdates[1]).toMatchObject({ tokens_balance: 90 })
     expect(txs[1]).toMatchObject({
       user_id: CREATOR_USER_ID,
-      amount: 70,
+      amount: 90,
       type: "marketplace_sale",
     })
 
@@ -217,7 +217,7 @@ describe("POST /api/marketplace/products/[id]/purchase", () => {
       params: Promise.resolve({ id: PRODUCT_ID }),
     })
     expect(res.status).toBe(200)
-    // cost = ceil(990/10) = 99, creator share = floor(99*0.7) = 69
+    // cost = ceil(990/10) = 99, creator share = floor(99*0.9) = 89
     expect(await res.json()).toEqual({
       success: true,
       message: "Purchased with credits",

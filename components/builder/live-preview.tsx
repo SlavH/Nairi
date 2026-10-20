@@ -737,7 +737,7 @@ export function LivePreview({
         </head>
         <body>
           <iframe 
-            sandbox="allow-scripts allow-forms allow-modals allow-popups"
+            sandbox="allow-scripts"
             src="${url}"
             referrerpolicy="no-referrer"
           ></iframe>

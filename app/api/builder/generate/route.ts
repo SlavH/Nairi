@@ -289,6 +289,12 @@ async function extractAllCSS(html: string, baseUrl: string): Promise<string> {
       cssUrl = `${base.origin}/${cssUrl}`
     }
     
+    // SSRF guard: validate CSS fetch target
+    if (!validateFetchTarget(cssUrl)) {
+      console.error(`[fetchCSS] Blocked SSRF attempt: ${cssUrl}`)
+      continue
+    }
+
     try {
       const cssResponse = await fetch(cssUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0' }

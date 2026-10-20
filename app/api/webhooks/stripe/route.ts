@@ -154,6 +154,43 @@ export async function POST(request: NextRequest) {
           })
           .eq("id", productId)
       }
+
+      // Pay creator 90% of sale
+      if (product?.creator_id) {
+        const creatorShare = Math.floor((session.amount_total ?? 0) * 0.9)
+        const { data: creatorProfile } = await supabase
+          .from("creator_profiles")
+          .select("user_id")
+          .eq("id", product.creator_id)
+          .single()
+        if (creatorProfile?.user_id) {
+          // Atomic credit adjustment with retry
+          for (let attempt = 0; attempt < 5; attempt++) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("tokens_balance")
+              .eq("id", creatorProfile.user_id)
+              .single()
+            const balance = profile?.tokens_balance ?? 0
+            const { error } = await supabase
+              .from("profiles")
+              .update({
+                tokens_balance: balance + creatorShare,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", creatorProfile.user_id)
+              .eq("tokens_balance", balance)
+            if (!error) break
+          }
+          await supabase.from("credit_transactions").insert({
+            user_id: creatorProfile.user_id,
+            amount: creatorShare,
+            type: "marketplace_sale",
+            description: `Stripe sale: ${product?.title}`,
+            metadata: { productId, buyerId: userId, amount_cents: creatorShare },
+          })
+        }
+      }
     }
   } else if (
     event.type === "customer.subscription.updated" ||

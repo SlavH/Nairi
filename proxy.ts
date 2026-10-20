@@ -110,13 +110,12 @@ export async function proxy(request: NextRequest) {
 
   // CSRF Protection: Validate origin for state-changing requests
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
-    const host = request.headers.get('host') || ''
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL
     const allowedOrigins = [
-      `https://${host}`,
-      `http://${host}`,
+      appUrl || '',
       'http://localhost:3000',
       'http://127.0.0.1:3000',
-    ]
+    ].filter(Boolean)
 
     const originValidation = validateOrigin(request, allowedOrigins)
 
