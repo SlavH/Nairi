@@ -1,7 +1,10 @@
 // Cache bust: 2026-08-13-csp-nonce-middleware
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  // output: "standalone" disabled for Vercel compatibility — standalone output is
+// for Docker/self-hosting; Vercel handles its own output format. Standalone
+// output can conflict with Vercel's NFT (Next.js Fastboot Trace) tracing in
+// Next.js 16 + Turbopack, causing "next-server.js.nft.json not found" errors.
 
   // TypeScript: type errors fail the build (F43). `tsc --noEmit` is clean;
   // hiding build-time type errors let real bugs reach production.
